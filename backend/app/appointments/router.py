@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Never
 
 from fastapi import APIRouter, Body, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -66,8 +66,11 @@ def set_working_hours(
     return crud.set_working_hours(db, hours_in=working_hours)
 
 
-@router.post("/recurring/", status_code=status.HTTP_501_NOT_IMPLEMENTED)
+@router.post("/recurring/", status_code=status.HTTP_501_NOT_IMPLEMENTED, response_model=None)
 def create_recurring_appointments(
-    series: schemas.RecurringSeriesCreate, db: Annotated[Session, Depends(get_db)]
-) -> NotImplementedError:
-    raise NotImplementedError("Recurring appointments creation is not yet implemented.")
+    series: schemas.RecurringSeriesCreate,  # noqa: ARG001
+    db: Annotated[Session, Depends(get_db)],  # noqa: ARG001
+) -> Never:
+    raise HTTPException(
+        status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="Recurring appointments creation is not yet implemented."
+    )

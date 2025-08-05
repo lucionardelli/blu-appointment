@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 
-from .appointments import router as appointments_router
-from .patients import router as patients_router
-from .specialties import router as specialties_router
-from .users import router as users_router
+from app.appointments.router import router as appointments_router
+from app.patients.router import router as patients_router
+from app.specialties.router import router as specialties_router
+from app.users.router import router as users_router
 
 app = FastAPI(
     title="Blu Appointment Manager",

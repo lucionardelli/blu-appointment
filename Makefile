@@ -1,6 +1,6 @@
 .EXPORT_ALL_VARIABLES:
 
-run:: .check-env
+run::
 	docker compose -f docker-compose.yml up -d
 
 down::
@@ -14,6 +14,9 @@ down-v::
 
 build::
 	docker compose build --parallel
+
+backend-test::
+	docker compose run --rm tests
 
 # db::
 # 	docker compose exec postgres psql -U dfdconsumerdb ebdb

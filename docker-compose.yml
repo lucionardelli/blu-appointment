@@ -15,7 +15,24 @@ services:
       # In a real scenario, this should be managed securely (e.g., via Docker secrets or a .env file)
       - SECRET_KEY=your_super_secret_key_for_jwt
       - FERNET_KEY=your_super_secret_key_for_encryption
-
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -s --max-time 5 localhost:8000 && exit 0 || exit 1" ]
+      interval: 15s
+      start_period: 5s
+      timeout: 5s
+      retries: 5
+  tests:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.test
+    command: python -m pytest tests
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - backend
+    environment:
+      - BACKEND_URL=http://backend:8000
+    restart: "no"
   frontend:
     build:
       context: ./frontend

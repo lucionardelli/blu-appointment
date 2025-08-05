@@ -11,14 +11,9 @@ RUN pip install uv
 COPY ./requirements.txt /app/requirements.txt
 RUN uv pip install --system --no-cache -r /app/requirements.txt
 
+# Copy and install the test-specific dependencies
+COPY ./requirements-test.txt /app/requirements-test.txt
+RUN uv pip install --system --no-cache -r /app/requirements-test.txt
+
 # Copy the rest of the backend application's source code from the host to the container
 COPY . /app
-
-# Make port 8000 available to the world outside this container
-EXPOSE 8000
-
-# Define environment variable
-ENV APP_MODULE="app.main:app"
-
-# Run uvicorn server
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
