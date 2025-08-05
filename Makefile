@@ -21,8 +21,8 @@ backend-test::
 backend-test-bash::
 	docker compose run tests /bin/bash
 
-# db::
-# 	docker compose exec postgres psql -U dfdconsumerdb ebdb
+db::
+	docker compose exec -it backend sqlite3 /app/db/blu.db
 
 backend-bash::
 	docker compose exec -ti backend bash

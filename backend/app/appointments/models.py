@@ -58,7 +58,7 @@ class Payment(Base):
     id = sa.Column(Integer, primary_key=True, index=True)
     amount = sa.Column(Numeric(10, 2), nullable=False)
     method = sa.Column(Enum(PaymentMethod), nullable=False)
-    payment_date = sa.Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
+    payment_date = sa.Column(DateTime, nullable=False, default=lambda: datetime.now(UTC))
 
     appointment_id = sa.Column(Integer, sa.ForeignKey("appointments.id"), nullable=False)
     appointment = relationship("Appointment", back_populates="payments")

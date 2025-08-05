@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, UTC
 
 import sqlalchemy as sa
 from sqlalchemy.orm import relationship
@@ -23,7 +23,9 @@ class SpecialtyPrice(Base):
 
     id = sa.Column(Integer, primary_key=True, index=True)
     price = sa.Column(Numeric(10, 2), nullable=False)
-    valid_from = sa.Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
+    valid_from = sa.Column(DateTime, nullable=False, default=lambda: datetime.now(UTC))
+
+
 
     specialty_id = sa.Column(Integer, sa.ForeignKey("specialties.id"), nullable=False)
     specialty = relationship("Specialty", back_populates="prices")
