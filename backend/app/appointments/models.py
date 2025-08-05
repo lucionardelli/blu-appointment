@@ -1,14 +1,18 @@
-import sqlalchemy as sa
-from sqlalchemy.orm import relationship
-from sqlalchemy.types import String, Integer, Numeric, DateTime, Enum, Time, Date, Boolean
-from app.db.base import Base
 import datetime
 import enum
+
+import sqlalchemy as sa
+from sqlalchemy.orm import relationship
+from sqlalchemy.types import Boolean, Date, DateTime, Enum, Integer, Numeric, Time
+
+from app.db.base import Base
+
 
 class AppointmentStatus(enum.Enum):
     SCHEDULED = "SCHEDULED"
     CANCELLED = "CANCELLED"
     RESCHEDULED = "RESCHEDULED"
+
 
 class PaymentMethod(enum.Enum):
     CASH = "CASH"
@@ -17,9 +21,11 @@ class PaymentMethod(enum.Enum):
     GIFT_CARD = "GIFT_CARD"
     PATIENT_CREDIT = "PATIENT_CREDIT"
 
+
 class RecurringFrequency(enum.Enum):
     WEEKLY = "WEEKLY"
     BIWEEKLY = "BIWEEKLY"
+
 
 class Appointment(Base):
     __tablename__ = "appointments"
@@ -45,6 +51,7 @@ class Appointment(Base):
 
     payments = relationship("Payment", back_populates="appointment", cascade="all, delete-orphan")
 
+
 class Payment(Base):
     __tablename__ = "payments"
 
@@ -56,16 +63,18 @@ class Payment(Base):
     appointment_id = sa.Column(Integer, sa.ForeignKey("appointments.id"), nullable=False)
     appointment = relationship("Appointment", back_populates="payments")
 
+
 class RecurringSeries(Base):
     __tablename__ = "recurring_series"
 
     id = sa.Column(Integer, primary_key=True, index=True)
     frequency = sa.Column(Enum(RecurringFrequency), nullable=False)
     start_date = sa.Column(Date, nullable=False)
-    end_date = sa.Column(Date, nullable=True) # Either end_date or number_of_appointments will be set
+    end_date = sa.Column(Date, nullable=True)  # Either end_date or number_of_appointments will be set
     number_of_appointments = sa.Column(Integer, nullable=True)
 
     appointments = relationship("Appointment", back_populates="recurring_series")
+
 
 class WorkingHours(Base):
     __tablename__ = "working_hours"

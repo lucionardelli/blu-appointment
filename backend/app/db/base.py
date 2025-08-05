@@ -1,22 +1,27 @@
-import os
+from collections.abc import Iterator
+from pathlib import Path
+
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.orm import Session, declarative_base, sessionmaker
+
 from app.core.config import settings
 
 # Ensure the database directory exists
-db_directory = os.path.dirname(settings.DATABASE_URL.replace("sqlite:///", ""))
-os.makedirs(db_directory, exist_ok=True)
+db_path = Path(settings.DATABASE_URL.replace("sqlite:///", ""))
+db_directory = db_path.parent
+db_directory.mkdir(parents=True, exist_ok=True)
 
 engine = create_engine(
-    settings.DATABASE_URL, 
-    connect_args={"check_same_thread": False} # Needed for SQLite
+    settings.DATABASE_URL,
+    connect_args={"check_same_thread": False},  # Needed for SQLite
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 
-def get_db():
+
+def get_db() -> Iterator[Session]:
     db = SessionLocal()
     try:
         yield db

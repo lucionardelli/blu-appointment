@@ -1,7 +1,8 @@
 import sqlalchemy as sa
-from sqlalchemy.orm import relationship
+from sqlalchemy.types import Date, Numeric, String, Text
+
 from app.db.base import Base
-from sqlalchemy.types import Date, String, Text, Numeric
+
 
 class Patient(Base):
     __tablename__ = "patients"

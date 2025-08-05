@@ -1,21 +1,26 @@
 from sqlalchemy.orm import Session
-from . import models, schemas
-from app.core.encryption import encrypt, decrypt
 
-def get_patient(db: Session, patient_id: int):
+from app.core.encryption import decrypt, encrypt
+
+from . import models, schemas
+
+
+def get_patient(db: Session, patient_id: int) -> models.Patient | None:
     db_patient = db.query(models.Patient).filter(models.Patient.id == patient_id).first()
     if db_patient and db_patient.encrypted_medical_history:
         db_patient.medical_history = decrypt(db_patient.encrypted_medical_history)
     return db_patient
 
-def get_patients(db: Session, skip: int = 0, limit: int = 100):
+
+def get_patients(db: Session, skip: int = 0, limit: int = 100) -> list[models.Patient]:
     patients = db.query(models.Patient).offset(skip).limit(limit).all()
     for p in patients:
         if p.encrypted_medical_history:
             p.medical_history = decrypt(p.encrypted_medical_history)
     return patients
 
-def create_patient(db: Session, patient: schemas.PatientCreate):
+
+def create_patient(db: Session, patient: schemas.PatientCreate) -> models.Patient:
     encrypted_history = encrypt(patient.medical_history) if patient.medical_history else None
 
     db_patient = models.Patient(
@@ -34,16 +39,17 @@ def create_patient(db: Session, patient: schemas.PatientCreate):
         db_patient.medical_history = decrypt(db_patient.encrypted_medical_history)
     return db_patient
 
-def update_patient(db: Session, patient_id: int, patient_update: schemas.PatientUpdate):
+
+def update_patient(db: Session, patient_id: int, patient_update: schemas.PatientUpdate) -> models.Patient | None:
     db_patient = db.query(models.Patient).filter(models.Patient.id == patient_id).first()
     if not db_patient:
         return None
 
     update_data = patient_update.model_dump(exclude_unset=True)
 
-    if 'medical_history' in update_data:
-        db_patient.encrypted_medical_history = encrypt(update_data['medical_history'])
-        del update_data['medical_history'] # Don't try to set this attribute on the model
+    if "medical_history" in update_data:
+        db_patient.encrypted_medical_history = encrypt(update_data["medical_history"])
+        del update_data["medical_history"]  # Don't try to set this attribute on the model
 
     for key, value in update_data.items():
         setattr(db_patient, key, value)
@@ -55,7 +61,8 @@ def update_patient(db: Session, patient_id: int, patient_update: schemas.Patient
         db_patient.medical_history = decrypt(db_patient.encrypted_medical_history)
     return db_patient
 
-def delete_patient(db: Session, patient_id: int):
+
+def delete_patient(db: Session, patient_id: int) -> models.Patient | None:
     db_patient = db.query(models.Patient).filter(models.Patient.id == patient_id).first()
     if db_patient:
         db.delete(db_patient)

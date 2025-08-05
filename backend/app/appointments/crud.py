@@ -1,28 +1,34 @@
+from datetime import datetime, timedelta
+
 from sqlalchemy.orm import Session
-from . import models, schemas
-from app.specialties.crud import get_current_price_for_specialty, get_specialty_by_id
+
 from app.patients.models import Patient
-from datetime import timedelta, datetime
+from app.specialties.crud import get_current_price_for_specialty, get_specialty_by_id
+
+from . import models, schemas
 
 
 def create_appointment(
-    db: Session, appointment_in: schemas.AppointmentCreate
+    db: Session,
+    appointment_in: schemas.AppointmentCreate,
 ) -> models.Appointment:
     specialty = get_specialty_by_id(db, appointment_in.specialty_id)
     if not specialty:
-        raise ValueError("Specialty not found")
+        msg = "Specialty not found"
+        raise ValueError(msg)
 
     cost = appointment_in.cost
     if cost is None:
         current_price = get_current_price_for_specialty(db, appointment_in.specialty_id)
         if current_price is None:
+            msg = "Cannot create appointment: Specialty has no price defined."
             raise ValueError(
-                "Cannot create appointment: Specialty has no price defined."
+                msg,
             )
         cost = current_price
 
     end_time = appointment_in.start_time + timedelta(
-        minutes=specialty.default_duration_minutes
+        minutes=specialty.default_duration_minutes,
     )
 
     db_appointment = models.Appointment(
@@ -40,11 +46,7 @@ def create_appointment(
 
 
 def cancel_appointment(db: Session, appointment_id: int) -> models.Appointment | None:
-    db_appointment = (
-        db.query(models.Appointment)
-        .filter(models.Appointment.id == appointment_id)
-        .first()
-    )
+    db_appointment = db.query(models.Appointment).filter(models.Appointment.id == appointment_id).first()
     if not db_appointment:
         return None
 
@@ -55,13 +57,11 @@ def cancel_appointment(db: Session, appointment_id: int) -> models.Appointment |
 
 
 def reschedule_appointment(
-    db: Session, appointment_id: int, new_start_time: datetime
+    db: Session,
+    appointment_id: int,
+    new_start_time: datetime,
 ) -> models.Appointment | None:
-    original_appointment = (
-        db.query(models.Appointment)
-        .filter(models.Appointment.id == appointment_id)
-        .first()
-    )
+    original_appointment = db.query(models.Appointment).filter(models.Appointment.id == appointment_id).first()
     if not original_appointment:
         return None
 
@@ -87,13 +87,11 @@ def reschedule_appointment(
 
 
 def add_payment(
-    db: Session, appointment_id: int, payment_in: schemas.PaymentCreate
+    db: Session,
+    appointment_id: int,
+    payment_in: schemas.PaymentCreate,
 ) -> models.Appointment | None:
-    db_appointment = (
-        db.query(models.Appointment)
-        .filter(models.Appointment.id == appointment_id)
-        .first()
-    )
+    db_appointment = db.query(models.Appointment).filter(models.Appointment.id == appointment_id).first()
     if not db_appointment:
         return None
 
@@ -106,9 +104,7 @@ def add_payment(
 
     # If patient credit was used, update the patient's balance
     if payment_in.method == models.PaymentMethod.PATIENT_CREDIT:
-        patient = (
-            db.query(Patient).filter(Patient.id == db_appointment.patient_id).first()
-        )
+        patient = db.query(Patient).filter(Patient.id == db_appointment.patient_id).first()
         if patient:
             patient.credit_balance -= payment_in.amount
 
@@ -125,7 +121,8 @@ def get_working_hours(db: Session) -> list[models.WorkingHours]:
 
 
 def set_working_hours(
-    db: Session, hours_in: list[schemas.WorkingHoursCreate]
+    db: Session,
+    hours_in: list[schemas.WorkingHoursCreate],
 ) -> list[models.WorkingHours]:
     # Clear existing hours
     db.query(models.WorkingHours).delete()

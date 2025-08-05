@@ -1,22 +1,26 @@
-from pydantic import BaseModel, EmailStr, Field
-from typing import Optional
 from datetime import date
 from decimal import Decimal
 
+from pydantic import BaseModel, EmailStr
+
+
 class PatientBase(BaseModel):
     name: str
-    dob: Optional[date] = None
-    medical_history: Optional[str] = None
-    contact_email: Optional[EmailStr] = None
-    contact_phone: Optional[str] = None
-    contact_address: Optional[str] = None
+    dob: date | None = None
+    medical_history: str | None = None
+    contact_email: EmailStr | None = None
+    contact_phone: str | None = None
+    contact_address: str | None = None
+
 
 class PatientCreate(PatientBase):
     pass
 
+
 class PatientUpdate(PatientBase):
     # All fields are optional for updates
-    name: Optional[str] = None
+    name: str | None = None
+
 
 class Patient(PatientBase):
     id: int

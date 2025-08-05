@@ -1,8 +1,11 @@
+import datetime
+
 import sqlalchemy as sa
 from sqlalchemy.orm import relationship
+from sqlalchemy.types import DateTime, Integer, Numeric, String
+
 from app.db.base import Base
-from sqlalchemy.types import String, Integer, Numeric, DateTime
-import datetime
+
 
 class Specialty(Base):
     __tablename__ = "specialties"

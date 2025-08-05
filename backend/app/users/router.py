@@ -1,13 +1,17 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.db import get_db
-from . import schemas, crud
+
+from . import crud, schemas
 
 router = APIRouter()
 
-@router.post("/", response_model=schemas.User, status_code=status.HTTP_201_CREATED)
-def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+
+@router.post("/", status_code=status.HTTP_201_CREATED)
+def create_user(user: schemas.UserCreate, db: Annotated[Session, Depends(get_db)]) -> schemas.User:
     db_user = crud.get_user_by_username(db, username=user.username)
     if db_user:
         raise HTTPException(

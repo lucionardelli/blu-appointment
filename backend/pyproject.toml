@@ -1,0 +1,68 @@
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+  "ALL",
+  "D211",  # no blank line before class docstring
+  "D212",  # summary line must be on the first line of a multi-line docstring
+  "I",  # isort, to check import order.
+  "B",  # flake8-bugbear, to find common bugs.
+  "W",  # pycodestyle warnings, which includes W291 and W292.
+  "E",  # pyflakes errors, which includes E501 (line too long).
+  "F",  # pyflakes errors, which includes F401 (unused import).
+]
+ignore = [
+  "F403",  # allow wildcard import
+
+  "D203",  # one-line docstring should fit on one line
+  "D213",  # multi-line docstring closing quotes should be on a separate line
+
+  "D100",  # missing docstring in public module
+  "D101",  # missing docstring in public class
+  "D102",  # missing docstring in public method
+  "D103",  # missing docstring in public function
+  "D104",  # missing docstring in public package
+  "D106",  # missing docstring in public method
+
+  "UP038",  # non-pep604-isinstance = This rule is deprecated!
+  "COM812", # absence of trailing commas. Conflicts with formatter, so we need to ignore it.
+  "EM101",  # Exception must not use a string literal,
+]
+fixable = ["ALL"]
+
+[tool.ruff.format]
+quote-style = "double"  # enforce single quotes
+indent-style = "space"  # makes formatting consistent
+skip-magic-trailing-comma = false  # limits unnecessary trailing commas
+
+[tool.ruff.lint.per-file-ignores]
+"backend/tests/**/*.py" = [
+  "S101",   # use of assert
+  "ARG001",   # unused function argument
+  "ANN201",   # missing type annotations for public function
+  "ANN202",   # missing return type annotation for private function
+  "PLR2004",  # magic value used in comparison
+  "D100",   # missing docstring in public module
+  "D101",   # missing docstring in public class
+  "D103",   # missing docstring in public function
+  "D104",   # missing docstring in public package
+  "D205",   # blank line required between summary and description
+]
+"backend/alembic/**/*.py" = [
+  "E402",  # Module level import not at top of file
+   "INP001", # implicit namespace package
+]
+"**/__init__.py" = ["F401"]  # allow unused imports in __init__.py files
+
+
+[tool.ruff.lint.isort]
+combine-as-imports = false
+section-order = [
+  "future",
+  "standard-library",
+  "third-party",
+  "first-party",
+  "local-folder",
+]
