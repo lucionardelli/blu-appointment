@@ -1,0 +1,31 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Docker
+.dockerignore
+Dockerfile*
+docker-compose.yml
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+celerybeat-schedule
+
+# Node
+node_modules/
+npm-debug.log
+.npm
+
+# Editor/OS
+.idea/
+.vscode/
+.DS_Store
+*.swp

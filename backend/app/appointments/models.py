@@ -1,0 +1,78 @@
+import sqlalchemy as sa
+from sqlalchemy.orm import relationship
+from sqlalchemy.types import String, Integer, Numeric, DateTime, Enum, Time, Date, Boolean
+from app.db.base import Base
+import datetime
+import enum
+
+class AppointmentStatus(enum.Enum):
+    SCHEDULED = "SCHEDULED"
+    CANCELLED = "CANCELLED"
+    RESCHEDULED = "RESCHEDULED"
+
+class PaymentMethod(enum.Enum):
+    CASH = "CASH"
+    CREDIT_CARD = "CREDIT_CARD"
+    MERCADOPAGO = "MERCADOPAGO"
+    GIFT_CARD = "GIFT_CARD"
+    PATIENT_CREDIT = "PATIENT_CREDIT"
+
+class RecurringFrequency(enum.Enum):
+    WEEKLY = "WEEKLY"
+    BIWEEKLY = "BIWEEKLY"
+
+class Appointment(Base):
+    __tablename__ = "appointments"
+
+    id = sa.Column(Integer, primary_key=True, index=True)
+    start_time = sa.Column(DateTime, nullable=False)
+    end_time = sa.Column(DateTime, nullable=False)
+    cost = sa.Column(Numeric(10, 2), nullable=False)
+    status = sa.Column(Enum(AppointmentStatus), nullable=False, default=AppointmentStatus.SCHEDULED)
+
+    patient_id = sa.Column(Integer, sa.ForeignKey("patients.id"), nullable=False)
+    patient = relationship("Patient")
+
+    specialty_id = sa.Column(Integer, sa.ForeignKey("specialties.id"), nullable=False)
+    specialty = relationship("Specialty", back_populates="appointments")
+
+    # For rescheduling
+    rescheduled_to_appointment_id = sa.Column(Integer, sa.ForeignKey("appointments.id"), nullable=True)
+
+    # For recurring appointments
+    recurring_series_id = sa.Column(Integer, sa.ForeignKey("recurring_series.id"), nullable=True)
+    recurring_series = relationship("RecurringSeries", back_populates="appointments")
+
+    payments = relationship("Payment", back_populates="appointment", cascade="all, delete-orphan")
+
+class Payment(Base):
+    __tablename__ = "payments"
+
+    id = sa.Column(Integer, primary_key=True, index=True)
+    amount = sa.Column(Numeric(10, 2), nullable=False)
+    method = sa.Column(Enum(PaymentMethod), nullable=False)
+    payment_date = sa.Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
+
+    appointment_id = sa.Column(Integer, sa.ForeignKey("appointments.id"), nullable=False)
+    appointment = relationship("Appointment", back_populates="payments")
+
+class RecurringSeries(Base):
+    __tablename__ = "recurring_series"
+
+    id = sa.Column(Integer, primary_key=True, index=True)
+    frequency = sa.Column(Enum(RecurringFrequency), nullable=False)
+    start_date = sa.Column(Date, nullable=False)
+    end_date = sa.Column(Date, nullable=True) # Either end_date or number_of_appointments will be set
+    number_of_appointments = sa.Column(Integer, nullable=True)
+
+    appointments = relationship("Appointment", back_populates="recurring_series")
+
+class WorkingHours(Base):
+    __tablename__ = "working_hours"
+
+    id = sa.Column(Integer, primary_key=True, index=True)
+    # 0 = Monday, 6 = Sunday
+    day_of_week = sa.Column(Integer, nullable=False, unique=True)
+    start_time = sa.Column(Time)
+    end_time = sa.Column(Time)
+    is_closed = sa.Column(Boolean, default=False)
