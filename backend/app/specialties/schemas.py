@@ -1,7 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class SpecialtyPriceBase(BaseModel):
@@ -16,8 +16,7 @@ class SpecialtyPrice(SpecialtyPriceBase):
     id: int
     valid_from: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class SpecialtyBase(BaseModel):
@@ -38,5 +37,4 @@ class Specialty(SpecialtyBase):
     id: int
     prices: list[SpecialtyPrice] = []
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

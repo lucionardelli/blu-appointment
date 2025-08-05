@@ -18,8 +18,12 @@ build::
 backend-test::
 	docker compose run --rm tests
 
+backend-test-bash::
+	docker compose run tests /bin/bash
+
 # db::
 # 	docker compose exec postgres psql -U dfdconsumerdb ebdb
+
 backend-bash::
 	docker compose exec -ti backend bash
 
@@ -34,11 +38,6 @@ frontend-logs::
 
 celery-logs::
 	docker compose logs -f celery-worker --tail 100
-
-## Running tests inside Docker
-
-test::
-	docker compose exec -e TESTING=1 -ti backend python -m pytests tests
 
 migration::
 	docker compose exec -ti backend bash -c "alembic revision --autogenerate -m $(message)"

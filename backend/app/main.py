@@ -1,14 +1,23 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
+from app.db.base import Base, engine
 
 from app.appointments.router import router as appointments_router
 from app.patients.router import router as patients_router
 from app.specialties.router import router as specialties_router
 from app.users.router import router as users_router
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    Base.metadata.create_all(bind=engine)
+    yield
+
+
 app = FastAPI(
     title="Blu Appointment Manager",
     description="API for managing appointments, patients, and payments.",
     version="0.1.0",
+    lifespan=lifespan,
 )
 
 

@@ -1,7 +1,7 @@
 from datetime import date
 from decimal import Decimal
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr
 
 
 class PatientBase(BaseModel):
@@ -26,5 +26,4 @@ class Patient(PatientBase):
     id: int
     credit_balance: Decimal
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

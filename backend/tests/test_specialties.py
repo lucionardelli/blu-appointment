@@ -18,7 +18,7 @@ def test_create_specialty(client: TestClient, db_session: Session):
     data = response.json()
     assert data["name"] == "Psychology"
     assert len(data["prices"]) == 1
-    assert data["prices"][0]["price"] == 100.00
+    assert data["prices"][0]["price"] == "100.00"
 
 
 def test_read_specialties(client: TestClient, db_session: Session):
@@ -72,4 +72,4 @@ def test_add_new_specialty_price(client: TestClient, db_session: Session):
 
     # Check that the new price is the latest one
     prices = sorted(data["prices"], key=lambda x: x["valid_from"], reverse=True)
-    assert prices[0]["price"] == 80.00
+    assert prices[0]["price"] == "80.00"

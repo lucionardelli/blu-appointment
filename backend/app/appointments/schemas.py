@@ -1,12 +1,11 @@
 from datetime import date, datetime, time
 from decimal import Decimal
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from .models import AppointmentStatus, PaymentMethod, RecurringFrequency
 
 
-# --- Payment Schemas ---
 class PaymentBase(BaseModel):
     amount: Decimal = Field(..., gt=0)
     method: PaymentMethod
@@ -20,11 +19,9 @@ class Payment(PaymentBase):
     id: int
     payment_date: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
-# --- Appointment Schemas ---
 class AppointmentBase(BaseModel):
     start_time: datetime
     patient_id: int
@@ -52,11 +49,9 @@ class Appointment(AppointmentBase):
     status: AppointmentStatus
     payments: list[Payment] = []
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
-# --- Recurring Series Schemas ---
 class RecurringSeriesCreate(BaseModel):
     patient_id: int
     specialty_id: int
@@ -78,7 +73,6 @@ class RecurringSeriesCreate(BaseModel):
         return self
 
 
-# --- Working Hours Schemas ---
 class WorkingHoursBase(BaseModel):
     day_of_week: int = Field(..., ge=0, le=6)
     start_time: time | None = None
@@ -99,5 +93,4 @@ class WorkingHoursUpdate(BaseModel):
 class WorkingHours(WorkingHoursBase):
     id: int
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

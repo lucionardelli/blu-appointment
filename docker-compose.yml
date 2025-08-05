@@ -9,9 +9,11 @@ services:
       - ./backend/app:/app/app
       - ./backend/tests:/app/tests
       - ./backend/pytest.ini:/app/pytest.ini
+      - ./backend/db:/app/db
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     environment:
-      - DATABASE_URL=sqlite:///./blu.db
+      - PYTHONPATH=/app
+      - DATABASE_URL=sqlite:///db/blu.db
       # In a real scenario, this should be managed securely (e.g., via Docker secrets or a .env file)
       - SECRET_KEY=your_super_secret_key_for_jwt
       - FERNET_KEY=your_super_secret_key_for_encryption
@@ -28,6 +30,7 @@ services:
     command: python -m pytest tests
     volumes:
       - ./backend:/app
+      - ./backend/db:/app/db
     depends_on:
       - backend
     environment:
