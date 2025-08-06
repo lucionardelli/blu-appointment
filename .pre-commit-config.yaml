@@ -10,3 +10,12 @@ repos:
     -   id: debug-statements
     -   id: mixed-line-ending
         args: ["--fix=lf"]
+-   repo: local
+    hooks:
+    -   id: frontend-lint-format
+        name: Frontend Lint & Format
+        entry: bash -c 'cd frontend && npx lint-staged'
+        language: system
+        files: ^frontend/
+        types: [file]
+        pass_filenames: false
