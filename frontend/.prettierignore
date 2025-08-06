@@ -1,0 +1,30 @@
+# Ignore artifacts
+build
+dist
+
+# Ignore development-related files
+*.log
+.env
+.env.local
+.env.*.local
+
+# Ignore Node.js dependencies
+node_modules
+
+# Ignore Vue-specific files
+*.local
+*.vue.d.ts
+
+# Ignore editor/IDE files
+.vscode
+.idea
+
+# Ignore test coverage
+coverage
+
+# Ignore generated files
+*.css.map
+*.js.map
+
+# Ignore specific files
+package-lock.json

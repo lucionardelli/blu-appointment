@@ -137,3 +137,6 @@ build/
 
 # VS Code
 .vscode/
+
+# Vite
+.vite/
