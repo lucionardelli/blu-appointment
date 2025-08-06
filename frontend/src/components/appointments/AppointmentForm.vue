@@ -43,72 +43,83 @@
             </p>
           </div>
         </div>
-        <div>
-          <label for="specialty" class="block text-sm font-medium text-gray-700"
-            >Specialty</label
-          >
-          <select
-            id="specialty"
-            v-model="appointment.specialty_id"
-            required
-            class="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-          >
-            <option
-              v-for="specialty in specialties"
-              :key="specialty.id"
-              :value="specialty.id"
+        <div class="grid grid-cols-2 gap-6">
+          <div>
+            <label
+              for="specialty"
+              class="block text-sm font-medium text-gray-700"
+              >Specialty</label
             >
-              {{ specialty.name }}
-            </option>
-          </select>
+            <select
+              id="specialty"
+              v-model="appointment.specialty_id"
+              required
+              class="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+            >
+              <option
+                v-for="specialty in specialties"
+                :key="specialty.id"
+                :value="specialty.id"
+              >
+                {{ specialty.name }}
+              </option>
+            </select>
+          </div>
+          <div>
+            <label for="price" class="block text-sm font-medium text-gray-700"
+              >Price</label
+            >
+            <input
+              id="price"
+              v-model="appointment.price"
+              type="number"
+              step="500"
+              required
+              class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+            />
+          </div>
         </div>
-        <div>
-          <label
-            for="start_time"
-            class="block text-sm font-medium text-gray-700"
-            >Start Time</label
-          >
-          <input
-            id="start_time"
-            v-model="appointment.start_time"
-            type="datetime-local"
-            required
-            class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-            @change="checkAvailability"
-          />
-          <p v-if="doubleBookingWarning" class="mt-2 text-sm text-yellow-600">
-            {{ doubleBookingWarning }}
-          </p>
-          <p
-            v-if="outsideWorkingHoursWarning"
-            class="mt-2 text-sm text-yellow-600"
-          >
-            {{ outsideWorkingHoursWarning }}
-          </p>
-        </div>
-        <div>
-          <label for="end_time" class="block text-sm font-medium text-gray-700"
-            >End Time</label
-          >
-          <input
-            id="end_time"
-            v-model="appointment.end_time"
-            type="datetime-local"
-            required
-            class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-          />
-        </div>
-        <div>
-          <label for="price" class="block text-sm font-medium text-gray-700"
-            >Price</label
-          >
-          <input
-            id="price"
-            v-model="appointment.price"
-            type="number"
-            required
-            class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-          />
+        <div class="grid grid-cols-2 gap-6">
+          <div>
+            <label
+              for="start_time"
+              class="block text-sm font-medium text-gray-700"
+              >Start Time</label
+            >
+            <input
+              id="start_time"
+              v-model="appointment.start_time"
+              type="datetime-local"
+              required
+              step="900"
+              class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+              @change="checkAvailability"
+            />
+            <p v-if="doubleBookingWarning" class="mt-2 text-sm text-yellow-600">
+              {{ doubleBookingWarning }}
+            </p>
+            <p
+              v-if="outsideWorkingHoursWarning"
+              class="mt-2 text-sm text-yellow-600"
+            >
+              {{ outsideWorkingHoursWarning }}
+            </p>
+          </div>
+          <div>
+            <label
+              for="end_time"
+              class="block text-sm font-medium text-gray-700"
+              >End Time</label
+            >
+            <input
+              id="end_time"
+              v-model="appointment.end_time"
+              type="datetime-local"
+              required
+              step="900"
+              class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+            />
+          </div>
         </div>
       </div>
       <div class="flex justify-end mt-6">
@@ -150,6 +161,7 @@ const specialties = ref([]);
 const patientSnippet = ref(null);
 const doubleBookingWarning = ref(null);
 const outsideWorkingHoursWarning = ref(null);
+const endTimeWarning = ref(null);
 const workingHours = ref({ start: "09:00", end: "18:00" }); // Placeholder
 
 const isNew = computed(() => !route.params.id);
@@ -197,16 +209,21 @@ const fetchSpecialties = async () => {
 watch(
   () => appointment.value.specialty_id,
   (newVal) => {
-    if (newVal && appointment.value.start_time) {
+    if (newVal) {
       const selectedSpecialty = specialties.value.find((s) => s.id === newVal);
-      if (selectedSpecialty && selectedSpecialty.default_duration) {
-        const startTime = new Date(appointment.value.start_time);
-        const endTime = addMinutes(
-          startTime,
-          selectedSpecialty.default_duration,
-        );
-        appointment.value.end_time = format(endTime, "yyyy-MM-ddTHH:mm");
-        appointment.value.price = selectedSpecialty.price; // Set default price
+      if (selectedSpecialty) {
+        appointment.value.price = selectedSpecialty.current_price;
+        if (
+          appointment.value.start_time &&
+          selectedSpecialty.default_duration
+        ) {
+          const startTime = new Date(appointment.value.start_time);
+          const endTime = addMinutes(
+            startTime,
+            selectedSpecialty.default_duration,
+          );
+          appointment.value.end_time = format(endTime, "yyyy-MM-dd'T'HH:mm");
+        }
       }
     }
   },
@@ -215,17 +232,39 @@ watch(
 watch(
   () => appointment.value.start_time,
   (newVal) => {
-    if (newVal && appointment.value.specialty_id) {
-      const selectedSpecialty = specialties.value.find(
-        (s) => s.id === appointment.value.specialty_id,
-      );
-      if (selectedSpecialty && selectedSpecialty.default_duration) {
-        const startTime = new Date(newVal);
-        const endTime = addMinutes(
-          startTime,
-          selectedSpecialty.default_duration,
+    if (newVal) {
+      const parsedStartTime = new Date(newVal);
+      if (appointment.value.specialty_id) {
+        const selectedSpecialty = specialties.value.find(
+          (s) => s.id === appointment.value.specialty_id,
         );
-        appointment.value.end_time = format(endTime, "yyyy-MM-ddTHH:mm");
+        if (selectedSpecialty && selectedSpecialty.default_duration) {
+          const endTime = addMinutes(
+            parsedStartTime,
+            selectedSpecialty.default_duration,
+          );
+          appointment.value.end_time = format(endTime, "yyyy-MM-dd'T'HH:mm");
+        }
+      }
+    }
+  },
+);
+
+watch(
+  () => appointment.value.end_time,
+  (newVal) => {
+    endTimeWarning.value = null;
+    if (newVal && appointment.value.start_time) {
+      const parsedStartTime = new Date(appointment.value.start_time);
+      const parsedEndTime = new Date(newVal);
+      if (
+        parsedStartTime === "Invalid Date" ||
+        parsedEndTime === "Invalid Date"
+      ) {
+        endTimeWarning.value = "Please enter valid start and end times.";
+      }
+      if (parsedEndTime <= parsedStartTime) {
+        endTimeWarning.value = "End time must be after start time.";
       }
     }
   },
