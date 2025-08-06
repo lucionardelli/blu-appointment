@@ -30,7 +30,7 @@ def read_specialties(
 
 @router.get("/{specialty_id}", response_model=schemas.Specialty)
 def read_specialty(specialty_id: int, db: Annotated[Session, Depends(get_db)]) -> schemas.Specialty:
-    db_specialty = crud.get_specialty(db, specialty_id=specialty_id)
+    db_specialty = crud.get_specialty_by_id(db, specialty_id=specialty_id)
     if db_specialty is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Specialty not found")
     return db_specialty
@@ -47,6 +47,15 @@ def update_specialty(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Specialty not found")
     return db_specialty
 
+@router.get("/{specialty_id}/prices", response_model=list[schemas.SpecialtyPrice])
+def read_specialty_prices(
+    specialty_id: int,
+    db: Annotated[Session, Depends(get_db)],
+) -> list[schemas.SpecialtyPrice]:
+    db_specialty_prices = crud.get_specialty_prices(db, specialty_id=specialty_id)
+    if db_specialty_prices is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Specialty not found")
+    return db_specialty_prices
 
 @router.post("/{specialty_id}/prices", response_model=schemas.Specialty)
 def add_new_specialty_price(

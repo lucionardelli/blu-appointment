@@ -31,7 +31,7 @@ bash::
 	docker compose exec -ti backend bash
 
 logs::
-	docker compose logs --tail 100
+	docker compose logs -f backend --tail 100
 
 migration::
 	docker compose exec -ti backend bash -c "alembic revision --autogenerate -m $(message)"

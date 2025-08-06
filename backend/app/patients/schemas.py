@@ -8,9 +8,10 @@ class PatientBase(BaseModel):
     name: str
     dob: date | None = None
     medical_history: str | None = None
-    contact_email: EmailStr | None = None
-    contact_phone: str | None = None
-    contact_address: str | None = None
+    email: EmailStr | None = None
+    cellphone: str | None = None
+    phone: str | None = None
+    address: str | None = None
 
 
 class PatientCreate(PatientBase):

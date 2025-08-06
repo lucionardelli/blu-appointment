@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app.core.encryption import decrypt, encrypt
 
 from . import models, schemas
+from app.appointments.models import Appointment
 
 
 def get_patient(db: Session, patient_id: int) -> models.Patient | None:
@@ -20,6 +21,23 @@ def get_patients(db: Session, skip: int = 0, limit: int = 100) -> list[models.Pa
     return patients
 
 
+def get_patient_appointments(
+    db: Session, patient_id: int, skip: int = 0, limit: int = 100
+) -> list[Appointment]:
+    db_patient = db.query(models.Patient).filter(models.Patient.id == patient_id).first()
+    if not db_patient:
+        return []
+
+    appointments = (
+        db.query(Appointment)
+        .filter(Appointment.patient_id == patient_id)
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+    return appointments
+
+
 def create_patient(db: Session, patient: schemas.PatientCreate) -> models.Patient:
     encrypted_history = encrypt(patient.medical_history) if patient.medical_history else None
 
@@ -27,9 +45,9 @@ def create_patient(db: Session, patient: schemas.PatientCreate) -> models.Patien
         name=patient.name,
         dob=patient.dob,
         encrypted_medical_history=encrypted_history,
-        contact_email=patient.contact_email,
-        contact_phone=patient.contact_phone,
-        contact_address=patient.contact_address,
+        email=patient.email,
+        phone=patient.phone,
+        address=patient.address,
     )
     db.add(db_patient)
     db.commit()

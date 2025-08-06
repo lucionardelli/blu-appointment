@@ -20,6 +20,15 @@ def create_appointment(
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
 
+@router.get("/", response_model=list[schemas.Appointment], status_code=status.HTTP_200_OK)
+def get_appointments(
+    db: Annotated[Session, Depends(get_db)],
+    skip: int = 0,
+    limit: int = 100,
+    user_id: int | None = None,
+    status: list[schemas.AppointmentStatus] | None = None,
+) -> list[schemas.Appointment]:
+    return crud.get_appointments(db=db, skip=skip, limit=limit, user_id=user_id, status=status)
 
 @router.patch("/{appointment_id}/cancel", response_model=schemas.Appointment)
 def cancel_appointment(appointment_id: int, db: Annotated[Session, Depends(get_db)]) -> schemas.Appointment:

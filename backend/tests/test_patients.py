@@ -12,18 +12,18 @@ def test_create_patient(client: TestClient, db_session: Session):
             "name": "John Doe",
             "dob": "1990-01-01",
             "medical_history": "Initial consultation.",
-            "contact_email": "john.doe@example.com",
+            "email": "john.doe@example.com",
         },
     )
     assert response.status_code == status.HTTP_201_CREATED
     data = response.json()
     assert data["name"] == "John Doe"
-    assert data["contact_email"] == "john.doe@example.com"
+    assert data["email"] == "john.doe@example.com"
     assert "id" in data
 
 
 def test_read_patients(client: TestClient, db_session: Session):
-    patient_data = patient_schemas.PatientCreate(name="Jane Doe", contact_email="jane.doe@example.com")
+    patient_data = patient_schemas.PatientCreate(name="Jane Doe", email="jane.doe@example.com")
     patient_crud.create_patient(db_session, patient_data)
 
     response = client.get("/api/v1/patients/")
@@ -34,7 +34,7 @@ def test_read_patients(client: TestClient, db_session: Session):
 
 
 def test_read_patient(client: TestClient, db_session: Session):
-    patient_data = patient_schemas.PatientCreate(name="Jim Doe", contact_email="jim.doe@example.com")
+    patient_data = patient_schemas.PatientCreate(name="Jim Doe", email="jim.doe@example.com")
     patient = patient_crud.create_patient(db_session, patient_data)
 
     response = client.get(f"/api/v1/patients/{patient.id}")
@@ -45,7 +45,7 @@ def test_read_patient(client: TestClient, db_session: Session):
 
 
 def test_update_patient(client: TestClient, db_session: Session):
-    patient_data = patient_schemas.PatientCreate(name="Jill Doe", contact_email="jill.doe@example.com")
+    patient_data = patient_schemas.PatientCreate(name="Jill Doe", email="jill.doe@example.com")
     patient = patient_crud.create_patient(db_session, patient_data)
 
     response = client.put(
@@ -55,11 +55,11 @@ def test_update_patient(client: TestClient, db_session: Session):
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
     assert data["name"] == "Jill Smith"
-    assert data["contact_email"] == "jill.doe@example.com"
+    assert data["email"] == "jill.doe@example.com"
 
 
 def test_delete_patient(client: TestClient, db_session: Session):
-    patient_data = patient_schemas.PatientCreate(name="Jack Doe", contact_email="jack.doe@example.com")
+    patient_data = patient_schemas.PatientCreate(name="Jack Doe", email="jack.doe@example.com")
     patient = patient_crud.create_patient(db_session, patient_data)
 
     response = client.delete(f"/api/v1/patients/{patient.id}")

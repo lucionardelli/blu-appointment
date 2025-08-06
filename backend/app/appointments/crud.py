@@ -82,8 +82,26 @@ def reschedule_appointment(
 
     return new_appointment
 
+def get_appointments(
+    db: Session,
+    skip: int = 0,
+    limit: int = 100,
+    user_id: int | None = None,
+    status: list[models.AppointmentStatus] | None = None,
+) -> list[models.Appointment]:
+    base_query = db.query(models.Appointment)
+    if user_id is not None:
+        base_query = base_query.filter(models.Appointment.patient_id == user_id)
+    if status is not None:
+        base_query = base_query.filter(models.Appointment.status.in_(status))
 
-# --- Payment CRUD ---
+    return (
+        base_query
+        .order_by(models.Appointment.start_time)
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
 
 
 def add_payment(

@@ -28,11 +28,11 @@ def create_specialty(db: Session, specialty: schemas.SpecialtyCreate) -> models.
     db.refresh(db_specialty)
 
     # Create the initial price entry
-    initial_price = models.SpecialtyPrice(
-        price=specialty.initial_price,
+    current_price = models.SpecialtyPrice(
+        price=specialty.current_price,
         specialty_id=db_specialty.id,
     )
-    db.add(initial_price)
+    db.add(current_price)
     db.commit()
     db.refresh(db_specialty)  # Refresh again to load the new price relationship
 
@@ -53,6 +53,19 @@ def update_specialty(
     db.commit()
     db.refresh(db_specialty)
     return db_specialty
+
+
+def get_specialty_prices(db: Session, specialty_id: int) -> list[models.SpecialtyPrice] | None:
+    db_specialty = get_specialty_by_id(db, specialty_id)
+    if not db_specialty:
+        return None
+
+    return (
+        db.query(models.SpecialtyPrice)
+        .filter(models.SpecialtyPrice.specialty_id == specialty_id)
+        .order_by(desc(models.SpecialtyPrice.valid_from))
+        .all()
+    )
 
 
 def add_specialty_price(

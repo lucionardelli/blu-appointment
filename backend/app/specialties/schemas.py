@@ -22,15 +22,16 @@ class SpecialtyPrice(SpecialtyPriceBase):
 class SpecialtyBase(BaseModel):
     name: str
     default_duration_minutes: int = Field(..., gt=0)
+    current_price: Decimal | None
 
 
-class SpecialtyCreate(SpecialtyBase):
-    initial_price: Decimal = Field(..., gt=0)
+class SpecialtyCreate(SpecialtyBase): ...
 
 
 class SpecialtyUpdate(BaseModel):
     name: str | None = None
     default_duration_minutes: int | None = Field(None, gt=0)
+    current_price: Decimal | None = Field(None, gt=0)
 
 
 class Specialty(SpecialtyBase):

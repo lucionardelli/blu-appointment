@@ -1,8 +1,9 @@
-from app.specialties import crud as specialty_crud
-from app.specialties import schemas as specialty_schemas
 from fastapi import status
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
+
+from app.specialties import crud as specialty_crud
+from app.specialties import schemas as specialty_schemas
 
 
 def test_create_specialty(client: TestClient, db_session: Session):
@@ -11,7 +12,7 @@ def test_create_specialty(client: TestClient, db_session: Session):
         json={
             "name": "Psychology",
             "default_duration_minutes": 45,
-            "initial_price": 100.00,
+            "current_price": 100.00,
         },
     )
     assert response.status_code == status.HTTP_201_CREATED
@@ -25,7 +26,7 @@ def test_read_specialties(client: TestClient, db_session: Session):
     specialty_data = specialty_schemas.SpecialtyCreate(
         name="BluRoom",
         default_duration_minutes=20,
-        initial_price=50.00,
+        current_price=50.00,
     )
     specialty_crud.create_specialty(db_session, specialty_data)
 
@@ -34,13 +35,15 @@ def test_read_specialties(client: TestClient, db_session: Session):
     data = response.json()
     assert len(data) > 0
     assert data[0]["name"] == "BluRoom"
+    assert data[0]["default_duration_minutes"] == 20
+    assert data[0]["current_price"] == "50.00"
 
 
 def test_update_specialty(client: TestClient, db_session: Session):
     specialty_data = specialty_schemas.SpecialtyCreate(
         name="Therapy",
         default_duration_minutes=60,
-        initial_price=120.00,
+        current_price=120.00,
     )
     specialty = specialty_crud.create_specialty(db_session, specialty_data)
 
@@ -58,7 +61,7 @@ def test_add_new_specialty_price(client: TestClient, db_session: Session):
     specialty_data = specialty_schemas.SpecialtyCreate(
         name="Consultation",
         default_duration_minutes=30,
-        initial_price=75.00,
+        current_price=75.00,
     )
     specialty = specialty_crud.create_specialty(db_session, specialty_data)
 

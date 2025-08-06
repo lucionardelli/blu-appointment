@@ -10,6 +10,7 @@ from app.db.base import Base
 
 class AppointmentStatus(enum.Enum):
     SCHEDULED = "SCHEDULED"
+    COMPLETED = "COMPLETED"
     CANCELLED = "CANCELLED"
     RESCHEDULED = "RESCHEDULED"
 
