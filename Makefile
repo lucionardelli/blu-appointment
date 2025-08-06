@@ -1,16 +1,19 @@
 .EXPORT_ALL_VARIABLES:
 
 run::
-	docker compose -f docker-compose.yml up -d
+	docker compose up -d
+
+restart::
+	docker compose restart
 
 down::
-	docker compose -f docker-compose.yml down
+	docker compose down
 
 stop::
-	docker compose -f docker-compose.yml stop
+	docker compose stop
 
 down-v::
-	docker compose -f docker-compose.yml down -v
+	docker compose down -v
 
 build::
 	docker compose build --parallel

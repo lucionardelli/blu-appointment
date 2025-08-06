@@ -3,6 +3,9 @@
 run::
 	docker compose up -d backend
 
+restart::
+	docker compose restart
+
 down::
 	docker compose down backend
 
