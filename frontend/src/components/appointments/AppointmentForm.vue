@@ -92,6 +92,7 @@
               type="datetime-local"
               required
               step="900"
+              :min="currentDateTime"
               class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
               @change="checkAvailability"
             />
@@ -181,6 +182,7 @@ const doubleBookingWarning = ref(null);
 const outsideWorkingHoursWarning = ref(null);
 const endTimeWarning = ref(null);
 const workingHours = ref({ start: "09:00", end: "18:00" }); // Placeholder
+const currentDateTime = ref(format(new Date(), "yyyy-MM-dd'T'HH:mm"));
 
 const isNew = computed(() => !props.appointmentId);
 
@@ -354,6 +356,39 @@ onMounted(async () => {
 });
 
 const saveAppointment = async () => {
+  // Client-side validation
+  const start = new Date(appointment.value.start_time);
+  const end = new Date(appointment.value.end_time);
+  const now = new Date();
+
+  // 1. Start time not in the past
+  if (start < now && isNew.value) {
+    alert("Start time cannot be in the past for new appointments.");
+    return;
+  }
+
+  // 2. End time must be after start time (already handled by watch, but good to have a final check)
+  if (end <= start) {
+    alert("End time must be after start time.");
+    return;
+  }
+
+  // 3. End time should be in the same day (don't allow for start time to be after 23:45)
+  if (start.toDateString() !== end.toDateString()) {
+    alert("Appointment must end on the same day it starts.");
+    return;
+  }
+
+  if (
+    start.getHours() > 23 ||
+    (start.getHours() === 23 && start.getMinutes() > 45)
+  ) {
+    alert(
+      "Start time cannot be after 23:45 to ensure end time is on the same day.",
+    );
+    return;
+  }
+
   try {
     if (isNew.value) {
       await api.post("/appointments", appointment.value);
