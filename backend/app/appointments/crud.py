@@ -105,6 +105,31 @@ def get_appointment(db: Session, appointment_id: int) -> models.Appointment | No
     return db.query(models.Appointment).filter(models.Appointment.id == appointment_id).first()
 
 
+def update_appointment(
+    db: Session,
+    appointment_id: int,
+    appointment_update: schemas.AppointmentUpdate,
+) -> models.Appointment | None:
+    db_appointment = db.query(models.Appointment).filter(models.Appointment.id == appointment_id).first()
+    if not db_appointment:
+        return None
+
+    # Update fields if provided
+    if appointment_update.start_time is not None:
+        db_appointment.start_time = appointment_update.start_time
+        db_appointment.end_time = appointment_update.start_time + timedelta(
+            minutes=db_appointment.specialty.default_duration_minutes,
+        )
+    if appointment_update.cost is not None:
+        db_appointment.cost = appointment_update.cost
+    if appointment_update.status is not None:
+        db_appointment.status = appointment_update.status
+
+    db.commit()
+    db.refresh(db_appointment)
+    return db_appointment
+
+
 def add_payment(
     db: Session,
     appointment_id: int,

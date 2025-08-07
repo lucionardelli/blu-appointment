@@ -43,6 +43,7 @@ def create_patient(db: Session, patient: schemas.PatientCreate) -> models.Patien
 
     db_patient = models.Patient(
         name=patient.name,
+        nickname=patient.nickname,
         dob=patient.dob,
         encrypted_medical_history=encrypted_history,
         email=patient.email,

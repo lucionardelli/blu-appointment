@@ -42,6 +42,17 @@ def get_appointment(appointment_id: int, db: Annotated[Session, Depends(get_db)]
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Appointment not found")
     return db_appointment
 
+@router.put("/{appointment_id}", response_model=schemas.Appointment)
+def update_appointment(
+    appointment_id: int,
+    appointment_update: schemas.AppointmentUpdate,
+    db: Annotated[Session, Depends(get_db)],
+) -> schemas.Appointment:
+    db_appointment = crud.update_appointment(db, appointment_id=appointment_id, appointment_update=appointment_update)
+    if db_appointment is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Appointment not found")
+    return db_appointment
+
 
 @router.patch("/{appointment_id}/cancel", response_model=schemas.Appointment)
 def cancel_appointment(appointment_id: int, db: Annotated[Session, Depends(get_db)]) -> schemas.Appointment:

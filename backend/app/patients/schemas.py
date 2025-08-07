@@ -30,6 +30,7 @@ class Patient(PatientBase):
     id: int
     credit_balance: Decimal
     last_appointment: datetime | None = None
+    next_appointment: datetime | None = None
     age: int | None = None
     is_underage: bool | None = None
 

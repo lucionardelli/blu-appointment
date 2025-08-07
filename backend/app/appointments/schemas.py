@@ -36,6 +36,8 @@ class AppointmentCreate(BaseModel):
     patient_id: int
     specialty_id: int
     start_time: datetime
+    # End time is optional; if not provided, it will be set to start_time + specialty's default duration
+    end_time: datetime | None = None
     # Cost is optional; if not provided, it will be fetched from the specialty's current price
     cost: Decimal | None = Field(None, gt=0)
 
@@ -44,6 +46,8 @@ class AppointmentUpdate(BaseModel):
     start_time: datetime | None = None
     cost: Decimal | None = Field(None, gt=0)
     status: AppointmentStatus | None = None
+    start_time: datetime
+    end_time: datetime
 
 class MinPatientInfo(BaseModel):
     """Minimal patient info needed for calendar display"""

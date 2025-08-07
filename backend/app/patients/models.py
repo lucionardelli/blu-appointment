@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime, UTC
 
 import sqlalchemy as sa
 from sqlalchemy import ForeignKey, func, select
@@ -38,7 +38,10 @@ class Patient(Base):
     appointments = relationship("Appointment", back_populates="patient")
 
     last_appointment = column_property(
-        select(func.max(Appointment.start_time)).where(Appointment.patient_id == id).scalar_subquery()
+        select(func.min(Appointment.start_time)).where(Appointment.patient_id == id, Appointment.start_time < datetime.now(UTC)).scalar_subquery()
+    )
+    next_appointment = column_property(
+        select(func.min(Appointment.start_time)).where(Appointment.patient_id == id, Appointment.start_time >= datetime.now(UTC)).scalar_subquery()
     )
 
     @property
