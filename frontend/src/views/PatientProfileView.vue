@@ -193,6 +193,7 @@ import { ref, onMounted, computed } from "vue";
 import { useRoute } from "vue-router";
 import api from "@/services/api";
 import MarkdownIt from "markdown-it";
+import DOMPurify from "dompurify";
 import { formatDate, formatCurrency, formatTime } from "@/utils/formatDate";
 
 const route = useRoute();
@@ -203,7 +204,7 @@ const md = new MarkdownIt();
 
 const renderedMedicalHistory = computed(() => {
   if (patient.value && patient.value.medical_history) {
-    return md.render(patient.value.medical_history);
+    return DOMPurify.sanitize(md.render(patient.value.medical_history));
   }
   return "";
 });
