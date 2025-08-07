@@ -27,6 +27,7 @@
       </button>
       <AppointmentForm
         :initial-date="initialDate"
+        :initial-end-date="initialEndDate"
         :appointment-id="appointmentId"
         in-modal
         @save="handleSave"
@@ -42,6 +43,10 @@ import AppointmentForm from "./AppointmentForm.vue";
 
 defineProps({
   initialDate: {
+    type: String,
+    default: "",
+  },
+  initialEndDate: {
     type: String,
     default: "",
   },

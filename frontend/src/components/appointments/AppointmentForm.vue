@@ -159,6 +159,10 @@ const props = defineProps({
     type: String,
     default: "",
   },
+  initialEndDate: {
+    type: String,
+    default: "",
+  },
   appointmentId: {
     type: [String, Number],
     default: null,
@@ -190,7 +194,15 @@ const fetchAppointment = async () => {
   if (isNew.value) return;
   try {
     const response = await api.get(`/appointments/${props.appointmentId}`);
-    appointment.value = response.data;
+    const fetchedAppointment = response.data;
+
+    // Flatten nested patient and specialty objects
+    appointment.value = {
+      ...fetchedAppointment,
+      patient_id: fetchedAppointment.patient?.id,
+      specialty_id: fetchedAppointment.specialty?.id,
+    };
+
     if (appointment.value.start_time) {
       appointment.value.start_time = format(
         new Date(appointment.value.start_time),
@@ -200,7 +212,7 @@ const fetchAppointment = async () => {
     if (appointment.value.end_time) {
       appointment.value.end_time = format(
         new Date(appointment.value.end_time),
-        "yyyy-MM-ddTHH:mm",
+        "yyyy-MM-dd'T'HH:mm",
       );
     }
   } catch (error) {
@@ -350,7 +362,9 @@ onMounted(async () => {
   } else if (props.initialDate) {
     const startDate = new Date(props.initialDate);
     appointment.value.start_time = format(startDate, "yyyy-MM-dd'T'HH:mm");
-    const endDate = addMinutes(startDate, 30);
+    const endDate = props.initialEndDate
+      ? new Date(props.initialEndDate)
+      : addMinutes(startDate, 30);
     appointment.value.end_time = format(endDate, "yyyy-MM-dd'T'HH:mm");
   }
 });

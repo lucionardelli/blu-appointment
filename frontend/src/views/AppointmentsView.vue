@@ -13,6 +13,7 @@
     <AppointmentFormModal
       v-if="showModal"
       :initial-date="selectedDate"
+      :initial-end-date="selectedEndDate"
       :appointment-id="selectedAppointmentId"
       @close="showModal = false"
       @save="handleSave"
@@ -36,6 +37,7 @@ const workingHours = ref({
 }); // Placeholder
 const showModal = ref(false);
 const selectedDate = ref("");
+const selectedEndDate = ref("");
 const selectedAppointmentId = ref(null);
 
 const fetchAppointments = async () => {
@@ -79,6 +81,7 @@ const calendarOptions = computed(() => ({
   select: (arg) => {
     selectedAppointmentId.value = null; // New appointment
     selectedDate.value = arg.startStr;
+    selectedEndDate.value = arg.endStr;
     showModal.value = true;
   },
   dateClick: (arg) => {
@@ -91,7 +94,8 @@ const calendarOptions = computed(() => ({
   },
   eventClick: (info) => {
     selectedAppointmentId.value = info.event.extendedProps.appointment.id;
-    selectedDate.value = info.event.startStr; // Set selectedDate for existing appointments too
+    selectedDate.value = info.event.startStr;
+    selectedEndDate.value = info.event.endStr;
     showModal.value = true;
   },
   // Correctly placed eventContent function
