@@ -51,7 +51,7 @@ class Appointment(Base):
     status = sa.Column(Enum(AppointmentStatus), nullable=False, default=AppointmentStatus.SCHEDULED)
 
     patient_id = sa.Column(Integer, sa.ForeignKey("patients.id"), nullable=False)
-    patient = relationship("Patient")
+    patient = relationship("Patient", back_populates="appointments")
 
     specialty_id = sa.Column(Integer, sa.ForeignKey("specialties.id"), nullable=False)
     specialty = relationship("Specialty", back_populates="appointments")

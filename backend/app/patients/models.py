@@ -1,6 +1,9 @@
 import sqlalchemy as sa
+from sqlalchemy import func, select
+from sqlalchemy.orm import relationship, column_property
 from sqlalchemy.types import Date, Numeric, String, Text
 
+from app.appointments.models import Appointment
 from app.db.base import Base
 
 
@@ -22,3 +25,9 @@ class Patient(Base):
 
     # To track credit/debt. Positive for credit, negative for debt.
     credit_balance = sa.Column(Numeric(10, 2), nullable=False, server_default="0.00")
+
+    appointments = relationship("Appointment", back_populates="patient")
+
+    last_appointment = column_property(
+        select(func.max(Appointment.start_time)).where(Appointment.patient_id == id).scalar_subquery()
+    )

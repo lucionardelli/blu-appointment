@@ -3,7 +3,6 @@ from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from app.patients.schemas import MinPatientInfo
 from app.specialties.schemas import MinSpecialtyInfo
 
 from .models import AppointmentStatus, PaymentMethod, RecurringFrequency
@@ -26,7 +25,11 @@ class Payment(PaymentBase):
 
 
 class AppointmentBase(BaseModel):
+    id: int
     start_time: datetime
+    end_time: datetime
+
+    specialty: MinSpecialtyInfo
 
 
 class AppointmentCreate(BaseModel):
@@ -42,17 +45,20 @@ class AppointmentUpdate(BaseModel):
     cost: Decimal | None = Field(None, gt=0)
     status: AppointmentStatus | None = None
 
+class MinPatientInfo(BaseModel):
+    """Minimal patient info needed for calendar display"""
+
+    id: int
+    name: str
+
 
 class Appointment(AppointmentBase):
-    id: int
-    end_time: datetime
     cost: Decimal
     status: AppointmentStatus
     payments: list[Payment] = []
     total_paid: Decimal = Field(0, gte=0)
 
     patient: MinPatientInfo
-    specialty: MinSpecialtyInfo
 
     model_config = ConfigDict(from_attributes=True)
 

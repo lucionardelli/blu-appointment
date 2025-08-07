@@ -1,14 +1,7 @@
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, EmailStr
-
-
-class MinPatientInfo(BaseModel):
-    """Minimal patient info needed for calendar display"""
-
-    id: int
-    name: str
 
 
 class PatientBase(BaseModel):
@@ -33,5 +26,6 @@ class PatientUpdate(PatientBase):
 class Patient(PatientBase):
     id: int
     credit_balance: Decimal
+    last_appointment: datetime | None = None
 
     model_config = ConfigDict(from_attributes=True)

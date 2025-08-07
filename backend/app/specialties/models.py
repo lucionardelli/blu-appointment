@@ -38,7 +38,6 @@ class Specialty(Base):
 
     @current_price.setter
     def current_price(self, value: Decimal) -> None:
-        print(f"Setting current price for {self.name} to {value}")
         latest_price = (
             max(self.prices, key=lambda p: p.valid_from)
             if self.prices else None
