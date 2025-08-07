@@ -19,6 +19,15 @@ class SpecialtyPrice(SpecialtyPriceBase):
     model_config = ConfigDict(from_attributes=True)
 
 
+class MinSpecialtyInfo(BaseModel):
+    """Minimal specialty info needed for calendar display"""
+
+    id: int
+    name: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class SpecialtyBase(BaseModel):
     name: str
     default_duration_minutes: int = Field(..., gt=0)

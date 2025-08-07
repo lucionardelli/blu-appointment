@@ -1,8 +1,9 @@
-import datetime
 import enum
+from datetime import UTC, datetime
 
 import sqlalchemy as sa
-from sqlalchemy.orm import relationship
+from sqlalchemy import func, select
+from sqlalchemy.orm import column_property, relationship
 from sqlalchemy.types import Boolean, Date, DateTime, Enum, Integer, Numeric, Time
 
 from app.db.base import Base
@@ -28,6 +29,18 @@ class RecurringFrequency(enum.Enum):
     BIWEEKLY = "BIWEEKLY"
 
 
+class Payment(Base):
+    __tablename__ = "payments"
+
+    id = sa.Column(Integer, primary_key=True, index=True)
+    amount = sa.Column(Numeric(10, 2), nullable=False)
+    method = sa.Column(Enum(PaymentMethod), nullable=False)
+    payment_date = sa.Column(DateTime, nullable=False, default=lambda: datetime.now(UTC))
+
+    appointment_id = sa.Column(Integer, sa.ForeignKey("appointments.id"), nullable=False)
+    appointment = relationship("Appointment", back_populates="payments")
+
+
 class Appointment(Base):
     __tablename__ = "appointments"
 
@@ -43,26 +56,16 @@ class Appointment(Base):
     specialty_id = sa.Column(Integer, sa.ForeignKey("specialties.id"), nullable=False)
     specialty = relationship("Specialty", back_populates="appointments")
 
-    # For rescheduling
     rescheduled_to_appointment_id = sa.Column(Integer, sa.ForeignKey("appointments.id"), nullable=True)
 
-    # For recurring appointments
     recurring_series_id = sa.Column(Integer, sa.ForeignKey("recurring_series.id"), nullable=True)
     recurring_series = relationship("RecurringSeries", back_populates="appointments")
 
     payments = relationship("Payment", back_populates="appointment", cascade="all, delete-orphan")
 
-
-class Payment(Base):
-    __tablename__ = "payments"
-
-    id = sa.Column(Integer, primary_key=True, index=True)
-    amount = sa.Column(Numeric(10, 2), nullable=False)
-    method = sa.Column(Enum(PaymentMethod), nullable=False)
-    payment_date = sa.Column(DateTime, nullable=False, default=lambda: datetime.now(UTC))
-
-    appointment_id = sa.Column(Integer, sa.ForeignKey("appointments.id"), nullable=False)
-    appointment = relationship("Appointment", back_populates="payments")
+    total_paid = column_property(
+        select(func.coalesce(func.sum(Payment.amount), 0.0)).where(Payment.appointment_id == id).scalar_subquery()
+    )
 
 
 class RecurringSeries(Base):

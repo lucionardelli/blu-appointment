@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.patients.models import Patient
 from app.specialties.crud import get_current_price_for_specialty, get_specialty_by_id
@@ -82,6 +82,7 @@ def reschedule_appointment(
 
     return new_appointment
 
+
 def get_appointments(
     db: Session,
     skip: int = 0,
@@ -89,18 +90,25 @@ def get_appointments(
     user_id: int | None = None,
     status: list[models.AppointmentStatus] | None = None,
 ) -> list[models.Appointment]:
-    base_query = db.query(models.Appointment)
+    """Get appointments with patient and specialty data for calendar display"""
+    base_query = db.query(models.Appointment).options(
+        joinedload(models.Appointment.patient), joinedload(models.Appointment.specialty)
+    )
+
     if user_id is not None:
         base_query = base_query.filter(models.Appointment.patient_id == user_id)
     if status is not None:
         base_query = base_query.filter(models.Appointment.status.in_(status))
 
+    return base_query.order_by(models.Appointment.start_time).offset(skip).limit(limit).all()
+
+
+def get_appointment(db: Session, appointment_id: int) -> models.Appointment | None:
     return (
-        base_query
-        .order_by(models.Appointment.start_time)
-        .offset(skip)
-        .limit(limit)
-        .all()
+        db.query(models.Appointment)
+        .options(joinedload(models.Appointment.patient), joinedload(models.Appointment.specialty))
+        .filter(models.Appointment.id == appointment_id)
+        .first()
     )
 
 

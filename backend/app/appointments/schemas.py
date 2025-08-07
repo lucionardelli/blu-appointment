@@ -3,6 +3,9 @@ from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from app.patients.schemas import MinPatientInfo
+from app.specialties.schemas import MinSpecialtyInfo
+
 from .models import AppointmentStatus, PaymentMethod, RecurringFrequency
 
 
@@ -24,8 +27,6 @@ class Payment(PaymentBase):
 
 class AppointmentBase(BaseModel):
     start_time: datetime
-    patient_id: int
-    specialty_id: int
 
 
 class AppointmentCreate(BaseModel):
@@ -48,6 +49,10 @@ class Appointment(AppointmentBase):
     cost: Decimal
     status: AppointmentStatus
     payments: list[Payment] = []
+    total_paid: Decimal = Field(0, gte=0)
+
+    patient: MinPatientInfo
+    specialty: MinSpecialtyInfo
 
     model_config = ConfigDict(from_attributes=True)
 

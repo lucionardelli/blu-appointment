@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Annotated, Never
 
-from fastapi import APIRouter, Body, Depends, HTTPException, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.db.base import get_db
@@ -20,15 +20,28 @@ def create_appointment(
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
 
+
 @router.get("/", response_model=list[schemas.Appointment], status_code=status.HTTP_200_OK)
 def get_appointments(
     db: Annotated[Session, Depends(get_db)],
     skip: int = 0,
     limit: int = 100,
     user_id: int | None = None,
-    status: list[schemas.AppointmentStatus] | None = None,
+    status: Annotated[
+        list[schemas.AppointmentStatus] | None,
+        Query(description="Filter by appointment status. Can be specified multiple times."),
+    ] = None,
 ) -> list[schemas.Appointment]:
     return crud.get_appointments(db=db, skip=skip, limit=limit, user_id=user_id, status=status)
+
+
+@router.get("/{appointment_id}", response_model=schemas.Appointment)
+def get_appointment(appointment_id: int, db: Annotated[Session, Depends(get_db)]) -> schemas.Appointment:
+    db_appointment = crud.get_appointment(db, appointment_id=appointment_id)
+    if db_appointment is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Appointment not found")
+    return db_appointment
+
 
 @router.patch("/{appointment_id}/cancel", response_model=schemas.Appointment)
 def cancel_appointment(appointment_id: int, db: Annotated[Session, Depends(get_db)]) -> schemas.Appointment:

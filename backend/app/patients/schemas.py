@@ -4,6 +4,13 @@ from decimal import Decimal
 from pydantic import BaseModel, ConfigDict, EmailStr
 
 
+class MinPatientInfo(BaseModel):
+    """Minimal patient info needed for calendar display"""
+
+    id: int
+    name: str
+
+
 class PatientBase(BaseModel):
     name: str
     dob: date | None = None
