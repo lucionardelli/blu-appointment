@@ -43,11 +43,19 @@
             </select>
           </div>
           <div class="mt-4">
-            <label
-              for="amount_paid"
-              class="block text-sm font-medium text-gray-700"
-              >Amount Paid</label
-            >
+            <div class="flex justify-between items-center">
+              <label
+                for="amount_paid"
+                class="block text-sm font-medium text-gray-700"
+                >Amount Paid</label
+              >
+              <button
+                class="text-sm text-primary hover:underline"
+                @click="payInFull"
+              >
+                Pay in Full
+              </button>
+            </div>
             <input
               id="amount_paid"
               v-model.number="payment.amount_paid"
@@ -77,7 +85,7 @@
 
 <script setup>
 import { ref, computed } from "vue";
-import { api } from "@/services/api";
+import api from "@/services/api";
 
 const props = defineProps({
   appointment: {
@@ -102,6 +110,10 @@ const applyCredit = ref(false);
 const amountDue = computed(
   () => props.appointment.price - props.appointment.amount_paid,
 );
+
+const payInFull = () => {
+  payment.value.amount_paid = amountDue.value;
+};
 
 const savePayment = async () => {
   try {

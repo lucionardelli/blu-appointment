@@ -28,13 +28,11 @@ const workingHours = ref({
   end: "18:00",
 }); // Placeholder
 const router = useRouter();
-const showCancelled = ref(false); // Placeholder
 
 const fetchAppointments = async () => {
   try {
     const response = await api.get("/appointments");
     appointments.value = response.data;
-    computedAppointments();
   } catch (error) {
     console.error("Error fetching appointments:", error);
   }
@@ -51,11 +49,12 @@ const calendarOptions = computed(() => ({
     right: "dayGridMonth,timeGridWeek,timeGridDay",
   },
   events: appointments.value.map((appointment) => ({
-    title: appointment.patient.name,
+    patient: appointment.patient.name,
     start: appointment.start_time,
     end: appointment.end_time,
     extendedProps: {
       appointment,
+      specialty: appointment.specialty.name,
     },
     // Add visual cues
     backgroundColor: getEventColor(appointment),
@@ -67,7 +66,11 @@ const calendarOptions = computed(() => ({
   // Correctly placed eventContent function
   eventContent: (arg) => {
     const appointment = arg.event.extendedProps.appointment;
-    let content = `<div><b>${arg.timeText}</b></div><div><i>${arg.event.title}</i></div>`;
+    let content = `<div><b>${appointment.patient.name}</b></div>`;
+
+    if (appointment.specialty) {
+      content += `<div class="text-sm text-gray-600"><i>${appointment.specialty.name}</i></div>`;
+    }
     if (isDoubleBooked(appointment)) {
       content +=
         '<span class="ml-1 text-yellow-500" title="Double-booked">⚠️</span>';
@@ -83,20 +86,25 @@ const calendarOptions = computed(() => ({
   },
 }));
 
-const computedAppointments = computed(() => {
-  if (showCancelled.value) {
-    return appointments.value;
-  } else {
-    return appointments.value.filter((app) => !app.cancelled);
-  }
-});
+// Move these to the BE as an attribute of the specialty
+const specialtyColors = {
+  1: "#10B981", // Therapy
+  2: "#3B82F6", // Bluroom
+};
 
 const getEventColor = (appointment) => {
-  if (appointment.cancelled) {
-    return "#9CA3AF"; // Gray for cancelled appointments
-  }
-  return "#4F46E5"; // Default color
+  const baseColor = specialtyColors[appointment.specialty.id] || "#4F46E5";
+  return appointment.cancelled ? applyOpacity(baseColor, 0.4) : baseColor;
 };
+
+function applyOpacity(hex, opacity) {
+  // Simple hex to rgba converter
+  const bigint = parseInt(hex.slice(1), 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+}
 
 const isDoubleBooked = (appointment) => {
   const start = new Date(appointment.start_time);
