@@ -47,7 +47,7 @@
             </td>
             <td class="hidden px-6 py-4 whitespace-nowrap md:table-cell">
               <div class="text-sm text-gray-500">
-                {{ formatDate(patient.last_appointment_date) || "N/A" }}
+                {{ formatDate(patient.last_appointment) || "N/A" }}
               </div>
             </td>
             <td

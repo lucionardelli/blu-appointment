@@ -6,7 +6,6 @@ import PatientForm from "../components/patients/PatientForm.vue";
 import SpecialtiesView from "../views/SpecialtiesView.vue";
 import SpecialtyForm from "../components/specialties/SpecialtyForm.vue";
 import AppointmentsView from "../views/AppointmentsView.vue";
-import AppointmentForm from "../components/appointments/AppointmentForm.vue";
 import { useAuthStore } from "../stores/auth";
 
 const routes = [
@@ -61,24 +60,6 @@ const routes = [
     path: "/appointments",
     name: "appointments",
     component: AppointmentsView,
-    meta: { requiresAuth: true },
-  },
-  {
-    path: "/appointments/new",
-    name: "new-appointment",
-    component: AppointmentForm,
-    meta: { requiresAuth: true },
-  },
-  {
-    path: "/appointments/:id",
-    name: "view-appointment",
-    component: () => import("../views/AppointmentDetailsView.vue"),
-    meta: { requiresAuth: true },
-  },
-  {
-    path: "/appointments/:id/edit",
-    name: "edit-appointment",
-    component: AppointmentForm,
     meta: { requiresAuth: true },
   },
 ];

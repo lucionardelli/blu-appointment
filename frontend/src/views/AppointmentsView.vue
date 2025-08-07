@@ -2,32 +2,41 @@
   <div>
     <div class="flex items-center justify-between mb-6">
       <h1 class="text-2xl font-semibold text-gray-900">Appointments</h1>
-      <router-link
-        to="/appointments/new"
+      <button
         class="px-4 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+        @click="openNewAppointmentModal"
       >
         New Appointment
-      </router-link>
+      </button>
     </div>
     <FullCalendar :options="calendarOptions" />
+    <AppointmentFormModal
+      v-if="showModal"
+      :initial-date="selectedDate"
+      :appointment-id="selectedAppointmentId"
+      @close="showModal = false"
+      @save="handleSave"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from "vue";
-import { useRouter } from "vue-router";
 import FullCalendar from "@fullcalendar/vue3";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import api from "@/services/api";
+import AppointmentFormModal from "@/components/appointments/AppointmentFormModal.vue";
 
 const appointments = ref([]);
 const workingHours = ref({
   start: "09:00",
   end: "18:00",
 }); // Placeholder
-const router = useRouter();
+const showModal = ref(false);
+const selectedDate = ref("");
+const selectedAppointmentId = ref(null);
 
 const fetchAppointments = async () => {
   try {
@@ -40,6 +49,12 @@ const fetchAppointments = async () => {
 
 onMounted(fetchAppointments);
 
+const openNewAppointmentModal = () => {
+  selectedAppointmentId.value = null; // Ensure it's null for new appointments
+  selectedDate.value = ""; // Clear any previously selected date
+  showModal.value = true;
+};
+
 const calendarOptions = computed(() => ({
   plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
   initialView: "timeGridWeek",
@@ -49,7 +64,7 @@ const calendarOptions = computed(() => ({
     right: "dayGridMonth,timeGridWeek,timeGridDay",
   },
   events: appointments.value.map((appointment) => ({
-    patient: appointment.patient.name,
+    title: appointment.patient.name,
     start: appointment.start_time,
     end: appointment.end_time,
     extendedProps: {
@@ -60,8 +75,24 @@ const calendarOptions = computed(() => ({
     backgroundColor: getEventColor(appointment),
     borderColor: getEventColor(appointment),
   })),
+  selectable: true,
+  select: (arg) => {
+    selectedAppointmentId.value = null; // New appointment
+    selectedDate.value = arg.startStr;
+    showModal.value = true;
+  },
+  dateClick: (arg) => {
+    if (arg.jsEvent.target.closest(".fc-event")) {
+      return;
+    }
+    selectedAppointmentId.value = null; // New appointment
+    selectedDate.value = arg.dateStr;
+    showModal.value = true;
+  },
   eventClick: (info) => {
-    router.push(`/appointments/${info.event.extendedProps.appointment.id}`);
+    selectedAppointmentId.value = info.event.extendedProps.appointment.id;
+    selectedDate.value = info.event.startStr; // Set selectedDate for existing appointments too
+    showModal.value = true;
   },
   // Correctly placed eventContent function
   eventContent: (arg) => {
@@ -86,6 +117,11 @@ const calendarOptions = computed(() => ({
   },
 }));
 
+const handleSave = () => {
+  showModal.value = false;
+  fetchAppointments();
+};
+
 // Move these to the BE as an attribute of the specialty
 const specialtyColors = {
   1: "#10B981", // Therapy
@@ -94,7 +130,11 @@ const specialtyColors = {
 
 const getEventColor = (appointment) => {
   const baseColor = specialtyColors[appointment.specialty.id] || "#4F46E5";
-  return appointment.cancelled ? applyOpacity(baseColor, 0.4) : baseColor;
+  // If appointment is on the past, show it as greyed out
+  if (new Date(appointment.start_time) < new Date()) {
+    return applyOpacity(baseColor, 0.2);
+  }
+  return appointment.cancelled ? applyOpacity(baseColor, 0.1) : baseColor;
 };
 
 function applyOpacity(hex, opacity) {

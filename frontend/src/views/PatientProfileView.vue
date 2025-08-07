@@ -80,7 +80,10 @@
         </div>
       </div>
 
-      <div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
+      <div
+        v-if="patient.financialSummary"
+        class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg"
+      >
         <div class="px-4 py-5 sm:px-6">
           <h3 class="text-lg leading-6 font-medium text-gray-900">
             Financial Summary
@@ -91,19 +94,19 @@
             <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 sm:py-5">
               <dt class="text-sm font-medium text-gray-500">Total Paid</dt>
               <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {{ financialSummary.totalPaid }}
+                {{ patient.financialSummary.totalPaid }}
               </dd>
             </div>
             <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 sm:py-5">
               <dt class="text-sm font-medium text-gray-500">Total Due</dt>
               <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {{ financialSummary.totalDue }}
+                {{ patient.financialSummary.totalDue }}
               </dd>
             </div>
             <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 sm:py-5">
               <dt class="text-sm font-medium text-gray-500">Balance</dt>
               <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {{ financialSummary.balance }}
+                {{ patient.financialSummary.balance }}
               </dd>
             </div>
           </dl>
@@ -136,25 +139,7 @@
                   scope="col"
                   class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
-                  Price
-                </th>
-                <th
-                  scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Amount Paid
-                </th>
-                <th
-                  scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Amount Due
-                </th>
-                <th
-                  scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Payment Status
+                  Payment
                 </th>
               </tr>
             </thead>
@@ -174,18 +159,25 @@
                   {{ appointment.specialty.name }}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {{ formatCurrency(appointment.price) }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {{ formatCurrency(appointment.amount_paid) }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {{
-                    formatCurrency(appointment.price - appointment.amount_paid)
-                  }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {{ appointment.payment_status }}
+                  <span :class="getPaymentStatus(appointment).color">
+                    {{ getPaymentStatus(appointment).emoji }}
+                    {{ getPaymentStatus(appointment).text }}
+                  </span>
+                  <span class="ml-2">
+                    {{ formatCurrency(appointment.total_paid) }} /
+                    {{ formatCurrency(appointment.cost) }}
+                    <span
+                      v-if="appointment.cost - appointment.total_paid > 0"
+                      class="text-red-500"
+                    >
+                      (Due:
+                      {{
+                        formatCurrency(
+                          appointment.cost - appointment.total_paid,
+                        )
+                      }})
+                    </span>
+                  </span>
                 </td>
               </tr>
             </tbody>
@@ -216,18 +208,21 @@ const renderedMedicalHistory = computed(() => {
   return "";
 });
 
-const financialSummary = computed(() => {
-  const totalPaid = appointments.value.reduce(
-    (acc, appointment) => acc + appointment.amount_paid,
-    0,
-  );
-  const totalDue = appointments.value.reduce(
-    (acc, appointment) => acc + (appointment.price - appointment.amount_paid),
-    0,
-  );
-  const balance = totalPaid - totalDue;
-  return { totalPaid, totalDue, balance };
-});
+const getPaymentStatus = (appointment) => {
+  const now = new Date();
+  const appointmentDate = new Date(appointment.start_time);
+  const amountDue = appointment.cost - appointment.total_paid;
+
+  if (amountDue <= 0) {
+    return { text: "Paid", color: "text-green-500", emoji: "✅" };
+  }
+
+  if (appointmentDate > now) {
+    return { text: "Pending", color: "text-orange-500", emoji: "🟠" };
+  } else {
+    return { text: "Overdue", color: "text-red-500", emoji: "🔴" };
+  }
+};
 
 const filteredAppointments = computed(() => {
   if (showCancelledAppointments.value) {

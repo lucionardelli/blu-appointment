@@ -123,12 +123,14 @@
         </div>
       </div>
       <div class="flex justify-end mt-6">
-        <router-link
-          to="/appointments"
+        <button
+          v-if="!props.inModal"
+          type="button"
           class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+          @click="router.push('/appointments')"
         >
           Cancel
-        </router-link>
+        </button>
         <button
           type="submit"
           class="px-4 py-2 ml-3 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
@@ -142,12 +144,28 @@
 
 <script setup>
 import { ref, onMounted, computed, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { useRouter } from "vue-router";
 import api from "@/services/api";
 import { format, addMinutes } from "date-fns";
 import { formatDate, formatCurrency } from "@/utils/formatDate";
 
-const route = useRoute();
+const props = defineProps({
+  inModal: {
+    type: Boolean,
+    default: false,
+  },
+  initialDate: {
+    type: String,
+    default: "",
+  },
+  appointmentId: {
+    type: [String, Number],
+    default: null,
+  },
+});
+
+const emit = defineEmits(["save", "cancel"]);
+
 const router = useRouter();
 const appointment = ref({
   patient_id: null,
@@ -164,12 +182,12 @@ const outsideWorkingHoursWarning = ref(null);
 const endTimeWarning = ref(null);
 const workingHours = ref({ start: "09:00", end: "18:00" }); // Placeholder
 
-const isNew = computed(() => !route.params.id);
+const isNew = computed(() => !props.appointmentId);
 
 const fetchAppointment = async () => {
   if (isNew.value) return;
   try {
-    const response = await api.get(`/appointments/${route.params.id}`);
+    const response = await api.get(`/appointments/${props.appointmentId}`);
     appointment.value = response.data;
     if (appointment.value.start_time) {
       appointment.value.start_time = format(
@@ -318,10 +336,21 @@ const checkAvailability = async () => {
   }
 };
 
-onMounted(() => {
-  fetchAppointment();
-  fetchPatients();
-  fetchSpecialties();
+onMounted(async () => {
+  await fetchPatients();
+  await fetchSpecialties();
+
+  if (props.appointmentId) {
+    await fetchAppointment();
+    if (appointment.value.patient_id) {
+      await fetchPatientSnippet();
+    }
+  } else if (props.initialDate) {
+    const startDate = new Date(props.initialDate);
+    appointment.value.start_time = format(startDate, "yyyy-MM-dd'T'HH:mm");
+    const endDate = addMinutes(startDate, 30);
+    appointment.value.end_time = format(endDate, "yyyy-MM-dd'T'HH:mm");
+  }
 });
 
 const saveAppointment = async () => {
@@ -329,9 +358,13 @@ const saveAppointment = async () => {
     if (isNew.value) {
       await api.post("/appointments", appointment.value);
     } else {
-      await api.put(`/appointments/${route.params.id}`, appointment.value);
+      await api.put(`/appointments/${props.appointmentId}`, appointment.value);
     }
-    router.push("/appointments");
+    if (props.inModal) {
+      emit("save");
+    } else {
+      router.push("/appointments");
+    }
   } catch (error) {
     console.error("Error saving appointment:", error);
   }
