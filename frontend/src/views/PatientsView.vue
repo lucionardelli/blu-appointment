@@ -33,6 +33,12 @@
             >
               Last Appointment
             </th>
+            <th
+              scope="col"
+              class="hidden px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase md:table-cell"
+            >
+              Next Appointment
+            </th>
             <th scope="col" class="relative px-6 py-3">
               <span class="sr-only">Edit</span>
             </th>
@@ -43,11 +49,19 @@
             <td class="px-6 py-4 whitespace-nowrap">
               <div class="text-sm font-medium text-gray-900">
                 {{ patient.name }}
+                <span v-if="patient.nickname" class="text-gray-500"
+                  >({{ patient.nickname }})</span
+                >
               </div>
             </td>
             <td class="hidden px-6 py-4 whitespace-nowrap md:table-cell">
               <div class="text-sm text-gray-500">
                 {{ formatDate(patient.last_appointment) || "N/A" }}
+              </div>
+            </td>
+            <td class="hidden px-6 py-4 whitespace-nowrap md:table-cell">
+              <div class="text-sm text-gray-500">
+                {{ formatDate(patient.next_appointment) || "N/A" }}
               </div>
             </td>
             <td
@@ -89,8 +103,13 @@ const filteredPatients = computed(() => {
   if (!searchQuery.value) {
     return patients.value;
   }
-  return patients.value.filter((patient) =>
-    patient.name.toLowerCase().includes(searchQuery.value.toLowerCase()),
+  return patients.value.filter(
+    (patient) =>
+      patient.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+      (patient.nickname &&
+        patient.nickname
+          .toLowerCase()
+          .includes(searchQuery.value.toLowerCase())),
   );
 });
 </script>

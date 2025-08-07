@@ -66,7 +66,7 @@ const calendarOptions = computed(() => ({
     right: "dayGridMonth,timeGridWeek,timeGridDay",
   },
   events: appointments.value.map((appointment) => ({
-    title: appointment.patient.name,
+    title: appointment.patient.nickname || appointment.patient.name,
     start: appointment.start_time,
     end: appointment.end_time,
     extendedProps: {
@@ -101,7 +101,9 @@ const calendarOptions = computed(() => ({
   // Correctly placed eventContent function
   eventContent: (arg) => {
     const appointment = arg.event.extendedProps.appointment;
-    let content = `<div><b>${appointment.patient.name}</b></div>`;
+    const patientName =
+      appointment.patient.nickname || appointment.patient.name;
+    let content = `<div><b>${patientName}</b></div>`;
 
     if (appointment.specialty) {
       content += `<div class="text-sm text-gray-600"><i>${appointment.specialty.name}</i></div>`;

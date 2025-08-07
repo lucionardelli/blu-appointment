@@ -28,11 +28,22 @@
             v-if="patientSnippet"
             class="mt-2 p-4 bg-gray-100 rounded-md sm:flex sm:justify-between"
           >
-            <h4 class="text-sm font-medium text-gray-900">
-              {{ patientSnippet.name }}
-            </h4>
+            <div class="flex items-baseline">
+              <h4 class="text-sm font-medium text-gray-900">
+                {{ patientSnippet.name }}
+              </h4>
+              <p class="ml-2 text-xs text-gray-600">
+                ({{ patientSnippet.nickname }})
+              </p>
+            </div>
             <p class="text-sm text-gray-500">
               DOB: {{ formatDate(patientSnippet.dob) }}
+              <span
+                :class="{
+                  'text-red-500 font-semibold': patientSnippet.is_underage,
+                }"
+                >({{ patientSnippet.age }})</span
+              >
             </p>
             <p class="text-sm text-gray-500">
               Last Appointment:
@@ -186,7 +197,7 @@ const doubleBookingWarning = ref(null);
 const outsideWorkingHoursWarning = ref(null);
 const endTimeWarning = ref(null);
 const workingHours = ref({ start: "09:00", end: "18:00" }); // Placeholder
-const currentDateTime = ref(format(new Date(), "yyyy-MM-dd'T'HH:mm"));
+const currentDateTime = ref(new Date());
 
 const isNew = computed(() => !props.appointmentId);
 
@@ -237,6 +248,19 @@ const fetchSpecialties = async () => {
     console.error("Error fetching specialties:", error);
   }
 };
+
+watch(
+  () => appointment.value.patient_id,
+  (newPatientId) => {
+    if (newPatientId) {
+      fetchPatientSnippet();
+      const selectedPatient = patients.value.find((p) => p.id === newPatientId);
+      if (selectedPatient && selectedPatient.default_specialty_id) {
+        appointment.value.specialty_id = selectedPatient.default_specialty_id;
+      }
+    }
+  },
+);
 
 watch(
   () => appointment.value.specialty_id,

@@ -21,6 +21,17 @@
           </p>
         </div>
         <div>
+          <label for="nickname" class="block text-sm font-medium text-gray-700"
+            >Nickname</label
+          >
+          <input
+            id="nickname"
+            v-model="patient.nickname"
+            type="text"
+            class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+          />
+        </div>
+        <div>
           <label for="dob" class="block text-sm font-medium text-gray-700"
             >Date of Birth</label
           >
@@ -95,6 +106,26 @@
             class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
           ></textarea>
         </div>
+        <div>
+          <label
+            for="default_specialty"
+            class="block text-sm font-medium text-gray-700"
+            >Default Specialty</label
+          >
+          <select
+            id="default_specialty"
+            v-model="patient.default_specialty_id"
+            class="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+          >
+            <option
+              v-for="specialty in specialties"
+              :key="specialty.id"
+              :value="specialty.id"
+            >
+              {{ specialty.name }}
+            </option>
+          </select>
+        </div>
       </div>
       <div class="flex justify-end mt-6">
         <router-link
@@ -124,17 +155,28 @@ const route = useRoute();
 const router = useRouter();
 const patient = ref({
   name: "",
-  dob: "",
-  cellphone: "",
-  email: "",
-  phone: "",
-  address: "",
-  medical_history: "",
+  nickname: undefined,
+  dob: undefined,
+  cellphone: undefined,
+  email: undefined,
+  phone: undefined,
+  address: undefined,
+  medical_history: undefined,
+  default_specialty_id: null,
 });
-
+const specialties = ref([]);
 const errors = ref({});
 
 const isNew = computed(() => !route.params.id);
+
+const fetchSpecialties = async () => {
+  try {
+    const response = await api.get("/specialties");
+    specialties.value = response.data;
+  } catch (error) {
+    console.error("Error fetching specialties:", error);
+  }
+};
 
 const fetchPatient = async () => {
   if (isNew.value) return;
@@ -149,7 +191,10 @@ const fetchPatient = async () => {
   }
 };
 
-onMounted(fetchPatient);
+onMounted(() => {
+  fetchPatient();
+  fetchSpecialties();
+});
 
 const savePatient = async () => {
   errors.value = {};
