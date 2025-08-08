@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import Annotated, Never
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.db.base import get_db
 
-from . import crud, models, schemas
+from . import crud, metrics, models, schemas
 
 router = APIRouter()
 
@@ -41,6 +41,7 @@ def get_appointment(appointment_id: int, db: Annotated[Session, Depends(get_db)]
     if db_appointment is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Appointment not found")
     return db_appointment
+
 
 @router.put("/{appointment_id}", response_model=schemas.Appointment)
 def update_appointment(
@@ -87,9 +88,7 @@ def add_payment_to_appointment(
 
 
 @router.get("/{appointment_id}/payments", response_model=list[schemas.Payment])
-def get_payments_for_appointment(
-    appointment_id: int, db: Annotated[Session, Depends(get_db)]
-) -> list[models.Payment]:
+def get_payments_for_appointment(appointment_id: int, db: Annotated[Session, Depends(get_db)]) -> list[models.Payment]:
     db_appointment = crud.get_appointment(db, appointment_id=appointment_id)
     if not db_appointment:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Appointment not found")
@@ -117,3 +116,12 @@ def create_recurring_appointments(
     raise HTTPException(
         status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="Recurring appointments creation is not yet implemented."
     )
+
+
+@router.get("/metrics/", response_model=schemas.AppointmentMetrics)
+def get_appointment_metrics(
+    start_date: Annotated[date, Query(description="Start time for the metrics")],
+    end_date: Annotated[date, Query(description="End time for the metrics")],
+    db: Annotated[Session, Depends(get_db)],
+) -> schemas.AppointmentMetrics:
+    return metrics.get_appointment_metrics(start_date=start_date, end_date=end_date, db=db)

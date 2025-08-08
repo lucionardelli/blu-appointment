@@ -49,6 +49,7 @@ class AppointmentUpdate(BaseModel):
     start_time: datetime
     end_time: datetime
 
+
 class MinPatientInfo(BaseModel):
     """Minimal patient info needed for calendar display"""
 
@@ -63,6 +64,17 @@ class Appointment(AppointmentBase):
     total_paid: Decimal = Field(0, gte=0)
 
     patient: MinPatientInfo
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AppointmentMetrics(BaseModel):
+    total_appointments: int
+    total_revenue: Decimal
+    total_charged: Decimal
+    total_due: Decimal
+    period_start: date
+    period_end: date
 
     model_config = ConfigDict(from_attributes=True)
 

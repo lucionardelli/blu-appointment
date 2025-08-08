@@ -38,6 +38,8 @@ ignore = [
 
   "ANN204",  # missing type annotation for special method
   "ANN401",  # Dynamically typed expressions (typing.Any) are disallowed
+
+  "TRY003",  # Avoid specifying long messages outside the exception class
 ]
 fixable = ["ALL"]
 
