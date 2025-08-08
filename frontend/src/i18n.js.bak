@@ -1,0 +1,16 @@
+import { createI18n } from 'vue-i18n';
+import en from './locales/en.json';
+import es from './locales/es.json';
+
+console.log('Loading language from localStorage:', localStorage.getItem('language'));
+
+const i18n = createI18n({
+  locale: localStorage.getItem('language') || 'en', // set locale
+  fallbackLocale: 'en', // set fallback locale
+  messages: {
+    en,
+    es,
+  },
+});
+
+export default i18n;

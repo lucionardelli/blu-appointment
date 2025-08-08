@@ -1,12 +1,14 @@
 <template>
   <div>
     <div class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-semibold text-gray-900">Specialties</h1>
+      <h1 class="text-2xl font-semibold text-gray-900">
+        {{ t("specialties") }}
+      </h1>
       <router-link
         to="/specialties/new"
-        class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        class="px-4 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
       >
-        New Specialty
+        {{ t("new_specialty") }}
       </router-link>
     </div>
     <div class="overflow-x-auto bg-white rounded-lg shadow">
@@ -17,22 +19,22 @@
               scope="col"
               class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
             >
-              Name
+              {{ t("name") }}
             </th>
             <th
               scope="col"
               class="hidden px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase md:table-cell"
             >
-              Default Duration (minutes)
+              {{ t("default_duration") }}
             </th>
             <th
               scope="col"
               class="hidden px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase md:table-cell"
             >
-              Default Price
+              {{ t("default_price") }}
             </th>
             <th scope="col" class="relative px-6 py-3">
-              <span class="sr-only">Edit</span>
+              <span class="sr-only">{{ t("edit") }}</span>
             </th>
           </tr>
         </thead>
@@ -59,7 +61,7 @@
               <router-link
                 :to="`/specialties/${specialty.id}`"
                 class="text-primary hover:text-primary-dark"
-                >Edit</router-link
+                >{{ t("edit") }}</router-link
               >
             </td>
           </tr>
@@ -71,8 +73,11 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
 import { formatCurrency } from "@/utils/formatDate";
 import api from "@/services/api";
+
+const { t } = useI18n();
 
 const specialties = ref([]);
 

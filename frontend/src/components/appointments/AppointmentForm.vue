@@ -1,7 +1,7 @@
 <template>
   <div>
     <h1 class="text-2xl font-semibold text-gray-900">
-      {{ isNew ? "New Appointment" : "Edit Appointment" }}
+      {{ isNew ? t("new_appointment") : t("edit_appointment") }}
     </h1>
 
     <div v-if="!isNew" class="mt-4 border-b border-gray-200">
@@ -15,7 +15,7 @@
           ]"
           @click="activeTab = 'details'"
         >
-          Appointment Details
+          {{ t("appointment_details") }}
         </button>
         <button
           :class="[
@@ -26,7 +26,7 @@
           ]"
           @click="activeTab = 'payments'"
         >
-          Payments
+          {{ t("payments") }}
         </button>
       </nav>
     </div>
@@ -35,8 +35,10 @@
       <form @submit.prevent="saveAppointment">
         <div class="space-y-6">
           <div>
-            <label for="patient" class="block text-sm font-medium text-gray-700"
-              >Patient</label
+            <label
+              for="patient"
+              class="block text-sm font-medium text-gray-700"
+              >{{ t("patient") }}</label
             >
             <select
               id="patient"
@@ -66,7 +68,7 @@
                 </p>
               </div>
               <p class="text-sm text-gray-500">
-                DOB: {{ formatDate(patientSnippet.dob) }}
+                {{ t("dob") }}: {{ formatDate(patientSnippet.dob) }}
                 <span
                   :class="{
                     'text-red-500 font-semibold': patientSnippet.is_underage,
@@ -75,11 +77,12 @@
                 >
               </p>
               <p class="text-sm text-gray-500">
-                Last Appointment:
+                {{ t("last_appointment") }}:
                 {{ formatDate(patientSnippet.last_appointment_date) || "N/A" }}
               </p>
               <p class="text-sm text-gray-500">
-                Total Due: {{ formatCurrency(patientSnippet.total_due || 0) }}
+                {{ t("total_due") }}:
+                {{ formatCurrency(patientSnippet.total_due || 0) }}
               </p>
             </div>
           </div>
@@ -88,7 +91,7 @@
               <label
                 for="specialty"
                 class="block text-sm font-medium text-gray-700"
-                >Specialty</label
+                >{{ t("specialty") }}</label
               >
               <select
                 id="specialty"
@@ -106,8 +109,10 @@
               </select>
             </div>
             <div>
-              <label for="price" class="block text-sm font-medium text-gray-700"
-                >Price</label
+              <label
+                for="price"
+                class="block text-sm font-medium text-gray-700"
+                >{{ t("price") }}</label
               >
               <input
                 id="price"
@@ -124,7 +129,7 @@
               <label
                 for="start_time"
                 class="block text-sm font-medium text-gray-700"
-                >Start Time</label
+                >{{ t("start_time") }}</label
               >
               <input
                 id="start_time"
@@ -153,7 +158,7 @@
               <label
                 for="end_time"
                 class="block text-sm font-medium text-gray-700"
-                >End Time</label
+                >{{ t("end_time") }}</label
               >
               <input
                 id="end_time"
@@ -173,13 +178,13 @@
             class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
             @click="router.push('/appointments')"
           >
-            Cancel
+            {{ t("cancel") }}
           </button>
           <button
             type="submit"
             class="px-4 py-2 ml-3 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
           >
-            Save
+            {{ t("save") }}
           </button>
         </div>
       </form>
@@ -187,19 +192,20 @@
 
     <div v-if="!isNew && activeTab === 'payments'" class="mt-6">
       <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-semibold text-gray-800">Payments</h2>
+        <h2 class="text-xl font-semibold text-gray-800">{{ t("payments") }}</h2>
         <button
           v-if="!showPaymentForm"
           class="px-4 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
           @click="showPaymentForm = true"
         >
-          Add Payment
+          {{ t("add_payment") }}
         </button>
       </div>
 
       <PaymentForm
         v-if="showPaymentForm"
         :appointment-id="props.appointmentId"
+        :appointment="appointment"
         @save="handlePaymentSave"
         @cancel="showPaymentForm = false"
       />
@@ -219,13 +225,17 @@
                 {{ formatDate(payment.created_at) }}
               </p>
             </div>
-            <p class="text-sm text-gray-600">Method: {{ payment.method }}</p>
+            <p class="text-sm text-gray-600">
+              Method: {{ payment.payment_method }}
+            </p>
             <p v-if="payment.notes" class="mt-2 text-sm text-gray-500">
               {{ payment.notes }}
             </p>
           </li>
         </ul>
-        <p v-else class="text-center text-gray-500 py-4">No payments found.</p>
+        <p v-else class="text-center text-gray-500 py-4">
+          {{ t("no_payments_found") }}
+        </p>
       </div>
     </div>
   </div>
@@ -233,11 +243,14 @@
 
 <script setup>
 import { ref, onMounted, computed, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import api from "@/services/api";
 import { format, addMinutes } from "date-fns";
 import { formatDate, formatCurrency } from "@/utils/formatDate";
 import PaymentForm from "./PaymentForm.vue";
+
+const { t } = useI18n();
 
 const props = defineProps({
   inModal: {

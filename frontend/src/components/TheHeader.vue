@@ -29,11 +29,12 @@
           class="relative block w-8 h-8 overflow-hidden rounded-full shadow focus:outline-none"
           @click="dropdownOpen = !dropdownOpen"
         >
-          <img
-            class="object-cover w-full h-full"
-            src="https://images.unsplash.com/photo-1528892952291-009c663ce843?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=296&q=80"
-            alt="Your avatar"
-          />
+          <div
+            :style="{ backgroundColor: userColor }"
+            class="w-full h-full flex items-center justify-center text-white font-semibold"
+          >
+            {{ userInitials }}
+          </div>
         </button>
         <div
           v-show="dropdownOpen"
@@ -47,13 +48,13 @@
           <router-link
             to="/profile"
             class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary hover:text-white"
-            >Profile</router-link
+            >{{ t("profile") }}</router-link
           >
           <a
             href="#"
             class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary hover:text-white"
             @click.prevent="logout"
-            >Logout</a
+            >{{ t("logout") }}</a
           >
         </div>
       </div>
@@ -62,13 +63,47 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useAuthStore } from "@/stores/auth";
 import { useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const dropdownOpen = ref(false);
 const authStore = useAuthStore();
 const router = useRouter();
+
+const userInitials = computed(() => {
+  if (authStore.user && authStore.user.name) {
+    const nameParts = authStore.user.name.split(" ");
+    let initials = "";
+    if (nameParts.length > 0) {
+      initials += nameParts[0].charAt(0);
+      if (nameParts.length > 1) {
+        initials += nameParts[nameParts.length - 1].charAt(0);
+      }
+    }
+    return initials.toUpperCase();
+  }
+  return "";
+});
+
+const userColor = computed(() => {
+  if (authStore.user && authStore.user.name) {
+    let hash = 0;
+    for (let i = 0; i < authStore.user.name.length; i++) {
+      hash = authStore.user.name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    let color = "#";
+    for (let i = 0; i < 3; i++) {
+      const value = (hash >> (i * 8)) & 0xff;
+      color += ("00" + value.toString(16)).substr(-2);
+    }
+    return color;
+  }
+  return "#cccccc"; // Default color
+});
 
 const logout = () => {
   authStore.logout();

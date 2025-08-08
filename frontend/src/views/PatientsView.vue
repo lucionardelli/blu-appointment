@@ -1,19 +1,19 @@
 <template>
   <div>
     <div class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-semibold text-gray-900">Patients</h1>
+      <h1 class="text-2xl font-semibold text-gray-900">{{ t("patients") }}</h1>
       <router-link
         to="/patients/new"
-        class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        class="px-4 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
       >
-        New Patient
+        {{ t("new_patient") }}
       </router-link>
     </div>
     <div class="mb-4">
       <input
         v-model="searchQuery"
         type="text"
-        placeholder="Search patients..."
+        :placeholder="t('search_patients')"
         class="block w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
       />
     </div>
@@ -25,22 +25,22 @@
               scope="col"
               class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
             >
-              Name
+              {{ t("name") }}
             </th>
             <th
               scope="col"
               class="hidden px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase md:table-cell"
             >
-              Last Appointment
+              {{ t("last_appointment") }}
             </th>
             <th
               scope="col"
               class="hidden px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase md:table-cell"
             >
-              Next Appointment
+              {{ t("next_appointment") }}
             </th>
             <th scope="col" class="relative px-6 py-3">
-              <span class="sr-only">Edit</span>
+              <span class="sr-only">{{ t("view") }}</span>
             </th>
           </tr>
         </thead>
@@ -70,7 +70,7 @@
               <router-link
                 :to="`/patients/${patient.id}`"
                 class="text-primary hover:text-primary-dark"
-                >View</router-link
+                >{{ t("view") }}</router-link
               >
             </td>
           </tr>
@@ -82,8 +82,11 @@
 
 <script setup>
 import { ref, onMounted, computed } from "vue";
+import { useI18n } from "vue-i18n";
 import api from "@/services/api";
 import { formatDate } from "@/utils/formatDate";
+
+const { t } = useI18n();
 
 const patients = ref([]);
 const searchQuery = ref("");

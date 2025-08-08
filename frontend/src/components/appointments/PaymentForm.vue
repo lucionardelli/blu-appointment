@@ -1,50 +1,49 @@
 <template>
   <div class="mt-4">
-    <h3 class="text-lg font-medium text-gray-900">New Payment</h3>
     <form class="mt-4 space-y-4" @submit.prevent="submitPayment">
-      <div>
-        <label for="amount" class="block text-sm font-medium text-gray-700"
-          >Amount</label
-        >
-        <input
-          id="amount"
-          v-model="payment.amount"
-          type="number"
-          step="0.01"
-          required
-          class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-        />
-      </div>
-      <div>
-        <label
-          for="payment_method"
-          class="block text-sm font-medium text-gray-700"
-          >Payment Method</label
-        >
-        <select
-          id="payment_method"
-          v-model="payment.method"
-          required
-          class="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-        >
-          <option value="CASH">Cash</option>
-          <option value="CREDIT_CARD">Card</option>
-          <option value="TRANSFER">Transfer</option>
-          <option value="MERCADOPAGO">Mercado Pago</option>
-          <option value="GIFT_CARD">Gift Card</option>
-          <option value="PATIENT_CREDIT">Patient Credit</option>
-        </select>
-      </div>
-      <div>
-        <label for="notes" class="block text-sm font-medium text-gray-700"
-          >Notes</label
-        >
-        <textarea
-          id="notes"
-          v-model="payment.notes"
-          rows="3"
-          class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-        ></textarea>
+      <div class="grid grid-cols-2 gap-6">
+        <div>
+          <label for="amount" class="block text-sm font-medium text-gray-700">{{
+            t("amount")
+          }}</label>
+          <div class="flex items-center mt-1">
+            <input
+              id="amount"
+              v-model="payment.amount"
+              type="number"
+              step="0.01"
+              required
+              class="block w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+            />
+            <button
+              type="button"
+              class="ml-2 px-3 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+              @click="payInFull"
+            >
+              {{ t("pay_in_full") }}
+            </button>
+          </div>
+        </div>
+        <div>
+          <label
+            for="payment_method"
+            class="block text-sm font-medium text-gray-700"
+            >{{ t("payment_method") }}</label
+          >
+          <select
+            id="payment_method"
+            v-model="payment.method"
+            required
+            class="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+          >
+            <option value="CASH">Cash</option>
+            <option value="CREDIT_CARD">Card</option>
+            <option value="TRANSFER">Transfer</option>
+            <option value="MERCADOPAGO">Mercado Pago</option>
+            <option value="GIFT_CARD">Gift Card</option>
+            <option value="PATIENT_CREDIT">Patient Credit</option>
+          </select>
+        </div>
       </div>
       <div class="flex justify-end space-x-2">
         <button
@@ -52,13 +51,13 @@
           class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
           @click="$emit('cancel')"
         >
-          Cancel
+          {{ t("cancel") }}
         </button>
         <button
           type="submit"
           class="px-4 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
         >
-          Save Payment
+          {{ t("save_payment") }}
         </button>
       </div>
     </form>
@@ -66,23 +65,37 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
+import { useI18n } from "vue-i18n";
 import api from "@/services/api";
+
+const { t } = useI18n();
 
 const props = defineProps({
   appointmentId: {
     type: [String, Number],
     required: true,
   },
+  appointment: {
+    type: Object,
+    required: true,
+  },
 });
 
 const emit = defineEmits(["save", "cancel"]);
 
-const payment = ref({
-  amount: 0,
-  method: "cash",
-  notes: "",
+const dueAmount = computed(() => {
+  return props.appointment.price - (props.appointment.total_paid || 0);
 });
+
+const payment = ref({
+  amount: dueAmount.value,
+  method: "CASH",
+});
+
+const payInFull = () => {
+  payment.value.amount = dueAmount.value;
+};
 
 const submitPayment = async () => {
   try {

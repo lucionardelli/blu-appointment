@@ -1,5 +1,8 @@
 <template>
   <component :is="layout">
+    <div class="absolute top-4 right-4">
+      <LanguageSwitcher />
+    </div>
     <router-view />
   </component>
 </template>
@@ -8,6 +11,7 @@
 import { computed } from "vue";
 import { useRoute } from "vue-router";
 import MainLayout from "@/layouts/MainLayout.vue";
+import LanguageSwitcher from "@/components/LanguageSwitcher.vue";
 import { useAuthStore } from "./stores/auth";
 
 const route = useRoute();

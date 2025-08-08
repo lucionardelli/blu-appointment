@@ -1,12 +1,14 @@
 <template>
   <div>
     <div class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-semibold text-gray-900">Appointments</h1>
+      <h1 class="text-2xl font-semibold text-gray-900">
+        {{ t("appointments") }}
+      </h1>
       <button
         class="px-4 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
         @click="openNewAppointmentModal"
       >
-        New Appointment
+        {{ t("new_appointment") }}
       </button>
     </div>
     <FullCalendar :options="calendarOptions" />
@@ -23,12 +25,15 @@
 
 <script setup>
 import { ref, onMounted, computed } from "vue";
+import { useI18n } from "vue-i18n";
 import FullCalendar from "@fullcalendar/vue3";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import api from "@/services/api";
 import AppointmentFormModal from "@/components/appointments/AppointmentFormModal.vue";
+
+const { t } = useI18n();
 
 const appointments = ref([]);
 const workingHours = ref({
