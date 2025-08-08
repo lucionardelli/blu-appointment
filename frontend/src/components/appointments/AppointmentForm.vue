@@ -3,154 +3,231 @@
     <h1 class="text-2xl font-semibold text-gray-900">
       {{ isNew ? "New Appointment" : "Edit Appointment" }}
     </h1>
-    <form class="mt-6" @submit.prevent="saveAppointment">
-      <div class="space-y-6">
-        <div>
-          <label for="patient" class="block text-sm font-medium text-gray-700"
-            >Patient</label
-          >
-          <select
-            id="patient"
-            v-model="appointment.patient_id"
-            required
-            class="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-            @change="fetchPatientSnippet"
-          >
-            <option
-              v-for="patient in patients"
-              :key="patient.id"
-              :value="patient.id"
-            >
-              {{ patient.name }}
-            </option>
-          </select>
-          <div
-            v-if="patientSnippet"
-            class="mt-2 p-4 bg-gray-100 rounded-md sm:flex sm:justify-between"
-          >
-            <div class="flex items-baseline">
-              <h4 class="text-sm font-medium text-gray-900">
-                {{ patientSnippet.name }}
-              </h4>
-              <p class="ml-2 text-xs text-gray-600">
-                ({{ patientSnippet.nickname }})
-              </p>
-            </div>
-            <p class="text-sm text-gray-500">
-              DOB: {{ formatDate(patientSnippet.dob) }}
-              <span
-                :class="{
-                  'text-red-500 font-semibold': patientSnippet.is_underage,
-                }"
-                >({{ patientSnippet.age }})</span
-              >
-            </p>
-            <p class="text-sm text-gray-500">
-              Last Appointment:
-              {{ formatDate(patientSnippet.last_appointment_date) || "N/A" }}
-            </p>
-            <p class="text-sm text-gray-500">
-              Total Due: {{ formatCurrency(patientSnippet.total_due || 0) }}
-            </p>
-          </div>
-        </div>
-        <div class="grid grid-cols-2 gap-6">
+
+    <div v-if="!isNew" class="mt-4 border-b border-gray-200">
+      <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+        <button
+          :class="[
+            activeTab === 'details'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
+            'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm',
+          ]"
+          @click="activeTab = 'details'"
+        >
+          Appointment Details
+        </button>
+        <button
+          :class="[
+            activeTab === 'payments'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
+            'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm',
+          ]"
+          @click="activeTab = 'payments'"
+        >
+          Payments
+        </button>
+      </nav>
+    </div>
+
+    <div v-show="activeTab === 'details'" class="mt-6">
+      <form @submit.prevent="saveAppointment">
+        <div class="space-y-6">
           <div>
-            <label
-              for="specialty"
-              class="block text-sm font-medium text-gray-700"
-              >Specialty</label
+            <label for="patient" class="block text-sm font-medium text-gray-700"
+              >Patient</label
             >
             <select
-              id="specialty"
-              v-model="appointment.specialty_id"
+              id="patient"
+              v-model="appointment.patient_id"
               required
               class="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+              @change="fetchPatientSnippet"
             >
               <option
-                v-for="specialty in specialties"
-                :key="specialty.id"
-                :value="specialty.id"
+                v-for="patient in patients"
+                :key="patient.id"
+                :value="patient.id"
               >
-                {{ specialty.name }}
+                {{ patient.name }}
               </option>
             </select>
-          </div>
-          <div>
-            <label for="price" class="block text-sm font-medium text-gray-700"
-              >Price</label
+            <div
+              v-if="patientSnippet"
+              class="mt-2 p-4 bg-gray-100 rounded-md sm:flex sm:justify-between"
             >
-            <input
-              id="price"
-              v-model="appointment.price"
-              type="number"
-              step="500"
-              required
-              class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-            />
+              <div class="flex items-baseline">
+                <h4 class="text-sm font-medium text-gray-900">
+                  {{ patientSnippet.name }}
+                </h4>
+                <p class="ml-2 text-xs text-gray-600">
+                  ({{ patientSnippet.nickname }})
+                </p>
+              </div>
+              <p class="text-sm text-gray-500">
+                DOB: {{ formatDate(patientSnippet.dob) }}
+                <span
+                  :class="{
+                    'text-red-500 font-semibold': patientSnippet.is_underage,
+                  }"
+                  >({{ patientSnippet.age }})</span
+                >
+              </p>
+              <p class="text-sm text-gray-500">
+                Last Appointment:
+                {{ formatDate(patientSnippet.last_appointment_date) || "N/A" }}
+              </p>
+              <p class="text-sm text-gray-500">
+                Total Due: {{ formatCurrency(patientSnippet.total_due || 0) }}
+              </p>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-6">
+            <div>
+              <label
+                for="specialty"
+                class="block text-sm font-medium text-gray-700"
+                >Specialty</label
+              >
+              <select
+                id="specialty"
+                v-model="appointment.specialty_id"
+                required
+                class="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+              >
+                <option
+                  v-for="specialty in specialties"
+                  :key="specialty.id"
+                  :value="specialty.id"
+                >
+                  {{ specialty.name }}
+                </option>
+              </select>
+            </div>
+            <div>
+              <label for="price" class="block text-sm font-medium text-gray-700"
+                >Price</label
+              >
+              <input
+                id="price"
+                v-model="appointment.price"
+                type="number"
+                step="500"
+                required
+                class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+              />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-6">
+            <div>
+              <label
+                for="start_time"
+                class="block text-sm font-medium text-gray-700"
+                >Start Time</label
+              >
+              <input
+                id="start_time"
+                v-model="appointment.start_time"
+                type="datetime-local"
+                required
+                step="900"
+                :min="currentDateTime"
+                class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                @change="checkAvailability"
+              />
+              <p
+                v-if="doubleBookingWarning"
+                class="mt-2 text-sm text-yellow-600"
+              >
+                {{ doubleBookingWarning }}
+              </p>
+              <p
+                v-if="outsideWorkingHoursWarning"
+                class="mt-2 text-sm text-yellow-600"
+              >
+                {{ outsideWorkingHoursWarning }}
+              </p>
+            </div>
+            <div>
+              <label
+                for="end_time"
+                class="block text-sm font-medium text-gray-700"
+                >End Time</label
+              >
+              <input
+                id="end_time"
+                v-model="appointment.end_time"
+                type="datetime-local"
+                required
+                step="900"
+                class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+              />
+            </div>
           </div>
         </div>
-        <div class="grid grid-cols-2 gap-6">
-          <div>
-            <label
-              for="start_time"
-              class="block text-sm font-medium text-gray-700"
-              >Start Time</label
-            >
-            <input
-              id="start_time"
-              v-model="appointment.start_time"
-              type="datetime-local"
-              required
-              step="900"
-              :min="currentDateTime"
-              class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-              @change="checkAvailability"
-            />
-            <p v-if="doubleBookingWarning" class="mt-2 text-sm text-yellow-600">
-              {{ doubleBookingWarning }}
-            </p>
-            <p
-              v-if="outsideWorkingHoursWarning"
-              class="mt-2 text-sm text-yellow-600"
-            >
-              {{ outsideWorkingHoursWarning }}
-            </p>
-          </div>
-          <div>
-            <label
-              for="end_time"
-              class="block text-sm font-medium text-gray-700"
-              >End Time</label
-            >
-            <input
-              id="end_time"
-              v-model="appointment.end_time"
-              type="datetime-local"
-              required
-              step="900"
-              class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-            />
-          </div>
+        <div class="flex justify-end mt-6">
+          <button
+            v-if="!props.inModal"
+            type="button"
+            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+            @click="router.push('/appointments')"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="px-4 py-2 ml-3 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+          >
+            Save
+          </button>
         </div>
-      </div>
-      <div class="flex justify-end mt-6">
+      </form>
+    </div>
+
+    <div v-if="!isNew && activeTab === 'payments'" class="mt-6">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-semibold text-gray-800">Payments</h2>
         <button
-          v-if="!props.inModal"
-          type="button"
-          class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-          @click="router.push('/appointments')"
+          v-if="!showPaymentForm"
+          class="px-4 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+          @click="showPaymentForm = true"
         >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          class="px-4 py-2 ml-3 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-        >
-          Save
+          Add Payment
         </button>
       </div>
-    </form>
+
+      <PaymentForm
+        v-if="showPaymentForm"
+        :appointment-id="props.appointmentId"
+        @save="handlePaymentSave"
+        @cancel="showPaymentForm = false"
+      />
+
+      <div v-else>
+        <ul v-if="payments.length" class="space-y-3">
+          <li
+            v-for="payment in payments"
+            :key="payment.id"
+            class="bg-white shadow overflow-hidden rounded-md px-6 py-4"
+          >
+            <div class="flex justify-between">
+              <p class="text-sm font-medium text-primary">
+                {{ formatCurrency(payment.amount) }}
+              </p>
+              <p class="text-sm text-gray-500">
+                {{ formatDate(payment.created_at) }}
+              </p>
+            </div>
+            <p class="text-sm text-gray-600">Method: {{ payment.method }}</p>
+            <p v-if="payment.notes" class="mt-2 text-sm text-gray-500">
+              {{ payment.notes }}
+            </p>
+          </li>
+        </ul>
+        <p v-else class="text-center text-gray-500 py-4">No payments found.</p>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -160,6 +237,7 @@ import { useRouter } from "vue-router";
 import api from "@/services/api";
 import { format, addMinutes } from "date-fns";
 import { formatDate, formatCurrency } from "@/utils/formatDate";
+import PaymentForm from "./PaymentForm.vue";
 
 const props = defineProps({
   inModal: {
@@ -198,6 +276,9 @@ const outsideWorkingHoursWarning = ref(null);
 const endTimeWarning = ref(null);
 const workingHours = ref({ start: "09:00", end: "18:00" }); // Placeholder
 const currentDateTime = ref(new Date());
+const activeTab = ref("details");
+const payments = ref([]);
+const showPaymentForm = ref(false);
 
 const isNew = computed(() => !props.appointmentId);
 
@@ -247,6 +328,25 @@ const fetchSpecialties = async () => {
   } catch (error) {
     console.error("Error fetching specialties:", error);
   }
+};
+
+const fetchPayments = async () => {
+  if (isNew.value) return;
+  try {
+    const response = await api.get(
+      `/appointments/${props.appointmentId}/payments`,
+    );
+    payments.value = response.data.sort(
+      (a, b) => new Date(b.created_at) - new Date(a.created_at),
+    );
+  } catch (error) {
+    console.error("Error fetching payments:", error);
+  }
+};
+
+const handlePaymentSave = () => {
+  showPaymentForm.value = false;
+  fetchPayments();
 };
 
 watch(
@@ -380,6 +480,7 @@ onMounted(async () => {
 
   if (props.appointmentId) {
     await fetchAppointment();
+    await fetchPayments();
     if (appointment.value.patient_id) {
       await fetchPatientSnippet();
     }

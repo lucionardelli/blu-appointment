@@ -18,6 +18,7 @@ class AppointmentStatus(enum.Enum):
 
 class PaymentMethod(enum.Enum):
     CASH = "CASH"
+    TRANSFER = "TRANSFER"
     CREDIT_CARD = "CREDIT_CARD"
     MERCADOPAGO = "MERCADOPAGO"
     GIFT_CARD = "GIFT_CARD"

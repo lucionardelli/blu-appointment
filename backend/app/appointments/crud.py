@@ -134,7 +134,7 @@ def add_payment(
     db: Session,
     appointment_id: int,
     payment_in: schemas.PaymentCreate,
-) -> models.Appointment | None:
+) -> models.Payment:
     db_appointment = db.query(models.Appointment).filter(models.Appointment.id == appointment_id).first()
     if not db_appointment:
         return None
@@ -153,8 +153,12 @@ def add_payment(
             patient.credit_balance -= payment_in.amount
 
     db.commit()
-    db.refresh(db_appointment)
-    return db_appointment
+    db.refresh(db_payment)
+    return db_payment
+
+
+def get_payments_for_appointment(db: Session, appointment_id: int) -> list[models.Payment]:
+    return db.query(models.Payment).filter(models.Payment.appointment_id == appointment_id).all()
 
 
 # --- Working Hours CRUD ---

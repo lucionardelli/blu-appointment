@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.db.base import get_db
 
-from . import crud, schemas
+from . import crud, models, schemas
 
 router = APIRouter()
 
@@ -74,16 +74,26 @@ def reschedule_appointment(
     return db_appointment
 
 
-@router.post("/{appointment_id}/payments", response_model=schemas.Appointment)
+@router.post("/{appointment_id}/payments", response_model=schemas.Payment)
 def add_payment_to_appointment(
     appointment_id: int,
     payment: schemas.PaymentCreate,
     db: Annotated[Session, Depends(get_db)],
-) -> schemas.Appointment:
-    db_appointment = crud.add_payment(db, appointment_id=appointment_id, payment_in=payment)
-    if db_appointment is None:
+) -> models.Payment:
+    db_appointment = crud.get_appointment(db, appointment_id=appointment_id)
+    if not db_appointment:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Appointment not found")
-    return db_appointment
+    return crud.add_payment(db, appointment_id=appointment_id, payment_in=payment)
+
+
+@router.get("/{appointment_id}/payments", response_model=list[schemas.Payment])
+def get_payments_for_appointment(
+    appointment_id: int, db: Annotated[Session, Depends(get_db)]
+) -> list[models.Payment]:
+    db_appointment = crud.get_appointment(db, appointment_id=appointment_id)
+    if not db_appointment:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Appointment not found")
+    return crud.get_payments_for_appointment(db, appointment_id=appointment_id)
 
 
 @router.get("/working-hours/", response_model=list[schemas.WorkingHours])
