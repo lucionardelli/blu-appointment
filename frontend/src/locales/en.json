@@ -59,5 +59,14 @@
   "due": "Due",
   "pay_in_full": "Pay in Full",
   "dob": "DOB",
-  "profile": "Profile"
+  "profile": "Profile",
+  "dashboard_loading": "Loading dashboard...",
+  "dashboard_error": "Could not load dashboard metrics. Please try again later.",
+  "appointments_today": "Appts for Today",
+  "appointments_this_week": "Appts this Week",
+  "financial_overview": "Financial Overview",
+  "this_month": "This Month",
+  "last_month": "Last Month",
+  "expected_revenue": "Expected Revenue",
+  "total_charged": "Total Charged"
 }

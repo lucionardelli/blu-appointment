@@ -57,7 +57,16 @@
   "pending": "Pendiente",
   "overdue": "Vencido",
   "due": "Debe",
-  "pay_in_full": "Pagar todo",
+  "pay_in_full": "Todo",
   "dob": "Fecha nac.",
-  "profile": "Perfil"
+  "profile": "Perfil",
+  "dashboard_loading": "Cargando tablero...",
+  "dashboard_error": "No se pudieron cargar las métricas del tablero. Por favor, inténtelo de nuevo más tarde.",
+  "appointments_today": "Turnos para hoy",
+  "appointments_this_week": "Turnos esta semana",
+  "financial_overview": "Resumen financiero",
+  "this_month": "Este mes",
+  "last_month": "Mes pasado",
+  "expected_revenue": "Ingresos esperados",
+  "total_charged": "Total cobrado"
 }

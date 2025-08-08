@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
-import HomeView from "../views/HomeView.vue";
+import DashboardView from "../views/DashboardView.vue";
 import LoginView from "../views/LoginView.vue";
 import PatientsView from "../views/PatientsView.vue";
 import PatientForm from "../components/patients/PatientForm.vue";
@@ -11,8 +11,12 @@ import { useAuthStore } from "../stores/auth";
 const routes = [
   {
     path: "/",
-    name: "home",
-    component: HomeView,
+    redirect: "/appointments",
+  },
+  {
+    path: "/dashboard",
+    name: "dashboard",
+    component: DashboardView,
     meta: { requiresAuth: true },
   },
   {
