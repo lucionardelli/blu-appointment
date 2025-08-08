@@ -146,12 +146,6 @@ def add_payment(
     )
     db.add(db_payment)
 
-    # If patient credit was used, update the patient's balance
-    if payment_in.method == models.PaymentMethod.PATIENT_CREDIT:
-        patient = db.query(Patient).filter(Patient.id == db_appointment.patient_id).first()
-        if patient:
-            patient.credit_balance -= payment_in.amount
-
     db.commit()
     db.refresh(db_payment)
     return db_payment

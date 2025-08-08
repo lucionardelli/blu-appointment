@@ -1,11 +1,11 @@
-from datetime import date, datetime, UTC
+from datetime import UTC, date, datetime
 
 import sqlalchemy as sa
 from sqlalchemy import ForeignKey, func, select
 from sqlalchemy.orm import column_property, relationship
-from sqlalchemy.types import Date, Numeric, String, Text
+from sqlalchemy.types import Date, String, Text
 
-from app.appointments.models import Appointment
+from app.appointments.models import Appointment, Payment
 from app.db.base import Base
 
 UNDERAGE_LIMIT = 18  # Define the age limit for underage patients
@@ -29,19 +29,31 @@ class Patient(Base):
     phone = sa.Column(String(50))
     address = sa.Column(Text)
 
-    # To track credit/debt. Positive for credit, negative for debt.
-    credit_balance = sa.Column(Numeric(10, 2), nullable=False, server_default="0.00")
-
     default_specialty_id = sa.Column(ForeignKey("specialties.id"))
     default_specialty = relationship("Specialty")
 
     appointments = relationship("Appointment", back_populates="patient")
 
+    credit_balance = column_property(
+        select(func.coalesce(func.sum(Payment.amount), 0))
+        .where(Payment.appointment_id.in_(select(Appointment.id).where(Appointment.patient_id == id)))
+        .correlate_except(Payment)
+        .scalar_subquery()
+        - select(func.coalesce(func.sum(Appointment.cost), 0))
+        .where(Appointment.patient_id == id)
+        .correlate_except(Appointment)
+        .scalar_subquery()
+    )
+
     last_appointment = column_property(
-        select(func.min(Appointment.start_time)).where(Appointment.patient_id == id, Appointment.start_time < datetime.now(UTC)).scalar_subquery()
+        select(func.min(Appointment.start_time))
+        .where(Appointment.patient_id == id, Appointment.start_time < datetime.now(UTC))
+        .scalar_subquery()
     )
     next_appointment = column_property(
-        select(func.min(Appointment.start_time)).where(Appointment.patient_id == id, Appointment.start_time >= datetime.now(UTC)).scalar_subquery()
+        select(func.min(Appointment.start_time))
+        .where(Appointment.patient_id == id, Appointment.start_time >= datetime.now(UTC))
+        .scalar_subquery()
     )
 
     @property
