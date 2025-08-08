@@ -116,7 +116,7 @@
               >
               <input
                 id="price"
-                v-model="appointment.price"
+                v-model="appointment.cost"
                 type="number"
                 step="500"
                 required
@@ -211,28 +211,70 @@
       />
 
       <div v-else>
-        <ul v-if="payments.length" class="space-y-3">
-          <li
-            v-for="payment in payments"
-            :key="payment.id"
-            class="bg-white shadow overflow-hidden rounded-md px-6 py-4"
-          >
-            <div class="flex justify-between">
-              <p class="text-sm font-medium text-primary">
+        <table
+          v-if="payments.length"
+          class="min-w-full divide-y divide-gray-200"
+        >
+          <thead class="bg-gray-50">
+            <tr>
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                {{ t("date") }}
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                {{ t("payment_method") }}
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                {{ t("amount") }}
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr v-for="payment in payments" :key="payment.id">
+              <td
+                class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
+              >
+                {{ formatDate(payment.payment_date) }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ payment.method }}
+              </td>
+              <td
+                class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right"
+              >
                 {{ formatCurrency(payment.amount) }}
-              </p>
-              <p class="text-sm text-gray-500">
-                {{ formatDate(payment.created_at) }}
-              </p>
-            </div>
-            <p class="text-sm text-gray-600">
-              Method: {{ payment.payment_method }}
-            </p>
-            <p v-if="payment.notes" class="mt-2 text-sm text-gray-500">
-              {{ payment.notes }}
-            </p>
-          </li>
-        </ul>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot class="bg-gray-50">
+            <tr>
+              <td
+                colspan="2"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                {{ t("total_paid") }}
+              </td>
+              <td
+                :class="paymentStatus.color"
+                class="px-6 py-3 whitespace-nowrap text-sm font-semibold text-right"
+              >
+                {{ formatCurrency(appointment.total_paid) }} /
+                {{ formatCurrency(appointment.cost) }}
+                <span v-if="amountDue > 0" class="ml-2">
+                  ({{ t("due") }}: {{ formatCurrency(amountDue) }})
+                </span>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
         <p v-else class="text-center text-gray-500 py-4">
           {{ t("no_payments_found") }}
         </p>
@@ -279,7 +321,8 @@ const appointment = ref({
   specialty_id: null,
   start_time: "",
   end_time: "",
-  price: 0,
+  cost: 0,
+  total_paid: 0,
 });
 const patients = ref([]);
 const specialties = ref([]);
@@ -294,6 +337,29 @@ const payments = ref([]);
 const showPaymentForm = ref(false);
 
 const isNew = computed(() => !props.appointmentId);
+
+const amountDue = computed(() => {
+  if (!appointment.value) {
+    return 0;
+  }
+  return appointment.value.cost - appointment.value.total_paid;
+});
+
+const paymentStatus = computed(() => {
+  if (!appointment.value) {
+    return { color: "text-black" };
+  }
+  const now = new Date();
+  const appointmentDate = new Date(appointment.value.start_time);
+
+  if (amountDue.value <= 0) {
+    return { color: "text-green-600" };
+  }
+  if (appointmentDate > now) {
+    return { color: "text-black" };
+  }
+  return { color: "text-red-600" };
+});
 
 const fetchAppointment = async () => {
   if (isNew.value) return;
@@ -350,7 +416,7 @@ const fetchPayments = async () => {
       `/appointments/${props.appointmentId}/payments`,
     );
     payments.value = response.data.sort(
-      (a, b) => new Date(b.created_at) - new Date(a.created_at),
+      (a, b) => new Date(b.payment_date) - new Date(a.payment_date),
     );
   } catch (error) {
     console.error("Error fetching payments:", error);
@@ -360,6 +426,7 @@ const fetchPayments = async () => {
 const handlePaymentSave = () => {
   showPaymentForm.value = false;
   fetchPayments();
+  fetchAppointment(); // Refetch appointment to update total_paid
 };
 
 watch(
@@ -381,7 +448,7 @@ watch(
     if (newVal) {
       const selectedSpecialty = specialties.value.find((s) => s.id === newVal);
       if (selectedSpecialty) {
-        appointment.value.price = selectedSpecialty.current_price;
+        appointment.value.cost = selectedSpecialty.current_price;
         if (
           appointment.value.start_time &&
           selectedSpecialty.default_duration
@@ -545,7 +612,10 @@ const saveAppointment = async () => {
     if (isNew.value) {
       await api.post("/appointments", appointment.value);
     } else {
-      await api.put(`/appointments/${props.appointmentId}`, appointment.value);
+      await api.put(`/appointments/${props.appointmentId}`, {
+        ...appointment.value,
+        cost: appointment.value.cost,
+      });
     }
     if (props.inModal) {
       emit("save");

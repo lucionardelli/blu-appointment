@@ -85,15 +85,19 @@ const props = defineProps({
 const emit = defineEmits(["save", "cancel"]);
 
 const dueAmount = computed(() => {
-  return props.appointment.price - (props.appointment.total_paid || 0);
+  return props.appointment.cost - (props.appointment.total_paid || 0);
 });
 
 const payment = ref({
-  amount: dueAmount.value,
+  amount: 0,
   method: "CASH",
 });
 
 const payInFull = () => {
+  if (dueAmount.value <= 0) {
+    console.warn("No amount due to pay in full.");
+    return;
+  }
   payment.value.amount = dueAmount.value;
 };
 

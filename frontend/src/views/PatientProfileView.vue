@@ -204,7 +204,7 @@
                   >
                     {{ formatCurrency(appointment.total_paid) }} /
                     {{ formatCurrency(appointment.cost) }}
-                    <span class="text-red-500">
+                    <span :class="getPaymentStatus(appointment).color">
                       ({{ t("due") }}:
                       {{
                         formatCurrency(
@@ -223,6 +223,7 @@
           class="border-t border-gray-200 px-4 py-5 sm:p-0"
         >
           <div class="px-4 py-5 sm:px-6">
+            <!-- eslint-disable-next-line vue/no-v-html -->
             <div
               class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 prose max-w-none"
               v-html="renderedMedicalHistory"
@@ -268,7 +269,7 @@ const getPaymentStatus = (appointment) => {
   }
 
   if (appointmentDate > now) {
-    return { text: t("pending"), color: "text-orange-500", emoji: "🟠" };
+    return { text: t("pending"), color: "text-balck-500", emoji: "" };
   } else {
     return { text: t("overdue"), color: "text-red-500", emoji: "🔴" };
   }
