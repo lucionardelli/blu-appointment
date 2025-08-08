@@ -8,6 +8,7 @@ from app.db.base import Base, engine
 from app.patients.router import router as patients_router
 from app.specialties.router import router as specialties_router
 from app.users.router import router as users_router
+from app.auth.router import router as auth_router
 
 
 @asynccontextmanager
@@ -38,6 +39,7 @@ def read_root() -> dict[str, str]:
 
 
 # Include routers from feature modules
+app.include_router(auth_router, prefix="/api/v1/auth", tags=["auth"])
 app.include_router(users_router, prefix="/api/v1/users", tags=["users"])
 app.include_router(patients_router, prefix="/api/v1/patients", tags=["patients"])
 app.include_router(specialties_router, prefix="/api/v1/specialties", tags=["specialties"])
