@@ -1,7 +1,5 @@
 import { defineStore } from "pinia";
-import axios from "axios";
-
-const API_URL = "http://localhost:5000/api/v1";
+import api from "@/services/api";
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
@@ -13,27 +11,26 @@ export const useAuthStore = defineStore("auth", {
   },
   actions: {
     async login(username, password) {
-      // Mock login for development
-      if (username === "DrWho" && password === "Tardis") {
-        const mockUser = { name: "The Doctor", username: "DrWho" };
-        const mockToken = "mock-tardis-token";
-        this.user = mockUser;
-        this.token = mockToken;
-        localStorage.setItem("user", JSON.stringify(mockUser));
-        localStorage.setItem("token", mockToken);
-        return true;
-      }
-
       try {
-        const response = await axios.post(`${API_URL}/auth/login`, {
-          username,
-          password,
-        });
-        const { access_token, user } = response.data;
+        const response = await api.post(
+          "/auth/token",
+          new URLSearchParams({
+            username: username,
+            password: password,
+          }),
+          {
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+          },
+        );
+        const { access_token } = response.data;
         this.token = access_token;
-        this.user = user;
+        // For now, we don't have user details from the /token endpoint
+        // You might need a separate endpoint to fetch user details after login
+        this.user = { username: username }; // Placeholder
         localStorage.setItem("token", access_token);
-        localStorage.setItem("user", JSON.stringify(user));
+        localStorage.setItem("user", JSON.stringify(this.user));
         return true;
       } catch (error) {
         console.error("Login failed:", error);
