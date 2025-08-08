@@ -79,6 +79,19 @@ class AppointmentMetrics(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class DashboardMetrics(BaseModel):
+    appointments_today: int
+    appointments_this_week: int
+    expected_revenue_last_month: Decimal
+    expected_revenue_this_month: Decimal
+    total_charged_last_month: Decimal
+    total_charged_this_month: Decimal
+    total_due_last_month: Decimal
+    total_due_this_month: Decimal
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class RecurringSeriesCreate(BaseModel):
     patient_id: int
     specialty_id: int

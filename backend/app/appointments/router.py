@@ -125,3 +125,8 @@ def get_appointment_metrics(
     db: Annotated[Session, Depends(get_db)],
 ) -> schemas.AppointmentMetrics:
     return metrics.get_appointment_metrics(start_date=start_date, end_date=end_date, db=db)
+
+
+@router.get("/metrics/dashboard/", response_model=schemas.DashboardMetrics)
+def get_dashboard_metrics(db: Annotated[Session, Depends(get_db)]) -> schemas.DashboardMetrics:
+    return metrics.get_dashboard_metrics(db=db)
