@@ -25,6 +25,8 @@ ignore = [
   "D103",  # missing docstring in public function
   "D104",  # missing docstring in public package
   "D106",  # missing docstring in public method
+  "D107",  # missing docstring in __init__ method
+  "D205",  # 1 blank line required between summary line and description
   "D400",  # First line should end with a period
   "D401",  # First line should be in imperative mood
   "D415",  # First line should end with a period, question mark, or exclamation point WAT?
@@ -33,6 +35,9 @@ ignore = [
   "UP038",  # non-pep604-isinstance = This rule is deprecated!
   "COM812", # absence of trailing commas. Conflicts with formatter, so we need to ignore it.
   "EM101",  # Exception must not use a string literal,
+
+  "ANN204",  # missing type annotation for special method
+  "ANN401",  # Dynamically typed expressions (typing.Any) are disallowed
 ]
 fixable = ["ALL"]
 
