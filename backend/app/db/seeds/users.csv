@@ -1,2 +1,2 @@
-username,password,default_timezone
-DrWho,Tardis,America/Argentina/Buenos_Aires
+username,password,default_timezone,language
+DrWho,Tardis,America/Argentina/Buenos_Aires,es

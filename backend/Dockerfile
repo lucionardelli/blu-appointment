@@ -16,6 +16,9 @@ RUN pip install uv
 COPY ./requirements.txt /app/requirements.txt
 RUN uv pip install --system --no-cache -r /app/requirements.txt
 
+# Copy the alembic directory
+COPY ./alembic /app/alembic
+
 # Copy the rest of the backend application's source code from the host to the container
 COPY . /app
 

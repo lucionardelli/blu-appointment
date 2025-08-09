@@ -1,3 +1,4 @@
+# ruff: noqa: PLC0414
 import csv
 from decimal import Decimal
 from pathlib import Path
@@ -5,9 +6,23 @@ from pathlib import Path
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.appointments.models import (
+    Appointment as Appointment,
+)
+from app.appointments.models import (
+    Payment as Payment,
+)
+from app.appointments.models import (
+    RecurringSeries as RecurringSeries,
+)
+from app.appointments.models import (
+    WorkingHours as WorkingHours,
+)
 from app.core.security import get_password_hash
 from app.db.base import engine
+from app.patients.models import Patient as Patient
 from app.specialties.models import Specialty
+from app.specialties.models import SpecialtyPrice as SpecialtyPrice
 from app.users.models import User
 
 
@@ -36,6 +51,7 @@ def seed_users(file_path: Path) -> None:
                     username=row["username"],
                     hashed_password=get_password_hash(row["password"]),
                     default_timezone=row["default_timezone"],
+                    language=row["language"],
                 )
                 session.add(user)
         session.commit()
