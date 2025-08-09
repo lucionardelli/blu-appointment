@@ -7,6 +7,9 @@ class UserBase(BaseModel):
     username: str
     default_timezone: str = "UTC"
     language: Language = Language.ENGLISH
+    name: str | None = None
+    last_name: str | None = None
+    email: str | None = None
 
 
 class UserCreate(UserBase):
@@ -17,6 +20,9 @@ class UserUpdate(BaseModel):
     password: str | None = Field(min_length=8, default=None)
     default_timezone: str | None = None
     language: Language | None = None
+    name: str | None = None
+    last_name: str | None = None
+    email: str | None = None
 
 
 class User(UserBase):

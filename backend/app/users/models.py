@@ -13,3 +13,6 @@ class User(Base):
     hashed_password = sa.Column(sa.String, nullable=False)
     default_timezone = sa.Column(sa.String, nullable=False, server_default="UTC")
     language = sa.Column(Enum(Language), nullable=False, server_default=Language.ENGLISH.value)
+    name = sa.Column(sa.String, nullable=True)
+    last_name = sa.Column(sa.String, nullable=True)
+    email = sa.Column(sa.String, nullable=True, unique=True, index=True)

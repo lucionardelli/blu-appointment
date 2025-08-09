@@ -7,6 +7,7 @@ services:
       - "8000:8000"
     volumes:
       - ./backend/app:/app/app
+      - ./backend/alembic:/app/alembic
       - ./backend/tests:/app/tests
       - ./backend/pytest.ini:/app/pytest.ini
       - db_data:/app/db
