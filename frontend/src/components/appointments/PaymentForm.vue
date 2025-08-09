@@ -1,5 +1,29 @@
 <template>
   <div class="mt-4">
+    <div class="flex items-center mb-4">
+      <button
+        class="mr-2 p-1 rounded-full hover:bg-gray-200"
+        @click="$emit('cancel')"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-6 w-6 text-gray-500"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M10 19l-7-7m0 0l7-7m-7 7h18"
+          />
+        </svg>
+      </button>
+      <h2 class="text-xl font-semibold text-gray-800">
+        {{ t("payments") }} > {{ t("new_payment") }}
+      </h2>
+    </div>
     <form class="mt-4 space-y-4" @submit.prevent="submitPayment">
       <div class="grid grid-cols-2 gap-6">
         <div>
