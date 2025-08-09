@@ -75,16 +75,16 @@ const authStore = useAuthStore();
 const router = useRouter();
 
 const userInitials = computed(() => {
-  if (authStore.user && authStore.user.name) {
-    const nameParts = authStore.user.name.split(" ");
-    let initials = "";
-    if (nameParts.length > 0) {
-      initials += nameParts[0].charAt(0);
-      if (nameParts.length > 1) {
-        initials += nameParts[nameParts.length - 1].charAt(0);
-      }
+  if (authStore.user) {
+    if (authStore.user.name && authStore.user.last_name) {
+      return `${authStore.user.name[0]}${authStore.user.last_name[0]}`.toUpperCase();
     }
-    return initials.toUpperCase();
+    if (authStore.user.name) {
+      return `${authStore.user.name[0]}`.toUpperCase();
+    }
+    if (authStore.user.username) {
+      return `${authStore.user.username[0]}`.toUpperCase();
+    }
   }
   return "";
 });

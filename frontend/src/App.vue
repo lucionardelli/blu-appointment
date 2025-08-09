@@ -1,6 +1,6 @@
 <template>
   <component :is="layout">
-    <div class="absolute top-4 right-4">
+    <div class="absolute top-4 right-4 flex items-center space-x-4">
       <LanguageSwitcher />
     </div>
     <router-view />
@@ -8,14 +8,16 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed, watch } from "vue";
 import { useRoute } from "vue-router";
+import { useI18n } from "vue-i18n";
 import MainLayout from "@/layouts/MainLayout.vue";
 import LanguageSwitcher from "@/components/LanguageSwitcher.vue";
 import { useAuthStore } from "./stores/auth";
 
 const route = useRoute();
 const authStore = useAuthStore();
+const { locale } = useI18n();
 
 const layout = computed(() => {
   if (route.meta.requiresAuth && authStore.isAuthenticated) {
@@ -25,4 +27,16 @@ const layout = computed(() => {
   }
   return "div";
 });
+
+watch(
+  () => authStore.user,
+  (user) => {
+    if (user) {
+      locale.value = user.language;
+    } else {
+      locale.value = "en";
+    }
+  },
+  { immediate: true },
+);
 </script>

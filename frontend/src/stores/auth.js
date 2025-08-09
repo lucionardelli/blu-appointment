@@ -24,11 +24,9 @@ export const useAuthStore = defineStore("auth", {
             },
           },
         );
-        const { access_token } = response.data;
+        const { access_token, user } = response.data;
         this.token = access_token;
-        // For now, we don't have user details from the /token endpoint
-        // You might need a separate endpoint to fetch user details after login
-        this.user = { username: username }; // Placeholder
+        this.user = user;
         localStorage.setItem("token", access_token);
         localStorage.setItem("user", JSON.stringify(this.user));
         return true;

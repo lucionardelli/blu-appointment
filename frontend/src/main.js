@@ -4,9 +4,9 @@ import App from "./App.vue";
 import router from "./router";
 import createI18n from "./i18n";
 import "./assets/main.css";
-import "./services/api"; // Import the configured axios instance
+import "./services/api";
 
-const i18n = createI18n(localStorage.getItem("language"));
+const i18n = createI18n();
 
 const app = createApp(App);
 
