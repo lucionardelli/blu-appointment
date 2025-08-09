@@ -17,6 +17,7 @@ def create_user(db: Session, user: schemas.UserCreate) -> models.User:
         username=user.username,
         hashed_password=hashed_password,
         default_timezone=user.default_timezone,
+        language=user.language,
     )
     db.add(db_user)
     db.commit()
