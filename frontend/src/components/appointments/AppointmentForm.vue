@@ -192,7 +192,34 @@
 
     <div v-if="!isNew && activeTab === 'payments'" class="mt-6">
       <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-semibold text-gray-800">{{ t("payments") }}</h2>
+        <div class="flex items-center">
+          <button
+            v-if="showPaymentForm"
+            class="mr-2 p-1 rounded-full hover:bg-gray-200"
+            @click="showPaymentForm = false"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-6 w-6 text-gray-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
+            </svg>
+          </button>
+          <h2 class="text-xl font-semibold text-gray-800">
+            <span v-if="showPaymentForm">
+              {{ t("payments") }} > {{ t("new_payment") }}
+            </span>
+            <span v-else>{{ t("payments") }}</span>
+          </h2>
+        </div>
         <button
           v-if="!showPaymentForm"
           class="px-4 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
