@@ -30,22 +30,24 @@
           <label for="amount" class="block text-sm font-medium text-gray-700">{{
             t("amount")
           }}</label>
-          <div class="flex items-center mt-1">
+          <div class="relative mt-1 rounded-md shadow-sm">
             <input
               id="amount"
               v-model="payment.amount"
               type="number"
               step="0.01"
               required
-              class="block w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+              class="block w-full pr-12 px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
             />
-            <button
-              type="button"
-              class="ml-2 px-3 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-              @click="payInFull"
-            >
-              {{ t("pay_in_full") }}
-            </button>
+            <div class="absolute inset-y-0 right-0 flex items-center pr-2">
+              <button
+                type="button"
+                class="px-2 py-1 text-xs font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                @click="payInFull"
+              >
+                {{ t("pay_in_full") }}
+              </button>
+            </div>
           </div>
         </div>
         <div>
