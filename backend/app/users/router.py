@@ -4,6 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.db import get_db
+from app.users.logged import get_current_user
+from app.users.models import User
 
 from . import crud, schemas
 
@@ -21,14 +23,18 @@ def create_user(user: schemas.UserCreate, db: Annotated[Session, Depends(get_db)
     return crud.create_user(db=db, user=user)
 
 
-@router.get("/{user_id}", response_model=schemas.User)
-def read_user(user_id: int, db: Annotated[Session, Depends(get_db)]) -> schemas.User:
-    db_user = crud.get_user_by_ud(db, user_id=user_id)
-    if db_user is None:
+@router.get("/", response_model=schemas.User)
+def read_logged_user(current_user: Annotated[User, Depends(get_current_user)]) -> schemas.User:
+    return current_user
+
+
+@router.put("/", response_model=schemas.User)
+def update_logged_user(
+    user_update: schemas.UserUpdate,
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> schemas.User:
+    updated_user = crud.update_user(db=db, user_id=current_user.id, user_update=user_update)
+    if updated_user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-    return db_user
-
-
-@router.put("/{user_id}", response_model=schemas.User)
-def update_user(user_id: int, user: schemas.UserUpdate, db: Annotated[Session, Depends(get_db)]) -> schemas.User:
-    return crud.update_user(db=db, user_id=user_id, user_update=user)
+    return updated_user

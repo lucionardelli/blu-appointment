@@ -4,7 +4,9 @@ from typing import Annotated, Never
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
+from app.users.logged import get_current_user
 from app.db.base import get_db
+from app.users.models import User
 
 from . import crud, metrics, models, schemas
 
@@ -13,7 +15,9 @@ router = APIRouter()
 
 @router.post("/", response_model=schemas.Appointment, status_code=status.HTTP_201_CREATED)
 def create_appointment(
-    appointment: schemas.AppointmentCreate, db: Annotated[Session, Depends(get_db)]
+    appointment: schemas.AppointmentCreate,
+    db: Annotated[Session, Depends(get_db)],
+    _current_user: Annotated[User, Depends(get_current_user)],
 ) -> schemas.Appointment:
     try:
         return crud.create_appointment(db=db, appointment_in=appointment)
@@ -31,12 +35,17 @@ def get_appointments(
         list[schemas.AppointmentStatus] | None,
         Query(description="Filter by appointment status. Can be specified multiple times."),
     ] = None,
+    _current_user: Annotated[User, Depends(get_current_user)] = None,
 ) -> list[schemas.Appointment]:
     return crud.get_appointments(db=db, skip=skip, limit=limit, user_id=user_id, status=status)
 
 
 @router.get("/{appointment_id}", response_model=schemas.Appointment)
-def get_appointment(appointment_id: int, db: Annotated[Session, Depends(get_db)]) -> schemas.Appointment:
+def get_appointment(
+    appointment_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    _current_user: Annotated[User, Depends(get_current_user)],
+) -> schemas.Appointment:
     db_appointment = crud.get_appointment(db, appointment_id=appointment_id)
     if db_appointment is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Appointment not found")
@@ -48,6 +57,7 @@ def update_appointment(
     appointment_id: int,
     appointment_update: schemas.AppointmentUpdate,
     db: Annotated[Session, Depends(get_db)],
+    _current_user: Annotated[User, Depends(get_current_user)],
 ) -> schemas.Appointment:
     db_appointment = crud.update_appointment(db, appointment_id=appointment_id, appointment_update=appointment_update)
     if db_appointment is None:
@@ -56,7 +66,11 @@ def update_appointment(
 
 
 @router.patch("/{appointment_id}/cancel", response_model=schemas.Appointment)
-def cancel_appointment(appointment_id: int, db: Annotated[Session, Depends(get_db)]) -> schemas.Appointment:
+def cancel_appointment(
+    appointment_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    _current_user: Annotated[User, Depends(get_current_user)],
+) -> schemas.Appointment:
     db_appointment = crud.cancel_appointment(db, appointment_id=appointment_id)
     if db_appointment is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Appointment not found")
@@ -68,6 +82,7 @@ def reschedule_appointment(
     appointment_id: int,
     new_start_time: Annotated[datetime, Body(embed=True)],
     db: Annotated[Session, Depends(get_db)],
+    _current_user: Annotated[User, Depends(get_current_user)],
 ) -> schemas.Appointment:
     db_appointment = crud.reschedule_appointment(db, appointment_id=appointment_id, new_start_time=new_start_time)
     if db_appointment is None:
@@ -80,6 +95,7 @@ def add_payment_to_appointment(
     appointment_id: int,
     payment: schemas.PaymentCreate,
     db: Annotated[Session, Depends(get_db)],
+    _current_user: Annotated[User, Depends(get_current_user)],
 ) -> models.Payment:
     db_appointment = crud.get_appointment(db, appointment_id=appointment_id)
     if not db_appointment:
@@ -88,7 +104,11 @@ def add_payment_to_appointment(
 
 
 @router.get("/{appointment_id}/payments", response_model=list[schemas.Payment])
-def get_payments_for_appointment(appointment_id: int, db: Annotated[Session, Depends(get_db)]) -> list[models.Payment]:
+def get_payments_for_appointment(
+    appointment_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    _current_user: Annotated[User, Depends(get_current_user)],
+) -> list[models.Payment]:
     db_appointment = crud.get_appointment(db, appointment_id=appointment_id)
     if not db_appointment:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Appointment not found")
@@ -96,7 +116,9 @@ def get_payments_for_appointment(appointment_id: int, db: Annotated[Session, Dep
 
 
 @router.get("/working-hours/", response_model=list[schemas.WorkingHours])
-def get_working_hours(db: Annotated[Session, Depends(get_db)]) -> list[schemas.WorkingHours]:
+def get_working_hours(
+    db: Annotated[Session, Depends(get_db)], _current_user: Annotated[User, Depends(get_current_user)]
+) -> list[schemas.WorkingHours]:
     return crud.get_working_hours(db)
 
 
@@ -104,14 +126,16 @@ def get_working_hours(db: Annotated[Session, Depends(get_db)]) -> list[schemas.W
 def set_working_hours(
     working_hours: list[schemas.WorkingHoursCreate],
     db: Annotated[Session, Depends(get_db)],
+    _current_user: Annotated[User, Depends(get_current_user)],
 ) -> list[schemas.WorkingHours]:
     return crud.set_working_hours(db, hours_in=working_hours)
 
 
 @router.post("/recurring/", status_code=status.HTTP_501_NOT_IMPLEMENTED, response_model=None)
 def create_recurring_appointments(
-    series: schemas.RecurringSeriesCreate,  # noqa: ARG001
-    db: Annotated[Session, Depends(get_db)],  # noqa: ARG001
+    _series: schemas.RecurringSeriesCreate,
+    _db: Annotated[Session, Depends(get_db)],
+    _current_user: Annotated[User, Depends(get_current_user)],
 ) -> Never:
     raise HTTPException(
         status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="Recurring appointments creation is not yet implemented."
@@ -123,10 +147,13 @@ def get_appointment_metrics(
     start_date: Annotated[date, Query(description="Start time for the metrics")],
     end_date: Annotated[date, Query(description="End time for the metrics")],
     db: Annotated[Session, Depends(get_db)],
+    _current_user: Annotated[User, Depends(get_current_user)],
 ) -> schemas.AppointmentMetrics:
     return metrics.get_appointment_metrics(start_date=start_date, end_date=end_date, db=db)
 
 
 @router.get("/metrics/dashboard/", response_model=schemas.DashboardMetrics)
-def get_dashboard_metrics(db: Annotated[Session, Depends(get_db)]) -> schemas.DashboardMetrics:
+def get_dashboard_metrics(
+    db: Annotated[Session, Depends(get_db)], _current_user: Annotated[User, Depends(get_current_user)]
+) -> schemas.DashboardMetrics:
     return metrics.get_dashboard_metrics(db=db)
