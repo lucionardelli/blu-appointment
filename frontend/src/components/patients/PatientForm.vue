@@ -90,11 +90,14 @@
               class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
             >
               <dt class="text-sm font-medium text-gray-500">
-                {{ t("cell_phone") }}
+                {{ t("contact_info") }}
               </dt>
               <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                 <div class="grid grid-cols-2 gap-4">
                   <div>
+                    <label for="cellphone" class="sr-only">{{
+                      t("cell_phone")
+                    }}</label>
                     <input
                       id="cellphone"
                       v-model="patient.cellphone"
@@ -274,7 +277,7 @@
 
           <div class="flex justify-end mt-6 px-4 py-5 sm:px-6">
             <router-link
-              to="/patients"
+              :to="`/patients/${route.params.id}`"
               class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
             >
               {{ t("cancel") }}
@@ -320,7 +323,7 @@ const errors = ref({});
 
 const isNew = computed(() => !route.params.id);
 
-const activeTab = ref("details");
+const activeTab = ref("medical_history");
 const md = new MarkdownIt();
 
 const renderedMedicalHistory = computed(() => {
@@ -329,6 +332,43 @@ const renderedMedicalHistory = computed(() => {
   }
   return "";
 });
+
+const appointments = ref([]);
+const showCancelledAppointments = ref(false);
+
+const getPaymentStatus = (appointment) => {
+  const now = new Date();
+  const appointmentDate = new Date(appointment.start_time);
+  const amountDue = appointment.cost - appointment.total_paid;
+
+  if (amountDue <= 0) {
+    return { text: t("paid"), color: "text-green-500", emoji: "✅" };
+  }
+
+  if (appointmentDate > now) {
+    return { text: t("pending"), color: "text-balck-500", emoji: "" };
+  } else {
+    return { text: t("overdue"), color: "text-red-500", emoji: "🔴" };
+  }
+};
+
+const filteredAppointments = computed(() => {
+  if (showCancelledAppointments.value) {
+    return appointments.value;
+  } else {
+    return appointments.value.filter((app) => !app.cancelled);
+  }
+});
+
+const fetchAppointments = async () => {
+  if (isNew.value) return;
+  try {
+    const response = await api.get(`/patients/${route.params.id}/appointments`);
+    appointments.value = response.data;
+  } catch (error) {
+    console.error("Error fetching appointments:", error);
+  }
+};
 
 const fetchSpecialties = async () => {
   try {
@@ -355,6 +395,7 @@ const fetchPatient = async () => {
 onMounted(() => {
   fetchPatient();
   fetchSpecialties();
+  fetchAppointments();
 });
 
 const savePatient = async () => {
