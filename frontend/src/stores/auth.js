@@ -2,14 +2,32 @@ import { defineStore } from "pinia";
 import api from "@/services/api";
 
 export const useAuthStore = defineStore("auth", {
-  state: () => ({
-    user: JSON.parse(localStorage.getItem("user")),
-    token: localStorage.getItem("token") || null,
-  }),
+  state: () => {
+    let user = null;
+    try {
+      user = JSON.parse(localStorage.getItem("user"));
+    } catch (e) {
+      console.error("Error parsing user from local storage:", e);
+      // If parsing fails, user will remain null, triggering logout if needed
+    }
+    return {
+      user: user,
+      token: localStorage.getItem("token") || null,
+    };
+  },
   getters: {
-    isAuthenticated: (state) => !!state.token,
+    isAuthenticated: (state) => !!state.token && !!state.user,
   },
   actions: {
+    initialize() {
+      // Check if user data is valid after initial load
+      if (this.token && (!this.user || !this.user.id)) {
+        console.warn(
+          "Incomplete or invalid user data found in local storage. Logging out.",
+        );
+        this.logout();
+      }
+    },
     async login(username, password) {
       try {
         const response = await api.post(

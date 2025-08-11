@@ -8,7 +8,7 @@
 </template>
 
 <script setup>
-import { computed, watch } from "vue";
+import { computed, watch, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import { useI18n } from "vue-i18n";
 import MainLayout from "@/layouts/MainLayout.vue";
@@ -39,4 +39,8 @@ watch(
   },
   { immediate: true },
 );
+
+onMounted(() => {
+  authStore.initialize();
+});
 </script>
