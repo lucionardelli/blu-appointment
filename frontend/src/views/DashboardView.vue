@@ -14,19 +14,9 @@
           <div class="p-5">
             <div class="flex items-center">
               <div class="flex-shrink-0">
-                <svg
+                <i-heroicons-calendar-days-20-solid
                   class="h-6 w-6 text-blue-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
+                />
               </div>
               <div class="ml-5 w-0 flex-1">
                 <dl>
@@ -47,19 +37,7 @@
           <div class="p-5">
             <div class="flex items-center">
               <div class="flex-shrink-0">
-                <svg
-                  class="h-6 w-6 text-green-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
+                <i-heroicons-clock-20-solid class="h-6 w-6 text-green-500" />
               </div>
               <div class="ml-5 w-0 flex-1">
                 <dl>

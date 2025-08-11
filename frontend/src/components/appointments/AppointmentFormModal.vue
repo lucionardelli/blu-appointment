@@ -10,20 +10,7 @@
         class="absolute top-0 right-0 mt-4 mr-4 text-gray-400 hover:text-gray-600"
         @click="$emit('close')"
       >
-        <svg
-          class="w-6 h-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M6 18L18 6M6 6l12 12"
-          ></path>
-        </svg>
+        <i-heroicons-x-mark-20-solid class="w-6 h-6" />
       </button>
       <AppointmentForm
         :initial-date="initialDate"

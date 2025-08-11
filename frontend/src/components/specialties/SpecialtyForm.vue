@@ -7,20 +7,9 @@
             class="mr-2 p-1 rounded-full hover:bg-gray-200"
             @click="goBack"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
+            <i-heroicons-arrow-left-20-solid
               class="h-6 w-6 text-gray-500"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M10 19l-7-7m0 0l7-7m-7 7h18"
-              />
-            </svg>
+            />
           </button>
           <h3 class="text-lg leading-6 font-medium text-gray-900">
             {{ isNew ? t("new_specialty") : t("edit_specialty") }}

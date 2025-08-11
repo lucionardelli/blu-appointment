@@ -9,20 +9,7 @@
               class="mr-2 p-1 rounded-full hover:bg-gray-200"
               @click="cancelEdit"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-6 w-6 text-gray-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                />
-              </svg>
+              <i-heroicons-arrow-left-20-solid class="h-6 w-6 text-gray-500" />
             </button>
             <h3 class="text-lg leading-6 font-medium text-gray-900">
               <span v-if="isNew">{{ t("new_patient") }}</span>
@@ -359,12 +346,13 @@
               rows="10"
               class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
             ></textarea>
-            <!-- eslint-disable-next-line vue/no-v-html -->
+            <!-- eslint-disable vue/no-v-html -->
             <div
               v-else
               class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 prose max-w-none"
               v-html="renderedMedicalHistory"
             ></div>
+            <!-- eslint-enable vue/no-v-html -->
           </div>
         </div>
       </div>

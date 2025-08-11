@@ -21,6 +21,7 @@ export default [
       "*.css.map",
       "*.js.map",
       "package-lock.json",
+      "components.d.ts",
     ],
   },
   eslint.configs.recommended,

@@ -5,22 +5,9 @@
     <div class="flex items-center">
       <button
         class="text-gray-500 focus:outline-none lg:hidden"
-        @click="$emit('toggle-sidebar')"
+        @click="emit('toggle-sidebar')"
       >
-        <svg
-          class="w-6 h-6"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M4 6H20M4 12H20M4 18H11Z"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
+        <i-heroicons-mini:bars-3 class="w-6 h-6" />
       </button>
     </div>
     <div class="flex items-center">
@@ -68,6 +55,7 @@ import { useAuthStore } from "@/stores/auth";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 
+const emit = defineEmits(["toggle-sidebar"]);
 const { t } = useI18n();
 
 const dropdownOpen = ref(false);
