@@ -1,72 +1,105 @@
 <template>
   <div>
-    <h1 class="text-2xl font-semibold text-gray-900">Edit Specialty</h1>
-    <form class="mt-6" @submit.prevent="saveSpecialty">
-      <div class="space-y-6">
-        <div>
-          <label for="name" class="block text-sm font-medium text-gray-700"
-            >Name</label
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+      <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+        <div class="flex items-center">
+          <button
+            class="mr-2 p-1 rounded-full hover:bg-gray-200"
+            @click="goBack"
           >
-          <input
-            id="name"
-            v-model="specialty.name"
-            type="text"
-            required
-            class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-          />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-6 w-6 text-gray-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
+            </svg>
+          </button>
+          <h3 class="text-lg leading-6 font-medium text-gray-900">
+            {{ isNew ? t("new_specialty") : t("edit_specialty") }}
+          </h3>
         </div>
-        <div>
-          <label
-            for="default_duration"
-            class="block text-sm font-medium text-gray-700"
-            >Default Duration (minutes)</label
-          >
-          <input
-            id="default_duration"
-            v-model="specialty.default_duration_minutes"
-            type="number"
-            required
-            class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-          />
-        </div>
-        <div>
-          <label
-            for="current_price"
-            class="block text-sm font-medium text-gray-700"
-            >Default Price</label
-          >
-          <input
-            id="current_price"
-            v-model="specialty.current_price"
-            type="text"
-            inputmode="decimal"
-            pattern="^\d+(\.\d{0,2})?$"
-            required
-            class="block w-full pl-7 pr-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-            placeholder="0.00"
-          />
-        </div>
-      </div>
-      <div class="flex justify-end mt-6">
-        <router-link
-          to="/specialties"
-          class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-        >
-          Cancel
-        </router-link>
         <button
           type="submit"
-          class="px-4 py-2 ml-3 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+          class="px-4 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+          @click="saveSpecialty"
         >
-          Save
+          {{ t("save") }}
         </button>
       </div>
-    </form>
+      <div class="border-t border-gray-200">
+        <form @submit.prevent="saveSpecialty">
+          <dl class="sm:divide-y sm:divide-gray-200">
+            <div
+              class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
+            >
+              <dt class="text-sm font-medium text-gray-500">
+                {{ t("name") }}
+              </dt>
+              <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                <input
+                  id="name"
+                  v-model="specialty.name"
+                  type="text"
+                  required
+                  class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                />
+              </dd>
+            </div>
+            <div
+              class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
+            >
+              <dt class="text-sm font-medium text-gray-500">
+                {{ t("default_duration") }}
+              </dt>
+              <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                <input
+                  id="default_duration"
+                  v-model="specialty.default_duration_minutes"
+                  type="number"
+                  required
+                  class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                />
+              </dd>
+            </div>
+            <div
+              class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
+            >
+              <dt class="text-sm font-medium text-gray-500">
+                {{ t("default_price") }}
+              </dt>
+              <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                <input
+                  id="current_price"
+                  v-model="specialty.current_price"
+                  type="text"
+                  inputmode="decimal"
+                  pattern="^\d+(\.\d{0,2})?$"
+                  required
+                  class="block w-full pl-7 pr-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                  :placeholder="t('price')"
+                />
+              </dd>
+            </div>
+          </dl>
+        </form>
+      </div>
+    </div>
 
-    <div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
+    <div
+      v-if="!isNew"
+      class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg"
+    >
       <div class="px-4 py-5 sm:px-6">
         <h3 class="text-lg leading-6 font-medium text-gray-900">
-          Pricing History
+          {{ t("pricing_history") }}
         </h3>
       </div>
       <div class="border-t border-gray-200">
@@ -77,13 +110,13 @@
                 scope="col"
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
-                Date of Change
+                {{ t("date_of_change") }}
               </th>
               <th
                 scope="col"
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
-                Price
+                {{ t("price") }}
               </th>
             </tr>
           </thead>
@@ -101,41 +134,32 @@
           </tbody>
         </table>
       </div>
-      <!--
-      <div class="px-4 py-5 sm:px-6 bg-gray-50">
-        <h4 class="text-md font-medium text-gray-900 mb-4">Add New Price Entry</h4>
-        <div class="flex items-center space-x-4">
-          <input
-            type="number"
-            v-model.number="newPrice"
-            placeholder="New Price"
-            class="block w-1/3 px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-          />
-          <button
-            @click="addPriceEntry"
-            class="px-4 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-          >
-            Add Price
-          </button>
-        </div>
-      </div>
-      -->
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import api from "@/services/api";
 import { formatDate, formatCurrency } from "@/utils/formatDate";
+import { useI18n } from "vue-i18n";
 
+const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
-const specialty = ref({ name: "", default_duration: 0 });
+
+const specialty = ref({
+  name: "",
+  default_duration_minutes: 0,
+  current_price: 0,
+});
 const pricingHistory = ref([]);
 
+const isNew = computed(() => !route.params.id);
+
 const fetchSpecialty = async () => {
+  if (isNew.value) return;
   try {
     const response = await api.get(`/specialties/${route.params.id}`);
     specialty.value = response.data;
@@ -145,11 +169,10 @@ const fetchSpecialty = async () => {
 };
 
 const fetchPricingHistory = async () => {
+  if (isNew.value) return;
   try {
     const response = await api.get(`/specialties/${route.params.id}/prices`);
-    console.log("Pricing history:", response.data);
     pricingHistory.value = response.data;
-    console.log("Pricing history fetched successfully", pricingHistory.value);
   } catch (error) {
     console.error("Error fetching pricing history:", error);
   }
@@ -162,23 +185,20 @@ onMounted(() => {
 
 const saveSpecialty = async () => {
   try {
-    await api.put(`/specialties/${route.params.id}`, specialty.value);
-    router.push("/specialties");
+    if (isNew.value) {
+      const response = await api.post("/specialties", specialty.value);
+      router.push(`/specialties/${response.data.id}`);
+    } else {
+      await api.put(`/specialties/${route.params.id}`, specialty.value);
+      // Re-fetch pricing history to show updated price if it changed
+      fetchPricingHistory();
+    }
   } catch (error) {
     console.error("Error saving specialty:", error);
   }
 };
 
-/*
-I don't think we want to add price entries directly in the table. Is counter-intuitive.
-const addPriceEntry = async () => {
-  try {
-    await api.post(`/specialties/${route.params.id}/prices`, { price: newPrice.value });
-    newPrice.value = 0; // Reset input
-    fetchPricingHistory(); // Refresh history
-  } catch (error) {
-    console.error('Error adding price entry:', error);
-  }
+const goBack = () => {
+  router.push("/specialties");
 };
-*/
 </script>

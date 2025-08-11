@@ -4,6 +4,7 @@
   "edit_appointment": "Edit Appointment",
   "patient": "Patient",
   "specialty": "Specialty",
+  "edit_specialty": "Edit Specialty",
   "price": "Price",
   "start_time": "Start Time",
   "end_time": "End Time",
@@ -72,5 +73,7 @@
   "this_month": "This Month",
   "last_month": "Last Month",
   "expected_revenue": "Expected Revenue",
-  "total_charged": "Total Charged"
+  "total_charged": "Total Charged",
+  "pricing_history": "Pricing History",
+  "date_of_change": "Date of Change"
 }

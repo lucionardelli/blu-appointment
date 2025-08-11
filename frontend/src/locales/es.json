@@ -4,6 +4,7 @@
   "edit_appointment": "Editar turno",
   "patient": "Paciente",
   "specialty": "Especialidad",
+  "edit_specialty": "Editar especialidad",
   "price": "Precio",
   "start_time": "Hora de inicio",
   "end_time": "Hora de fin",
@@ -72,5 +73,7 @@
   "this_month": "Este mes",
   "last_month": "Mes pasado",
   "expected_revenue": "Ingresos esperados",
-  "total_charged": "Total cobrado"
+  "total_charged": "Total cobrado",
+  "pricing_history": "Historial de Precios",
+  "date_of_change": "Fecha de Cambio"
 }
