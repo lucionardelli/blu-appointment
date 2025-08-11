@@ -68,7 +68,7 @@ const login = async () => {
     await authStore.login(username.value, password.value);
     router.push("/");
   } catch {
-    error.value = `{{ t('invalid_credentials') }}`;
+    error.value = t("invalid_credentials");
   }
 };
 </script>
