@@ -31,6 +31,12 @@
               scope="col"
               class="hidden px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase md:table-cell"
             >
+              {{ t("default_specialty") }}
+            </th>
+            <th
+              scope="col"
+              class="hidden px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase md:table-cell"
+            >
               {{ t("last_appointment") }}
             </th>
             <th
@@ -52,6 +58,11 @@
                 <span v-if="patient.nickname" class="text-gray-500"
                   >({{ patient.nickname }})</span
                 >
+              </div>
+            </td>
+            <td class="hidden px-6 py-4 whitespace-nowrap md:table-cell">
+              <div class="text-sm text-gray-500">
+                {{ patient.default_specialty || t("not_specified") }}
               </div>
             </td>
             <td class="hidden px-6 py-4 whitespace-nowrap md:table-cell">

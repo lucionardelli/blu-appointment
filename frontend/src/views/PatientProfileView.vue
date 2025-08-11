@@ -57,17 +57,16 @@
                 {{ t("phone_number") }}
               </dt>
               <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {{ patient.phone }}
-              </dd>
-            </div>
-            <div
-              class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
-            >
-              <dt class="text-sm font-medium text-gray-500">
-                {{ t("cell_phone") }}
-              </dt>
-              <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {{ patient.cellphone }}
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <span class="font-medium">{{ t("cell_phone") }}:</span>
+                    {{ patient.cellphone || "N/A" }}
+                  </div>
+                  <div>
+                    <span class="font-medium">{{ t("phone_number") }}:</span>
+                    {{ patient.phone || "N/A" }}
+                  </div>
+                </div>
               </dd>
             </div>
             <div
@@ -100,7 +99,7 @@
                 {{ t("total_paid") }}
               </dt>
               <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {{ patient.financialSummary.totalPaid }}
+                {{ patient.financialSummary.total_paid }}
               </dd>
             </div>
             <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 sm:py-5">
@@ -108,7 +107,7 @@
                 {{ t("total_due") }}
               </dt>
               <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {{ patient.financialSummary.totalDue }}
+                {{ patient.financialSummary.total_due }}
               </dd>
             </div>
             <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 sm:py-5">
