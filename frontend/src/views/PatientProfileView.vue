@@ -1,90 +1,220 @@
 <template>
   <div>
-    <div v-if="patient">
+    <div v-if="patient || isNew">
       <div class="bg-white shadow overflow-hidden sm:rounded-lg">
         <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
-          <div>
+          <div class="flex items-center">
+            <button
+              v-if="isEditing"
+              class="mr-2 p-1 rounded-full hover:bg-gray-200"
+              @click="cancelEdit"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-6 w-6 text-gray-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                />
+              </svg>
+            </button>
             <h3 class="text-lg leading-6 font-medium text-gray-900">
-              {{ t("patient_profile") }}
+              <span v-if="isNew">{{ t("new_patient") }}</span>
+              <span v-else-if="isEditing">{{ t("edit_patient") }}</span>
+              <span v-else>{{ t("patient_profile") }}</span>
             </h3>
-            <p class="mt-1 max-w-2xl text-sm text-gray-500">
-              {{ t("personal_details_and_appointment_history") }}
-            </p>
           </div>
-          <router-link
-            :to="`/patients/${patient.id}/edit`"
+          <button
+            v-if="!isEditing && !isNew"
             class="px-4 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-            >{{ t("edit") }}</router-link
+            @click="startEdit"
           >
+            {{ t("edit") }}
+          </button>
+          <button
+            v-else
+            class="px-4 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+            @click="savePatient"
+          >
+            {{ t("save") }}
+          </button>
         </div>
         <div class="border-t border-gray-200">
-          <dl class="sm:divide-y sm:divide-gray-200">
-            <div
-              class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
-            >
-              <dt class="text-sm font-medium text-gray-500">
-                {{ t("full_name") }}
-              </dt>
-              <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {{ patient.name }}
-                <span v-if="patient.nickname">({{ patient.nickname }})</span>
-              </dd>
-            </div>
-            <div
-              class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
-            >
-              <dt class="text-sm font-medium text-gray-500">
-                {{ t("date_of_birth") }}
-              </dt>
-              <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {{ patient.dob }}
-              </dd>
-            </div>
-            <div
-              class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
-            >
-              <dt class="text-sm font-medium text-gray-500">
-                {{ t("email_address") }}
-              </dt>
-              <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {{ patient.email }}
-              </dd>
-            </div>
-            <div
-              class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
-            >
-              <dt class="text-sm font-medium text-gray-500">
-                {{ t("phone_number") }}
-              </dt>
-              <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                <div class="grid grid-cols-2 gap-4">
-                  <div>
-                    <span class="font-medium">{{ t("cell_phone") }}:</span>
-                    {{ patient.cellphone || "N/A" }}
+          <form @submit.prevent="savePatient">
+            <dl class="sm:divide-y sm:divide-gray-200">
+              <div
+                class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
+              >
+                <dt class="text-sm font-medium text-gray-500">
+                  {{ t("full_name") }}
+                </dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                  <div v-if="isEditing" class="grid grid-cols-2 gap-4">
+                    <div>
+                      <input
+                        id="name"
+                        v-model="patient.name"
+                        type="text"
+                        required
+                        class="block w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                      />
+                      <p v-if="errors.name" class="mt-1 text-sm text-red-600">
+                        {{ errors.name }}
+                      </p>
+                    </div>
+                    <div>
+                      <label for="nickname" class="sr-only">{{
+                        t("nickname")
+                      }}</label>
+                      <input
+                        id="nickname"
+                        v-model="patient.nickname"
+                        type="text"
+                        :placeholder="t('nickname')"
+                        class="block w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <span class="font-medium">{{ t("phone_number") }}:</span>
-                    {{ patient.phone || "N/A" }}
-                  </div>
-                </div>
-              </dd>
-            </div>
-            <div
-              class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
-            >
-              <dt class="text-sm font-medium text-gray-500">
-                {{ t("address") }}
-              </dt>
-              <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {{ patient.address }}
-              </dd>
-            </div>
-          </dl>
+                  <span v-else
+                    >{{ patient.name }}
+                    <span v-if="patient.nickname"
+                      >({{ patient.nickname }})</span
+                    ></span
+                  >
+                </dd>
+              </div>
+              <div
+                class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
+              >
+                <dt class="text-sm font-medium text-gray-500">
+                  {{ t("date_of_birth") }}
+                </dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                  <input
+                    v-if="isEditing"
+                    id="dob"
+                    v-model="patient.dob"
+                    type="date"
+                    required
+                    class="block w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                  />
+                  <span v-else>{{ formatDate(patient.dob) }}</span>
+                  <p v-if="errors.dob" class="mt-1 text-sm text-red-600">
+                    {{ errors.dob }}
+                  </p>
+                </dd>
+              </div>
+              <div
+                class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
+              >
+                <dt class="text-sm font-medium text-gray-500">
+                  {{ t("email_address") }}
+                </dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                  <input
+                    v-if="isEditing"
+                    id="email"
+                    v-model="patient.email"
+                    type="email"
+                    class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                  />
+                  <span v-else>{{ patient.email }}</span>
+                  <p v-if="errors.email" class="mt-1 text-sm text-red-600">
+                    {{ errors.email }}
+                  </p>
+                </dd>
+              </div>
+              <div
+                class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
+              >
+                <dt class="text-sm font-medium text-gray-500">
+                  {{ t("phone_number") }}
+                </dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                  <input
+                    v-if="isEditing"
+                    id="phone"
+                    v-model="patient.phone"
+                    type="text"
+                    class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  />
+                  <span v-else>{{ patient.phone }}</span>
+                </dd>
+              </div>
+              <div
+                class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
+              >
+                <dt class="text-sm font-medium text-gray-500">
+                  {{ t("cell_phone") }}
+                </dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                  <input
+                    v-if="isEditing"
+                    id="cellphone"
+                    v-model="patient.cellphone"
+                    type="text"
+                    class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  />
+                  <span v-else>{{ patient.cellphone }}</span>
+                </dd>
+              </div>
+              <div
+                class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
+              >
+                <dt class="text-sm font-medium text-gray-500">
+                  {{ t("address") }}
+                </dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                  <input
+                    v-if="isEditing"
+                    id="address"
+                    v-model="patient.address"
+                    type="text"
+                    class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                  />
+                  <span v-else>{{ patient.address }}</span>
+                </dd>
+              </div>
+              <div
+                class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
+              >
+                <dt class="text-sm font-medium text-gray-500">
+                  {{ t("default_specialty") }}
+                </dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                  <select
+                    v-if="isEditing"
+                    id="default_specialty"
+                    v-model="patient.default_specialty_id"
+                    class="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                  >
+                    <option :value="null">{{ t("not_specified") }}</option>
+                    <option
+                      v-for="specialty in specialties"
+                      :key="specialty.id"
+                      :value="specialty.id"
+                    >
+                      {{ specialty.name }}
+                    </option>
+                  </select>
+                  <span v-else>{{
+                    patient.default_specialty?.name || t("not_specified")
+                  }}</span>
+                </dd>
+              </div>
+            </dl>
+          </form>
         </div>
       </div>
 
       <div
-        v-if="patient.financialSummary"
+        v-if="patient.financialSummary && !isNew"
         class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg"
       >
         <div class="px-4 py-5 sm:px-6">
@@ -99,7 +229,7 @@
                 {{ t("total_paid") }}
               </dt>
               <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {{ patient.financialSummary.total_paid }}
+                {{ formatCurrency(patient.financialSummary.totalPaid) }}
               </dd>
             </div>
             <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 sm:py-5">
@@ -107,7 +237,7 @@
                 {{ t("total_due") }}
               </dt>
               <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {{ patient.financialSummary.total_due }}
+                {{ formatCurrency(patient.financialSummary.totalDue) }}
               </dd>
             </div>
             <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 sm:py-5">
@@ -115,7 +245,7 @@
                 {{ t("balance") }}
               </dt>
               <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {{ patient.financialSummary.balance }}
+                {{ formatCurrency(patient.financialSummary.balance) }}
               </dd>
             </div>
           </dl>
@@ -222,8 +352,16 @@
           class="border-t border-gray-200 px-4 py-5 sm:p-0"
         >
           <div class="px-4 py-5 sm:px-6">
+            <textarea
+              v-if="isEditing"
+              id="medical_history"
+              v-model="patient.medical_history"
+              rows="10"
+              class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+            ></textarea>
             <!-- eslint-disable-next-line vue/no-v-html -->
             <div
+              v-else
               class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 prose max-w-none"
               v-html="renderedMedicalHistory"
             ></div>
@@ -237,19 +375,31 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import api from "@/services/api";
 import MarkdownIt from "markdown-it";
 import DOMPurify from "dompurify";
-import { formatDate, formatCurrency, formatTime } from "@/utils/formatDate";
+import {
+  formatDate,
+  formatCurrency,
+  formatTime,
+  formatDateForInput,
+} from "@/utils/formatDate";
 
 const { t } = useI18n();
 const route = useRoute();
+const router = useRouter();
+
 const patient = ref(null);
+const specialties = ref([]);
 const appointments = ref([]);
+const errors = ref({});
+
+const isNew = ref(false);
+const isEditing = ref(false);
+const activeTab = ref("appointments");
 const showCancelledAppointments = ref(false);
 const md = new MarkdownIt();
-const activeTab = ref("appointments");
 
 const renderedMedicalHistory = computed(() => {
   if (patient.value && patient.value.medical_history) {
@@ -282,16 +432,47 @@ const filteredAppointments = computed(() => {
   }
 });
 
+const fetchSpecialties = async () => {
+  try {
+    const response = await api.get("/specialties");
+    specialties.value = response.data;
+  } catch (error) {
+    console.error("Error fetching specialties:", error);
+  }
+};
+
 const fetchPatient = async () => {
+  if (route.params.id === "new") {
+    isNew.value = true;
+    isEditing.value = true;
+    activeTab.value = "medical_history"; // Default to medical history for new patient
+    patient.value = {
+      name: "",
+      nickname: undefined,
+      dob: undefined,
+      cellphone: undefined,
+      email: undefined,
+      phone: undefined,
+      address: undefined,
+      medical_history: undefined,
+      default_specialty_id: null,
+    };
+    return;
+  }
   try {
     const response = await api.get(`/patients/${route.params.id}`);
     patient.value = response.data;
+    // Format DOB for input if editing
+    if (patient.value.dob) {
+      patient.value.dob = formatDateForInput(patient.value.dob);
+    }
   } catch (error) {
     console.error("Error fetching patient:", error);
   }
 };
 
 const fetchAppointments = async () => {
+  if (isNew.value) return;
   try {
     const response = await api.get(`/patients/${route.params.id}/appointments`);
     appointments.value = response.data;
@@ -300,8 +481,57 @@ const fetchAppointments = async () => {
   }
 };
 
-onMounted(() => {
-  fetchPatient();
-  fetchAppointments();
+const savePatient = async () => {
+  errors.value = {};
+
+  if (!patient.value.name) {
+    errors.value.name = "Name is required.";
+  }
+  if (!patient.value.dob) {
+    errors.value.dob = "Date of Birth is required.";
+  }
+  if (
+    patient.value.email &&
+    !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(patient.value.email)
+  ) {
+    errors.value.email = "Invalid email format.";
+  }
+
+  if (Object.keys(errors.value).length > 0) {
+    return;
+  }
+
+  console.log("Saving patient:", patient.value);
+  try {
+    if (isNew.value) {
+      const response = await api.post("/patients", patient.value);
+      router.push(`/patients/${response.data.id}`);
+    } else {
+      await api.put(`/patients/${route.params.id}`, patient.value);
+      isEditing.value = false; // Exit edit mode after saving
+    }
+  } catch (error) {
+    console.error("Error saving patient:", error);
+  }
+};
+
+const startEdit = () => {
+  isEditing.value = true;
+  activeTab.value = "medical_history"; // Switch to medical history tab when editing
+};
+
+const cancelEdit = () => {
+  if (isNew.value) {
+    router.push("/patients"); // Go back to patients list if creating new
+  } else {
+    isEditing.value = false; // Exit edit mode
+    fetchPatient(); // Re-fetch patient to revert changes
+  }
+};
+
+onMounted(async () => {
+  await fetchSpecialties();
+  await fetchPatient();
+  await fetchAppointments();
 });
 </script>

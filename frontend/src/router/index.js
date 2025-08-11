@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from "vue-router";
 import DashboardView from "../views/DashboardView.vue";
 import LoginView from "../views/LoginView.vue";
 import PatientsView from "../views/PatientsView.vue";
-import PatientForm from "../components/patients/PatientForm.vue";
+
 import SpecialtiesView from "../views/SpecialtiesView.vue";
 import SpecialtyForm from "../components/specialties/SpecialtyForm.vue";
 import AppointmentsView from "../views/AppointmentsView.vue";
@@ -31,21 +31,9 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
-    path: "/patients/new",
-    name: "new-patient",
-    component: PatientForm,
-    meta: { requiresAuth: true },
-  },
-  {
     path: "/patients/:id",
     name: "view-patient",
     component: () => import("../views/PatientProfileView.vue"),
-    meta: { requiresAuth: true },
-  },
-  {
-    path: "/patients/:id/edit",
-    name: "edit-patient",
-    component: PatientForm,
     meta: { requiresAuth: true },
   },
   {
