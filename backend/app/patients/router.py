@@ -32,10 +32,10 @@ def read_patients(
     return crud.get_patients(db, skip=skip, limit=limit)
 
 
-@router.get("/{patient_id}", response_model=schemas.Patient)
+@router.get("/{patient_id}", response_model=schemas.PatientDetails)
 def read_patient(
     patient_id: int, db: Annotated[Session, Depends(get_db)], _current_user: Annotated[User, Depends(get_current_user)]
-) -> schemas.Patient:
+) -> schemas.PatientDetails:
     db_patient = crud.get_patient(db, patient_id=patient_id)
     if db_patient is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Patient not found")

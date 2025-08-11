@@ -35,3 +35,15 @@ class Patient(PatientBase):
     is_underage: bool | None = None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class PatientFinancialSummary(BaseModel):
+    total_paid: Decimal
+    total_due: Decimal
+    balance: Decimal
+
+
+class PatientDetails(Patient):
+    financialSummary: PatientFinancialSummary | None = None
+
+    model_config = ConfigDict(from_attributes=True)
