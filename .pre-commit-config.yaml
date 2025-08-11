@@ -14,7 +14,7 @@ repos:
     hooks:
     -   id: frontend-lint-format
         name: Frontend Lint & Format
-        entry: bash -c 'cd frontend && npx lint-staged'
+        entry: docker compose exec -T frontend npx lint-staged
         language: system
         files: ^frontend/
         types: [file]
