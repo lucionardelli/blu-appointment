@@ -35,8 +35,8 @@ services:
       - backend
     environment:
       - BACKEND_URL=http://backend:8000
-      - SECRET_KEY=${TEST_SECRET_KEY:-I_Wont_Say_(Im_in_love)}
-      - FERNET_KEY=${TEST_FERNET_KEY:-sKhGaBl3r1dPznKRHN41iQHTuenFM4jM2k2CggbUlCo=}
+      - SECRET_KEY=${TEST_SECRET_KEY}
+      - FERNET_KEY=${TEST_FERNET_KEY}
     restart: "no"
   frontend:
     build:
@@ -46,6 +46,7 @@ services:
       - "5173:5173"
     volumes:
       - ./frontend:/app
+      - /app/node_modules
     depends_on:
       - backend
 
