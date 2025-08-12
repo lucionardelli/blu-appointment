@@ -38,3 +38,17 @@ def update_logged_user(
     if updated_user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     return updated_user
+
+
+@router.put("/password", response_model=schemas.User)
+def update_logged_user_password(
+    password_update: schemas.UserPasswordUpdate,
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> schemas.User:
+    updated_user = crud.update_user_password(
+        db=db, user_id=current_user.id, password_update=password_update
+    )
+    if updated_user is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    return updated_user

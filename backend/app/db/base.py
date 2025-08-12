@@ -6,11 +6,6 @@ from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
 from app.core.config import settings
 
-# Ensure the database directory exists
-db_path = Path(settings.DATABASE_URL.replace("sqlite:///", ""))
-db_directory = db_path.parent
-db_directory.mkdir(parents=True, exist_ok=True)
-
 engine = create_engine(
     settings.DATABASE_URL,
     connect_args={"check_same_thread": False},  # Needed for SQLite

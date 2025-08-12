@@ -17,12 +17,16 @@ class UserCreate(UserBase):
 
 
 class UserUpdate(BaseModel):
-    password: str | None = Field(min_length=8, default=None)
     default_timezone: str | None = None
     language: Language | None = None
     name: str | None = None
     last_name: str | None = None
     email: str | None = None
+
+
+class UserPasswordUpdate(BaseModel):
+    old_password: str = Field(..., min_length=8)
+    new_password: str = Field(..., min_length=8)
 
 
 class User(UserBase):

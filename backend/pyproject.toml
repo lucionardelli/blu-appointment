@@ -49,7 +49,7 @@ indent-style = "space"  # makes formatting consistent
 skip-magic-trailing-comma = false  # limits unnecessary trailing commas
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = [
+"**/tests/**/*.py" = [
   "S101",   # use of assert
   "ARG001",   # unused function argument
   "ANN201",   # missing type annotations for public function
