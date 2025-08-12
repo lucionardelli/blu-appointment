@@ -39,15 +39,14 @@ class AppointmentCreate(BaseModel):
     # End time is optional; if not provided, it will be set to start_time + specialty's default duration
     end_time: datetime | None = None
     # Cost is optional; if not provided, it will be fetched from the specialty's current price
-    cost: Decimal | None = Field(None, gt=0)
+    cost: Decimal | None = Field(None, ge=0)
 
 
 class AppointmentUpdate(BaseModel):
-    start_time: datetime | None = None
-    cost: Decimal | None = Field(None, gt=0)
-    status: AppointmentStatus | None = None
     start_time: datetime
     end_time: datetime
+    cost: Decimal | None = Field(None, ge=0)
+    status: AppointmentStatus | None = None
 
 
 class MinPatientInfo(BaseModel):
@@ -61,7 +60,7 @@ class Appointment(AppointmentBase):
     cost: Decimal
     status: AppointmentStatus
     payments: list[Payment] = []
-    total_paid: Decimal = Field(0, gte=0)
+    total_paid: Decimal = Field(0, ge=0)
 
     patient: MinPatientInfo
 

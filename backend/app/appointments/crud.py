@@ -2,7 +2,6 @@ from datetime import datetime, timedelta
 
 from sqlalchemy.orm import Session
 
-from app.patients.models import Patient
 from app.specialties.crud import get_current_price_for_specialty, get_specialty_by_id
 
 from . import models, schemas
@@ -27,8 +26,8 @@ def create_appointment(
             )
         cost = current_price
 
-    end_time = appointment_in.start_time + timedelta(
-        minutes=specialty.default_duration_minutes,
+    end_time = appointment_in.end_time or appointment_in.start_time + timedelta(
+        minutes=specialty.default_duration_minutes
     )
 
     db_appointment = models.Appointment(
@@ -114,12 +113,8 @@ def update_appointment(
     if not db_appointment:
         return None
 
-    # Update fields if provided
-    if appointment_update.start_time is not None:
-        db_appointment.start_time = appointment_update.start_time
-        db_appointment.end_time = appointment_update.start_time + timedelta(
-            minutes=db_appointment.specialty.default_duration_minutes,
-        )
+    db_appointment.start_time = appointment_update.start_time
+    db_appointment.end_time = appointment_update.end_time
     if appointment_update.cost is not None:
         db_appointment.cost = appointment_update.cost
     if appointment_update.status is not None:

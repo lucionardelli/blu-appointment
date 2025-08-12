@@ -19,7 +19,10 @@ def create_patient(
     db: Annotated[Session, Depends(get_db)],
     _current_user: Annotated[User, Depends(get_current_user)],
 ) -> schemas.Patient:
-    return crud.create_patient(db=db, patient=patient)
+    try:
+        return crud.create_patient(db=db, patient=patient)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 @router.get("/", response_model=list[schemas.Patient])
@@ -63,7 +66,10 @@ def update_patient(
     db: Annotated[Session, Depends(get_db)],
     _current_user: Annotated[User, Depends(get_current_user)],
 ) -> schemas.Patient:
-    db_patient = crud.update_patient(db, patient_id=patient_id, patient_update=patient)
+    try:
+        db_patient = crud.update_patient(db, patient_id=patient_id, patient_update=patient)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     if db_patient is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Patient not found")
     return db_patient

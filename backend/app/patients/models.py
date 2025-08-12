@@ -28,6 +28,11 @@ class Patient(Base):
     cellphone = sa.Column(String(50), unique=True, index=True)
     phone = sa.Column(String(50))
     address = sa.Column(Text)
+    how_they_found_us = sa.Column(Text)
+
+    # Self-referencing FK for referrals
+    referred_by_patient_id = sa.Column(sa.Integer, ForeignKey("patients.id"), nullable=True)
+    referred_by = relationship("Patient", remote_side=[id], backref="referred_patients")
 
     default_specialty_id = sa.Column(ForeignKey("specialties.id"))
     default_specialty = relationship("Specialty")

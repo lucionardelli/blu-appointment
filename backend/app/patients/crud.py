@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.core.encryption import decrypt, encrypt
 
@@ -7,7 +7,12 @@ from app.appointments.models import Appointment
 
 
 def get_patient(db: Session, patient_id: int) -> models.Patient | None:
-    db_patient = db.query(models.Patient).filter(models.Patient.id == patient_id).first()
+    db_patient = (
+        db.query(models.Patient)
+        .options(joinedload(models.Patient.referred_by))
+        .filter(models.Patient.id == patient_id)
+        .first()
+    )
     if db_patient and db_patient.encrypted_medical_history:
         db_patient.medical_history = decrypt(db_patient.encrypted_medical_history)
     return db_patient
@@ -49,10 +54,16 @@ def create_patient(db: Session, patient: schemas.PatientCreate) -> models.Patien
         email=patient.email,
         phone=patient.phone,
         address=patient.address,
+        how_they_found_us=patient.how_they_found_us,
+        referred_by_patient_id=patient.referred_by_patient_id,
     )
     db.add(db_patient)
     db.commit()
     db.refresh(db_patient)
+
+    if db_patient.referred_by_patient_id == db_patient.id:
+        raise ValueError("A patient cannot be their own referrer.")
+
     # Decrypt for the response object
     if db_patient.encrypted_medical_history:
         db_patient.medical_history = decrypt(db_patient.encrypted_medical_history)
@@ -63,6 +74,9 @@ def update_patient(db: Session, patient_id: int, patient_update: schemas.Patient
     db_patient = db.query(models.Patient).filter(models.Patient.id == patient_id).first()
     if not db_patient:
         return None
+
+    if patient_update.referred_by_patient_id and patient_update.referred_by_patient_id == patient_id:
+        raise ValueError("A patient cannot be their own referrer.")
 
     update_data = patient_update.model_dump(exclude_unset=True)
 

@@ -3,6 +3,8 @@ from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, EmailStr
 
+from app.specialties.schemas import Specialty
+
 
 class PatientBase(BaseModel):
     name: str
@@ -14,7 +16,8 @@ class PatientBase(BaseModel):
     phone: str | None = None
     address: str | None = None
     default_specialty_id: int | None = None
-
+    how_they_found_us: str | None = None
+    referred_by_patient_id: int | None = None
 
 
 class PatientCreate(PatientBase):
@@ -43,7 +46,23 @@ class PatientFinancialSummary(BaseModel):
     balance: Decimal
 
 
+class PatientAppointmentSummary(BaseModel):
+    total_appointments: int
+    upcoming_appointments: int
+    past_appointments: int
+
+
+class PatientSummary(BaseModel):
+    id: int
+    name: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class PatientDetails(Patient):
-    financialSummary: PatientFinancialSummary | None = None
+    financial_summary: PatientFinancialSummary | None = None
+    appointment_summary: dict[str, PatientAppointmentSummary] | None = None
+    default_specialty: Specialty | None = None
+    referred_by: PatientSummary | None = None
 
     model_config = ConfigDict(from_attributes=True)
