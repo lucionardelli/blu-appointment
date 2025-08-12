@@ -1,7 +1,7 @@
 from datetime import date, datetime, time
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from app.specialties.schemas import MinSpecialtyInfo
 
@@ -113,9 +113,9 @@ class RecurringSeriesCreate(BaseModel):
 
 
 class WorkingHoursBase(BaseModel):
-    day_of_week: int = Field(..., ge=0, le=6)
-    start_time: time | None = None
-    end_time: time | None = None
+    day_of_week: int = Field(..., ge=0, le=6, alias="dayOfWeek")
+    start_time: time | None = Field(None, alias="startTime")
+    end_time: time | None = Field(None, alias="endTime")
     is_closed: bool = False
 
 
@@ -132,4 +132,4 @@ class WorkingHoursUpdate(BaseModel):
 class WorkingHours(WorkingHoursBase):
     id: int
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
