@@ -26,20 +26,22 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { useI18n } from "vue-i18n";
+import { storeToRefs } from "pinia";
 import FullCalendar from "@fullcalendar/vue3";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
+import listPlugin from "@fullcalendar/list";
+import esLocale from "@fullcalendar/core/locales/es";
 import api from "@/services/api";
 import AppointmentFormModal from "@/components/appointments/AppointmentFormModal.vue";
+import { useSettingsStore } from "@/stores/settings";
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
+const settingsStore = useSettingsStore();
+const { workingHoursRaw, businessHours } = storeToRefs(settingsStore);
 
 const appointments = ref([]);
-const workingHours = ref({
-  start: "09:00",
-  end: "18:00",
-}); // Placeholder
 const showModal = ref(false);
 const selectedDate = ref("");
 const selectedEndDate = ref("");
@@ -54,7 +56,10 @@ const fetchAppointments = async () => {
   }
 };
 
-onMounted(fetchAppointments);
+onMounted(async () => {
+  await fetchAppointments();
+  await settingsStore.fetchWorkingHours();
+});
 
 const openNewAppointmentModal = () => {
   selectedAppointmentId.value = null; // Ensure it's null for new appointments
@@ -63,12 +68,12 @@ const openNewAppointmentModal = () => {
 };
 
 const calendarOptions = computed(() => ({
-  plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
+  plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin],
   initialView: "timeGridWeek",
   headerToolbar: {
     left: "prev,next today",
     center: "title",
-    right: "dayGridMonth,timeGridWeek,timeGridDay",
+    right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek",
   },
   events: appointments.value.map((appointment) => ({
     title: appointment.patient.nickname || appointment.patient.name,
@@ -163,6 +168,15 @@ const calendarOptions = computed(() => ({
       html: `<div class="w-full" title="${fullContent.replace(/"/g, "'")}">${content}</div>`,
     };
   },
+  locale: locale.value === "es" ? esLocale : "en",
+  businessHours: businessHours.value,
+  height: "auto",
+  expandRows: true,
+  allDaySlot: false,
+  scrollTime: "08:00:00", // Start the time grid at 8 AM
+  slotDuration: "00:30:00", // 30 minute slots
+  slotLabelFormat: { hour: "2-digit", minute: "2-digit", hour12h: true },
+  slotLabelInterval: { minutes: 60 }, // Only show labels every hour
 }));
 
 const handleSave = () => {
@@ -211,9 +225,17 @@ const isDoubleBooked = (appointment) => {
 
 const isOutsideWorkingHours = (appointment) => {
   const start = new Date(appointment.start_time);
+  const dayOfWeek = start.getDay(); // Sunday = 0, Monday = 1, ...
+  const hours = workingHoursRaw.value.find((h) => h.dayOfWeek === dayOfWeek);
+
+  if (!hours || hours.is_closed) {
+    return true; // Closed all day
+  }
+
   const startTime = `${start.getHours().toString().padStart(2, "0")}:${start.getMinutes().toString().padStart(2, "0")}`;
   return (
-    startTime < workingHours.value.start || startTime > workingHours.value.end
+    startTime < hours.startTime.slice(0, 5) ||
+    startTime >= hours.endTime.slice(0, 5)
   );
 };
 </script>
