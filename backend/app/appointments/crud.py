@@ -150,9 +150,6 @@ def get_payments_for_appointment(db: Session, appointment_id: int) -> list[model
     return db.query(models.Payment).filter(models.Payment.appointment_id == appointment_id).all()
 
 
-# --- Working Hours CRUD ---
-
-
 def get_working_hours(db: Session) -> list[models.WorkingHours]:
     return db.query(models.WorkingHours).order_by(models.WorkingHours.day_of_week).all()
 

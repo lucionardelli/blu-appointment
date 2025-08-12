@@ -1,17 +1,24 @@
 import argparse
 from pathlib import Path
 
-from app.db.seeds.seed import seed_specialties, seed_users
+from app.db.seeds.seed import seed_specialties, seed_users, seed_working_hours
+
+MODEL_IMPORT_FUNCTIONS_PATHS = {
+    "specialties": (seed_specialties, "app/db/seeds/specialties.csv"),
+    "users": (seed_users, "app/db/seeds/users.csv"),
+    "working_hours": (seed_working_hours, "app/db/seeds/working_hours.csv"),
+}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("model", type=str, choices=["specialties", "users", "all"])
+    parser.add_argument(
+        "model", type=str, choices=[*MODEL_IMPORT_FUNCTIONS_PATHS.keys(), "all"], help="The model to seed"
+    )
     args = parser.parse_args()
 
     if args.model == "all":
-        seed_specialties(Path("app/db/seeds/specialties.csv"))
-        seed_users(Path("app/db/seeds/users.csv"))
-    elif args.model == "specialties":
-        seed_specialties(Path("app/db/seeds/specialties.csv"))
-    elif args.model == "users":
-        seed_users(Path("app/db/seeds/users.csv"))
+        for func, path in MODEL_IMPORT_FUNCTIONS_PATHS.values():
+            func(Path(path))
+    else:
+        func, path = MODEL_IMPORT_FUNCTIONS_PATHS[args.model]
+        func(Path(path))

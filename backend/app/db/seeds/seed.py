@@ -3,6 +3,7 @@ import os
 import csv
 from decimal import Decimal
 from pathlib import Path
+from datetime import datetime
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -73,7 +74,7 @@ def seed_working_hours(file_path: Path) -> None:
                 working_hours = WorkingHours(day_of_week=int(row["day_of_week"]))
                 session.add(working_hours)
 
-            working_hours.start_time = row["start_time"]
-            working_hours.end_time = (row["end_time"],)
+            working_hours.start_time = datetime.strptime(row["start_time"], "%H:%M").time() if row["start_time"] else None
+            working_hours.end_time = datetime.strptime(row["end_time"], "%H:%M").time() if row["end_time"] else None
             working_hours.is_closed = bool(int(row["is_closed"]))
         session.commit()
