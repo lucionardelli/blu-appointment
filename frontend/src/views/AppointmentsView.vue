@@ -170,13 +170,11 @@ const calendarOptions = computed(() => ({
   },
   locale: locale.value === "es" ? esLocale : "en",
   businessHours: businessHours.value,
-  height: "auto",
-  expandRows: true,
   allDaySlot: false,
-  scrollTime: "08:00:00", // Start the time grid at 8 AM
+  scrollTime: "9:00:00", // Start the time grid at this time.
   slotDuration: "00:30:00", // 30 minute slots
-  slotLabelFormat: { hour: "2-digit", minute: "2-digit", hour12h: true },
-  slotLabelInterval: { minutes: 60 }, // Only show labels every hour
+  slotLabelFormat: { hour: "2-digit", minute: "2-digit", hour12h: true }, // Format for slot labels
+  slotLabelInterval: { hours: 1 }, // Only show labels every hour
 }));
 
 const handleSave = () => {
