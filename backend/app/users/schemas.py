@@ -1,10 +1,18 @@
-from pydantic import BaseModel, ConfigDict, Field
+from typing import Annotated
+
+from pydantic import BaseModel, ConfigDict, Field, SecretStr, StringConstraints
 
 from app.common.enums import Language
 
+UsernameString = Annotated[
+    str, StringConstraints(min_length=4, strip_whitespace=True, to_lower=True, pattern=r"^[a-zA-Z0-9_]+$")
+]
+
 
 class UserBase(BaseModel):
-    username: str
+    username: UsernameString = Field(
+        description="Must be at least 4 characters long and can only contain letters, numbers, and underscores."
+    )
     default_timezone: str = "UTC"
     language: Language = Language.ENGLISH
     name: str | None = None
@@ -13,7 +21,7 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
-    password: str = Field(..., min_length=8)
+    password: SecretStr = Field(min_length=8)
 
 
 class UserUpdate(BaseModel):
@@ -25,8 +33,8 @@ class UserUpdate(BaseModel):
 
 
 class UserPasswordUpdate(BaseModel):
-    old_password: str = Field(..., min_length=8)
-    new_password: str = Field(..., min_length=8)
+    old_password: SecretStr = Field(min_length=8)
+    new_password: SecretStr = Field(min_length=8)
 
 
 class User(UserBase):

@@ -1,4 +1,5 @@
 # ruff: noqa: PLC0414
+import os
 import csv
 from decimal import Decimal
 from pathlib import Path
@@ -45,13 +46,34 @@ def seed_users(file_path: Path) -> None:
     with Session(engine) as session, file_path.open() as f:
         reader = csv.DictReader(f)
         for row in reader:
-            exists = session.execute(select(User).where(User.username == row["username"])).first()
+            exists = session.execute(select(User).where(User.username == row["username"].lower())).first()
             if not exists:
+                # Get password from env's variable PASS_<username>
+                raw_pass = os.getenv(f"PASS_{row.get('username','').upper()}")
+                if not raw_pass:
+                    raise ValueError(f"Password for user {row['username']} not found in environment variables.")
                 user = User(
-                    username=row["username"],
-                    hashed_password=get_password_hash(row["password"]),
+                    username=row["username"].lower(),
+                    hashed_password=get_password_hash(raw_pass),
                     default_timezone=row["default_timezone"],
                     language=row["language"],
                 )
                 session.add(user)
+        session.commit()
+
+
+def seed_working_hours(file_path: Path) -> None:
+    with Session(engine) as session, file_path.open() as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            working_hours = session.execute(
+                select(WorkingHours).where(WorkingHours.day_of_week == int(row["day_of_week"]))
+            ).first()
+            if not working_hours:
+                working_hours = WorkingHours(day_of_week=int(row["day_of_week"]))
+                session.add(working_hours)
+
+            working_hours.start_time = row["start_time"]
+            working_hours.end_time = (row["end_time"],)
+            working_hours.is_closed = bool(int(row["is_closed"]))
         session.commit()

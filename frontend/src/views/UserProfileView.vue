@@ -353,7 +353,7 @@ const changePassword = async () => {
   }
 
   try {
-    await api.post("/users/password", {
+    await api.put("/users/password", {
       old_password: currentPassword.value,
       new_password: newPassword.value,
     });
