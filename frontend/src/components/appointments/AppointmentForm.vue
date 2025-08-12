@@ -137,22 +137,8 @@
                 type="datetime-local"
                 required
                 step="900"
-                :min="currentDateTime"
                 class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                @change="checkAvailability"
               />
-              <p
-                v-if="doubleBookingWarning"
-                class="mt-2 text-sm text-yellow-600"
-              >
-                {{ doubleBookingWarning }}
-              </p>
-              <p
-                v-if="outsideWorkingHoursWarning"
-                class="mt-2 text-sm text-yellow-600"
-              >
-                {{ outsideWorkingHoursWarning }}
-              </p>
             </div>
             <div>
               <label
@@ -202,7 +188,7 @@
           </button>
           <h2 class="text-xl font-semibold text-gray-800">
             <span v-if="showPaymentForm">
-              {{ t("payments") }} > {{ t("new_payment") }}
+              {{ t("new_payment") }}
             </span>
             <span v-else>{{ t("payments") }}</span>
           </h2>
@@ -341,11 +327,6 @@ const appointment = ref({
 const patients = ref([]);
 const specialties = ref([]);
 const patientSnippet = ref(null);
-const doubleBookingWarning = ref(null);
-const outsideWorkingHoursWarning = ref(null);
-const endTimeWarning = ref(null);
-const workingHours = ref({ start: "09:00", end: "18:00" }); // Placeholder
-const currentDateTime = ref(new Date());
 const activeTab = ref("details");
 const payments = ref([]);
 const showPaymentForm = ref(false);
@@ -456,66 +437,48 @@ watch(
   },
 );
 
+onMounted(async () => {
+  await fetchPatients();
+  await fetchSpecialties();
+
+  if (props.appointmentId) {
+    await fetchAppointment();
+    await fetchPayments();
+    if (appointment.value.patient_id) {
+      await fetchPatientSnippet();
+    }
+  } else if (props.initialDate) {
+    const startDate = new Date(props.initialDate);
+    appointment.value.start_time = format(
+      startDate,
+      "yyyy-MM-dd'T'HH:mm",
+    );
+    if (props.initialEndDate) {
+      const endDate = new Date(props.initialEndDate);
+      appointment.value.end_time = format(endDate, "yyyy-MM-dd'T'HH:mm");
+    } else {
+      appointment.value.end_time = "";
+    }
+  }
+});
+
 watch(
   () => appointment.value.specialty_id,
   (newVal) => {
-    if (newVal) {
-      const selectedSpecialty = specialties.value.find((s) => s.id === newVal);
-      if (selectedSpecialty) {
-        appointment.value.cost = selectedSpecialty.current_price;
-        if (
-          appointment.value.start_time &&
-          selectedSpecialty.default_duration
-        ) {
-          const startTime = new Date(appointment.value.start_time);
-          const endTime = addMinutes(
-            startTime,
-            selectedSpecialty.default_duration,
-          );
-          appointment.value.end_time = format(endTime, "yyyy-MM-dd'T'HH:mm");
-        }
-      }
-    }
-  },
-);
+    if (!newVal) return;
 
-watch(
-  () => appointment.value.start_time,
-  (newVal) => {
-    if (newVal) {
-      const parsedStartTime = new Date(newVal);
-      if (appointment.value.specialty_id) {
-        const selectedSpecialty = specialties.value.find(
-          (s) => s.id === appointment.value.specialty_id,
-        );
-        if (selectedSpecialty && selectedSpecialty.default_duration) {
-          const endTime = addMinutes(
-            parsedStartTime,
-            selectedSpecialty.default_duration,
-          );
-          appointment.value.end_time = format(endTime, "yyyy-MM-dd'T'HH:mm");
-        }
-      }
-    }
-  },
-);
+    const selectedSpecialty = specialties.value.find((s) => s.id === newVal);
+    if (!selectedSpecialty) return;
 
-watch(
-  () => appointment.value.end_time,
-  (newVal) => {
-    endTimeWarning.value = null;
-    if (newVal && appointment.value.start_time) {
-      const parsedStartTime = new Date(appointment.value.start_time);
-      const parsedEndTime = new Date(newVal);
-      if (
-        parsedStartTime === "Invalid Date" ||
-        parsedEndTime === "Invalid Date"
-      ) {
-        endTimeWarning.value = "Please enter valid start and end times.";
-      }
-      if (parsedEndTime <= parsedStartTime) {
-        endTimeWarning.value = "End time must be after start time.";
-      }
+    appointment.value.cost = selectedSpecialty.current_price;
+
+    if (appointment.value.start_time && !appointment.value.end_time) {
+      const startTime = new Date(appointment.value.start_time);
+      const newEndTime = addMinutes(
+        startTime,
+        selectedSpecialty.default_duration,
+      );
+      appointment.value.end_time = format(newEndTime, "yyyy-MM-dd'T'HH:mm");
     }
   },
 );
@@ -533,95 +496,8 @@ const fetchPatientSnippet = async () => {
   }
 };
 
-const checkAvailability = async () => {
-  doubleBookingWarning.value = null;
-  outsideWorkingHoursWarning.value = null;
-
-  const start = new Date(appointment.value.start_time);
-  const startTime = `${start.getHours().toString().padStart(2, "0")}:${start.getMinutes().toString().padStart(2, "0")}`;
-
-  // Check for double booking
-  try {
-    const response = await api.get("/appointments");
-    const existingAppointments = response.data;
-    const isDoubleBooked = existingAppointments.some((other) => {
-      if (other.id === appointment.value.id) return false;
-      const otherStart = new Date(other.start_time);
-      const otherEnd = new Date(other.end_time);
-      return start >= otherStart && start < otherEnd;
-    });
-    if (isDoubleBooked) {
-      doubleBookingWarning.value =
-        "Warning: Another appointment is already scheduled at this time.";
-    }
-  } catch (error) {
-    console.error("Error checking for double booking:", error);
-  }
-
-  // Check for outside working hours
-  if (
-    startTime < workingHours.value.start ||
-    startTime > workingHours.value.end
-  ) {
-    outsideWorkingHoursWarning.value =
-      "Warning: This appointment is outside working hours.";
-  }
-};
-
-onMounted(async () => {
-  await fetchPatients();
-  await fetchSpecialties();
-
-  if (props.appointmentId) {
-    await fetchAppointment();
-    await fetchPayments();
-    if (appointment.value.patient_id) {
-      await fetchPatientSnippet();
-    }
-  } else if (props.initialDate) {
-    const startDate = new Date(props.initialDate);
-    appointment.value.start_time = format(startDate, "yyyy-MM-dd'T'HH:mm");
-    const endDate = props.initialEndDate
-      ? new Date(props.initialEndDate)
-      : addMinutes(startDate, 30);
-    appointment.value.end_time = format(endDate, "yyyy-MM-dd'T'HH:mm");
-  }
-});
 
 const saveAppointment = async () => {
-  // Client-side validation
-  const start = new Date(appointment.value.start_time);
-  const end = new Date(appointment.value.end_time);
-  const now = new Date();
-
-  // 1. Start time not in the past
-  if (start < now && isNew.value) {
-    alert("Start time cannot be in the past for new appointments.");
-    return;
-  }
-
-  // 2. End time must be after start time (already handled by watch, but good to have a final check)
-  if (end <= start) {
-    alert("End time must be after start time.");
-    return;
-  }
-
-  // 3. End time should be in the same day (don't allow for start time to be after 23:45)
-  if (start.toDateString() !== end.toDateString()) {
-    alert("Appointment must end on the same day it starts.");
-    return;
-  }
-
-  if (
-    start.getHours() > 23 ||
-    (start.getHours() === 23 && start.getMinutes() > 45)
-  ) {
-    alert(
-      "Start time cannot be after 23:45 to ensure end time is on the same day.",
-    );
-    return;
-  }
-
   try {
     if (isNew.value) {
       await api.post("/appointments", appointment.value);

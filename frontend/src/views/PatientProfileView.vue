@@ -11,6 +11,13 @@
             >
               <i-heroicons-arrow-left-20-solid class="h-6 w-6 text-gray-500" />
             </button>
+            <button
+              v-if="!isEditing && !isNew"
+              class="mr-2 p-1 rounded-full hover:bg-gray-200"
+              @click="router.push('/patients')"
+            >
+              <i-heroicons-arrow-left-20-solid class="h-6 w-6 text-gray-500" />
+            </button>
             <h3 class="text-lg leading-6 font-medium text-gray-900">
               <span v-if="isNew">{{ t("new_patient") }}</span>
               <span v-else-if="isEditing">{{ t("edit_patient") }}</span>
@@ -192,6 +199,50 @@
                   </select>
                   <span v-else>{{
                     patient.default_specialty?.name || t("not_specified")
+                  }}</span>
+                </dd>
+              </div>
+              <div
+                class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
+              >
+                <dt class="text-sm font-medium text-gray-500">
+                  {{ t("how_they_found_us") }}
+                </dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                  <input
+                    v-if="isEditing"
+                    id="how_they_found_us"
+                    v-model="patient.how_they_found_us"
+                    type="text"
+                    class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                  />
+                  <span v-else>{{ patient.how_they_found_us }}</span>
+                </dd>
+              </div>
+              <div
+                class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
+              >
+                <dt class="text-sm font-medium text-gray-500">
+                  {{ t("referred_by") }}
+                </dt>
+                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                  <select
+                    v-if="isEditing"
+                    id="referred_by_patient_id"
+                    v-model="patient.referred_by_patient_id"
+                    class="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                  >
+                    <option :value="null">{{ t("not_specified") }}</option>
+                    <option
+                      v-for="p in filteredPatients"
+                      :key="p.id"
+                      :value="p.id"
+                    >
+                      {{ p.name }}
+                    </option>
+                  </select>
+                  <span v-else>{{
+                    patient.referred_by?.name || t("not_specified")
                   }}</span>
                 </dd>
               </div>
@@ -379,6 +430,7 @@ const route = useRoute();
 const router = useRouter();
 
 const patient = ref(null);
+const patients = ref([]);
 const specialties = ref([]);
 const appointments = ref([]);
 const errors = ref({});
@@ -388,6 +440,13 @@ const isEditing = ref(false);
 const activeTab = ref("appointments");
 const showCancelledAppointments = ref(false);
 const md = new MarkdownIt();
+
+const filteredPatients = computed(() => {
+  if (patient.value) {
+    return patients.value.filter((p) => p.id !== patient.value.id);
+  }
+  return patients.value;
+});
 
 const renderedMedicalHistory = computed(() => {
   if (patient.value && patient.value.medical_history) {
@@ -429,6 +488,15 @@ const fetchSpecialties = async () => {
   }
 };
 
+const fetchPatients = async () => {
+  try {
+    const response = await api.get("/patients/");
+    patients.value = response.data;
+  } catch (error) {
+    console.error("Error fetching patients:", error);
+  }
+};
+
 const fetchPatient = async () => {
   if (route.params.id === "new") {
     isNew.value = true;
@@ -444,6 +512,8 @@ const fetchPatient = async () => {
       address: undefined,
       medical_history: undefined,
       default_specialty_id: null,
+      how_they_found_us: undefined,
+      referred_by_patient_id: null,
     };
     return;
   }
@@ -491,8 +561,10 @@ const savePatient = async () => {
 
   try {
     if (isNew.value) {
-      const response = await api.post("/patients", patient.value);
-      router.push(`/patients/${response.data.id}`);
+      const response = await api.post("/patients/", patient.value);
+      isEditing.value = false;
+      isNew.value = false;
+      router.push({ name: "view-patient", params: { id: response.data.id } });
     } else {
       await api.put(`/patients/${route.params.id}`, patient.value);
       isEditing.value = false; // Exit edit mode after saving
@@ -518,6 +590,7 @@ const cancelEdit = () => {
 
 onMounted(async () => {
   await fetchSpecialties();
+  await fetchPatients();
   await fetchPatient();
   await fetchAppointments();
 });

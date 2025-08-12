@@ -99,8 +99,8 @@ const calendarOptions = computed(() => ({
   },
   eventClick: (info) => {
     selectedAppointmentId.value = info.event.extendedProps.appointment.id;
-    selectedDate.value = info.event.startStr;
-    selectedEndDate.value = info.event.endStr;
+    selectedDate.value = info.event.extendedProps.appointment.start_time;
+    selectedEndDate.value = info.event.extendedProps.appointment.end_time;
     showModal.value = true;
   },
   // Correctly placed eventContent function
@@ -108,23 +108,60 @@ const calendarOptions = computed(() => ({
     const appointment = arg.event.extendedProps.appointment;
     const patientName =
       appointment.patient.nickname || appointment.patient.name;
-    let content = `<div><b>${patientName}</b></div>`;
 
+    // Check duration
+    const start = new Date(arg.event.start);
+    const end = new Date(arg.event.end);
+    const durationMinutes = (end - start) / (1000 * 60);
+    const isShort = durationMinutes < 30;
+
+    let mainContent = `<div class="flex-grow overflow-hidden text-ellipsis whitespace-nowrap"><b>${patientName}</b>`;
     if (appointment.specialty) {
-      content += `<div class="text-sm text-gray-600"><i>${appointment.specialty.name}</i></div>`;
+      mainContent += `<div class="text-sm text-gray-600"><i>${appointment.specialty.name}</i></div>`;
     }
+    mainContent += `</div>`;
+
+    let icons = "";
+    let tooltipWarnings = [];
+
     if (isDoubleBooked(appointment)) {
-      content +=
-        '<span class="ml-1 text-yellow-500" title="Double-booked">⚠️</span>';
+      if (isShort) {
+        tooltipWarnings.push("Double-booked");
+      } else {
+        icons +=
+          '<span class="text-yellow-500" title="Double-booked">⚠️</span>';
+      }
     }
     if (isOutsideWorkingHours(appointment)) {
-      content +=
-        '<span class="ml-1 text-blue-500" title="Outside working hours">⏰</span>';
+      if (isShort) {
+        tooltipWarnings.push("Outside working hours");
+      } else {
+        icons +=
+          '<span class="text-blue-500" title="Outside working hours">⏰</span>';
+      }
     }
+
+    let content = `<div class="flex items-center justify-between w-full">${mainContent}`;
+    if (icons) {
+      content += `<div class="flex-shrink-0 ml-1">${icons}</div>`;
+    }
+    content += `</div>`;
+
     if (appointment.cancelled) {
       content = `<div class="line-through text-gray-500">${content}</div>`;
     }
-    return { html: content };
+
+    let fullContent = `${patientName} (${appointment.specialty.name})`;
+    if (tooltipWarnings.length > 0) {
+      fullContent += ` - ${tooltipWarnings.join(", ")}`;
+    }
+    if (appointment.cancelled) {
+      fullContent += " (Cancelled)";
+    }
+
+    return {
+      html: `<div class="w-full" title="${fullContent.replace(/"/g, "'")}">${content}</div>`,
+    };
   },
 }));
 

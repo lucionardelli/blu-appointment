@@ -1,16 +1,5 @@
 <template>
   <div class="mt-4">
-    <div class="flex items-center mb-4">
-      <button
-        class="mr-2 p-1 rounded-full hover:bg-gray-200"
-        @click="$emit('cancel')"
-      >
-        <i-heroicons-arrow-left-20-solid class="h-6 w-6 text-gray-500" />
-      </button>
-      <h2 class="text-xl font-semibold text-gray-800">
-        {{ t("payments") }} > {{ t("new_payment") }}
-      </h2>
-    </div>
     <form class="mt-4 space-y-4" @submit.prevent="submitPayment">
       <div class="grid grid-cols-2 gap-6">
         <div>
