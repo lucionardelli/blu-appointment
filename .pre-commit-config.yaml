@@ -23,6 +23,7 @@ repos:
                 fi &&
                 cd /app &&
                 FILES=$(echo "$@" | xargs -n1 | sed "s|^frontend/||" | tr "\n" " ") &&
+                echo "Linting/formatting frontend files: $FILES (from $@)" &&
                 npx eslint --no-warn-ignored --fix $FILES &&
                 npx prettier --ignore-unknown --write $FILES
             '

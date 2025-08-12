@@ -10,8 +10,13 @@ COPY package*.json ./
 # Install project dependencies
 RUN npm install
 
-# Copy the rest of the frontend application's source code
+# Copy frontend application's source code
 COPY . .
+
+# Ensure the entrypoint script is executable
+RUN chmod +x ./entrypoint.sh
+
+ENTRYPOINT ["/app/entrypoint.sh"]
 
 # Make port 5173 available to the world outside this container
 EXPOSE 5173

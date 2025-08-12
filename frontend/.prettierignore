@@ -28,3 +28,4 @@ coverage
 
 # Ignore specific files
 package-lock.json
+entrypoint.sh

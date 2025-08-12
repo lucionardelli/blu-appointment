@@ -11,7 +11,7 @@ Key features:
 
 ## 2. Development Environment
 
-The project is containerized using Docker and managed with `docker-compose`. The backend is a Python/FastAPI application, and the frontend is a Vue.js application.
+The project is containerized using Docker and managed with `docker compose` (I don't have `docker-compose`, don't try to run it!). The backend is a Python/FastAPI application, and the frontend is a Vue.js application.
 
 To run the development environment:
 ```bash
