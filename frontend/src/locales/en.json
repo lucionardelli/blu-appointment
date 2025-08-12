@@ -65,6 +65,8 @@
   "pay_in_full": "Pay in Full",
   "dob": "DOB",
   "profile": "Profile",
+  "edit_profile": "Edit Profile",
+  "last_name": "Last Name",
   "dashboard_loading": "Loading dashboard...",
   "dashboard_error": "Could not load dashboard metrics. Please try again later.",
   "appointments_today": "Appts for Today",
@@ -75,5 +77,15 @@
   "expected_revenue": "Expected Revenue",
   "total_charged": "Total Charged",
   "pricing_history": "Pricing History",
-  "date_of_change": "Date of Change"
+  "date_of_change": "Date of Change",
+  "day_view": "Day",
+  "week_view": "Week",
+  "month_view": "Month",
+  "default_timezone": "Timezone",
+  "language": "Language",
+  "change_password": "Change Password",
+  "current_password": "Current Password",
+  "new_password": "New Password",
+  "confirm_new_password": "Confirm New Password",
+  "save_password": "Save Password"
 }

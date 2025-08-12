@@ -101,6 +101,7 @@
           <span v-if="!isCollapsed" class="mx-3">{{ t("specialties") }}</span>
         </div>
       </router-link>
+
     </nav>
 
   </div>

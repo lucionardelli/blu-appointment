@@ -65,6 +65,8 @@
   "pay_in_full": "Todo",
   "dob": "Fecha nac.",
   "profile": "Perfil",
+  "edit_profile": "Editar Perfil",
+  "last_name": "Apellido",
   "dashboard_loading": "Cargando tablero...",
   "dashboard_error": "No se pudieron cargar las métricas del tablero. Por favor, inténtelo de nuevo más tarde",
   "appointments_today": "Turnos para hoy",
@@ -75,5 +77,15 @@
   "expected_revenue": "Ingresos esperados",
   "total_charged": "Total cobrado",
   "pricing_history": "Historial de Precios",
-  "date_of_change": "Fecha de Cambio"
+  "date_of_change": "Fecha de Cambio",
+  "day_view": "Día",
+  "week_view": "Semana",
+  "month_view": "Mes",
+  "default_timezone": "Zona horaria",
+  "language": "Lenguaje",
+  "change_password": "Cambiar Contraseña",
+  "current_password": "Contraseña Actual",
+  "new_password": "Nueva Contraseña",
+  "confirm_new_password": "Confirmar Nueva Contraseña",
+  "save_password": "Guardar Contraseña"
 }

@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from "vue-router";
 import DashboardView from "../views/DashboardView.vue";
 import LoginView from "../views/LoginView.vue";
 import PatientsView from "../views/PatientsView.vue";
-
+import UserProfileView from "../views/UserProfileView.vue";
 import SpecialtiesView from "../views/SpecialtiesView.vue";
 import SpecialtyForm from "../components/specialties/SpecialtyForm.vue";
 import AppointmentsView from "../views/AppointmentsView.vue";
@@ -23,6 +23,12 @@ const routes = [
     path: "/login",
     name: "login",
     component: LoginView,
+  },
+  {
+    path: "/profile",
+    name: "user-profile",
+    component: UserProfileView,
+    meta: { requiresAuth: true },
   },
   {
     path: "/patients",

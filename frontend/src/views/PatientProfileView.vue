@@ -422,7 +422,7 @@ const filteredAppointments = computed(() => {
 
 const fetchSpecialties = async () => {
   try {
-    const response = await api.get("/specialties");
+    const response = await api.get("/specialties/");
     specialties.value = response.data;
   } catch (error) {
     console.error("Error fetching specialties:", error);
@@ -489,7 +489,6 @@ const savePatient = async () => {
     return;
   }
 
-  console.log("Saving patient:", patient.value);
   try {
     if (isNew.value) {
       const response = await api.post("/patients", patient.value);

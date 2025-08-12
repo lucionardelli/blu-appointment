@@ -7,7 +7,7 @@
         class="text-gray-500 focus:outline-none lg:hidden"
         @click="emit('toggle-sidebar')"
       >
-        <i-heroicons-mini:bars-3 class="w-6 h-6" />
+        <i-heroicons-bars-3 class="w-6 h-6" />
       </button>
     </div>
     <div class="flex items-center">
