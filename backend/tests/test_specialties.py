@@ -6,8 +6,8 @@ from app.specialties import crud as specialty_crud
 from app.specialties import schemas as specialty_schemas
 
 
-def test_create_specialty(client: TestClient, db_session: Session):
-    response = client.post(
+def test_create_specialty(authenticated_client: TestClient, db_session: Session):
+    response = authenticated_client.post(
         "/api/v1/specialties/",
         json={
             "name": "Psychology",
@@ -22,7 +22,7 @@ def test_create_specialty(client: TestClient, db_session: Session):
     assert data["prices"][0]["price"] == "100.00"
 
 
-def test_read_specialties(client: TestClient, db_session: Session):
+def test_read_specialties(authenticated_client: TestClient, db_session: Session):
     specialty_data = specialty_schemas.SpecialtyCreate(
         name="BluRoom",
         default_duration_minutes=20,
@@ -30,7 +30,7 @@ def test_read_specialties(client: TestClient, db_session: Session):
     )
     specialty_crud.create_specialty(db_session, specialty_data)
 
-    response = client.get("/api/v1/specialties/")
+    response = authenticated_client.get("/api/v1/specialties/")
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
     assert len(data) > 0
@@ -39,7 +39,7 @@ def test_read_specialties(client: TestClient, db_session: Session):
     assert data[0]["current_price"] == "50.00"
 
 
-def test_update_specialty(client: TestClient, db_session: Session):
+def test_update_specialty(authenticated_client: TestClient, db_session: Session):
     specialty_data = specialty_schemas.SpecialtyCreate(
         name="Therapy",
         default_duration_minutes=60,
@@ -47,7 +47,7 @@ def test_update_specialty(client: TestClient, db_session: Session):
     )
     specialty = specialty_crud.create_specialty(db_session, specialty_data)
 
-    response = client.put(
+    response = authenticated_client.put(
         f"/api/v1/specialties/{specialty.id}",
         json={"default_duration_minutes": 55},
     )
@@ -57,7 +57,7 @@ def test_update_specialty(client: TestClient, db_session: Session):
     assert data["default_duration_minutes"] == 55
 
 
-def test_add_new_specialty_price(client: TestClient, db_session: Session):
+def test_add_new_specialty_price(authenticated_client: TestClient, db_session: Session):
     specialty_data = specialty_schemas.SpecialtyCreate(
         name="Consultation",
         default_duration_minutes=30,
@@ -65,7 +65,7 @@ def test_add_new_specialty_price(client: TestClient, db_session: Session):
     )
     specialty = specialty_crud.create_specialty(db_session, specialty_data)
 
-    response = client.post(
+    response = authenticated_client.post(
         f"/api/v1/specialties/{specialty.id}/prices",
         json={"price": 80.00},
     )
