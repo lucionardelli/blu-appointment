@@ -1,4 +1,5 @@
 import enum
+import typing
 from datetime import UTC, datetime
 
 import sqlalchemy as sa
@@ -7,6 +8,10 @@ from sqlalchemy.orm import column_property, relationship
 from sqlalchemy.types import Boolean, Date, DateTime, Enum, Integer, Numeric, Time
 
 from app.db.base import Base
+
+if typing.TYPE_CHECKING:
+    from app.patients.models import Patient
+    from app.specialties.models import Specialty
 
 
 class AppointmentStatus(enum.Enum):

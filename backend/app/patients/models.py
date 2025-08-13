@@ -7,6 +7,7 @@ from sqlalchemy.types import Date, String, Text
 
 from app.appointments.models import Appointment, Payment
 from app.db.base import Base
+from app.specialties.models import Specialty
 
 UNDERAGE_LIMIT = 18  # Define the age limit for underage patients
 
@@ -24,8 +25,8 @@ class Patient(Base):
     # The actual encryption/decryption will be handled at the application level.
     encrypted_medical_history = sa.Column(Text)
 
-    email = sa.Column(String(255), unique=True, index=True)
-    cellphone = sa.Column(String(50), unique=True, index=True)
+    email = sa.Column(String(255), index=True)
+    cellphone = sa.Column(String(50), index=True)
     phone = sa.Column(String(50))
     address = sa.Column(Text)
     how_they_found_us = sa.Column(Text)

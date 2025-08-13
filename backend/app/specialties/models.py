@@ -1,3 +1,4 @@
+import typing
 from datetime import UTC, datetime
 from decimal import Decimal
 
@@ -8,6 +9,9 @@ from sqlalchemy.orm import Mapped, relationship
 from sqlalchemy.types import DateTime, Integer, Numeric, String
 
 from app.db.base import Base
+
+if typing.TYPE_CHECKING:
+    from app.appointments.models import Appointment
 
 
 class Specialty(Base):
