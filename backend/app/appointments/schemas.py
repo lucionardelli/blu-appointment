@@ -5,7 +5,12 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 from app.specialties.schemas import MinSpecialtyInfo
 
-from .models import AppointmentStatus, PaymentMethod, RecurringFrequency
+from .models import (
+    AppointmentStatus,
+    DayOfWeek,
+    PaymentMethod,
+    RecurringFrequency,
+)
 
 
 class PaymentBase(BaseModel):
@@ -113,7 +118,7 @@ class RecurringSeriesCreate(BaseModel):
 
 
 class WorkingHoursBase(BaseModel):
-    day_of_week: int = Field(..., ge=0, le=6, alias="dayOfWeek")
+    day_of_week: DayOfWeek = Field(alias="dayOfWeek")
     start_time: time | None = Field(None, alias="startTime")
     end_time: time | None = Field(None, alias="endTime")
     is_closed: bool = False

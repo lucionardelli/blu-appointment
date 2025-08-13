@@ -1,6 +1,18 @@
 import { defineStore } from "pinia";
 import api from "@/services/api";
 
+// API returns the name of the day in English, but we need numbers for FullCalendar.
+// Monday is 1, Sunday is 7.
+const dayOfWeekMap = {
+  Monday: 1,
+  Tuesday: 2,
+  Wednesday: 3,
+  Thursday: 4,
+  Friday: 5,
+  Saturday: 6,
+  Sunday: 7,
+};
+
 export const useSettingsStore = defineStore("settings", {
   state: () => ({
     workingHoursRaw: [], // Stores the raw data from the backend
@@ -18,7 +30,7 @@ export const useSettingsStore = defineStore("settings", {
               daysOfWeek: [],
             };
           }
-          acc[key].daysOfWeek.push(day.dayOfWeek);
+          acc[key].daysOfWeek.push(dayOfWeekMap[day.dayOfWeek]);
         }
         return acc;
       }, {});

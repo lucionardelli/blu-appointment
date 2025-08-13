@@ -30,6 +30,16 @@ class RecurringFrequency(enum.Enum):
     BIWEEKLY = "BIWEEKLY"
 
 
+class DayOfWeek(enum.Enum):
+    MONDAY = "Monday"
+    TUESDAY = "Tuesday"
+    WEDNESDAY = "Wednesday"
+    THURSDAY = "Thursday"
+    FRIDAY = "Friday"
+    SATURDAY = "Saturday"
+    SUNDAY = "Sunday"
+
+
 class Payment(Base):
     __tablename__ = "payments"
 
@@ -85,8 +95,7 @@ class WorkingHours(Base):
     __tablename__ = "working_hours"
 
     id = sa.Column(Integer, primary_key=True, index=True)
-    # 0 = Monday, 6 = Sunday
-    day_of_week = sa.Column(Integer, nullable=False, unique=True)
+    day_of_week = sa.Column(Enum(DayOfWeek), nullable=False, unique=True)
     start_time = sa.Column(Time)
     end_time = sa.Column(Time)
     is_closed = sa.Column(Boolean, default=False)

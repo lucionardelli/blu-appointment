@@ -35,6 +35,7 @@ ignore = [
   "UP038",  # non-pep604-isinstance = This rule is deprecated!
   "COM812", # absence of trailing commas. Conflicts with formatter, so we need to ignore it.
   "EM101",  # Exception must not use a string literal,
+  "EM102",  # Exception must not use an f-string literal
 
   "ANN204",  # missing type annotation for special method
   "ANN401",  # Dynamically typed expressions (typing.Any) are disallowed

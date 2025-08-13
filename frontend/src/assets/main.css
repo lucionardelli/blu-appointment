@@ -5,3 +5,8 @@
 .fc-timegrid-slot {
   height: 40px !important;
 }
+
+.fc .fc-non-business
+{
+  background-color: hsl(0deg 1.27% 54.69% / 18%);
+}
