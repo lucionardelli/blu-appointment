@@ -131,13 +131,13 @@
                 class="block text-sm font-medium text-gray-700"
                 >{{ t("start_time") }}</label
               >
-              <input
-                id="start_time"
+              <DatePicker
                 v-model="appointment.start_time"
-                type="datetime-local"
-                required
-                step="900"
-                class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                :enable-time-picker="true"
+                :minutes-increment="15"
+                text-input
+                auto-apply
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
               />
             </div>
             <div>
@@ -146,13 +146,13 @@
                 class="block text-sm font-medium text-gray-700"
                 >{{ t("end_time") }}</label
               >
-              <input
-                id="end_time"
+              <DatePicker
                 v-model="appointment.end_time"
-                type="datetime-local"
-                required
-                step="900"
-                class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                :enable-time-picker="true"
+                :minutes-increment="15"
+                text-input
+                auto-apply
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
               />
             </div>
           </div>
@@ -289,8 +289,12 @@ import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import api from "@/services/api";
 import { format, addMinutes } from "date-fns";
+import DatePicker from "@vuepic/vue-datepicker";
+import "@vuepic/vue-datepicker/dist/main.css";
 import { formatDate, formatCurrency } from "@/utils/formatDate";
 import PaymentForm from "./PaymentForm.vue";
+import { usePatientStore } from "@/stores/patients";
+import { useSpecialtyStore } from "@/stores/specialties";
 
 const { t } = useI18n();
 
@@ -324,8 +328,12 @@ const appointment = ref({
   cost: 0,
   total_paid: 0,
 });
-const patients = ref([]);
-const specialties = ref([]);
+
+const patientStore = usePatientStore();
+const specialtyStore = useSpecialtyStore();
+
+const patients = computed(() => patientStore.patients);
+const specialties = computed(() => specialtyStore.specialties);
 const patientSnippet = ref(null);
 const activeTab = ref("details");
 const payments = ref([]);
@@ -386,24 +394,6 @@ const fetchAppointment = async () => {
   }
 };
 
-const fetchPatients = async () => {
-  try {
-    const response = await api.get("/patients");
-    patients.value = response.data;
-  } catch (error) {
-    console.error("Error fetching patients:", error);
-  }
-};
-
-const fetchSpecialties = async () => {
-  try {
-    const response = await api.get("/specialties");
-    specialties.value = response.data;
-  } catch (error) {
-    console.error("Error fetching specialties:", error);
-  }
-};
-
 const fetchPayments = async () => {
   if (isNew.value) return;
   try {
@@ -424,12 +414,20 @@ const handlePaymentSave = () => {
   fetchAppointment(); // Refetch appointment to update total_paid
 };
 
+const handleNewPatientSave = async (newPatient) => {
+  showNewPatientModal.value = false;
+  patientStore.addPatient(newPatient); // Add the new patient to the store
+  appointment.value.patient_id = newPatient.id; // Select the newly created patient
+};
+
 watch(
   () => appointment.value.patient_id,
   (newPatientId) => {
     if (newPatientId) {
       fetchPatientSnippet();
-      const selectedPatient = patients.value.find((p) => p.id === newPatientId);
+      const selectedPatient = patientStore.patients.find(
+        (p) => p.id === newPatientId,
+      );
       if (selectedPatient && selectedPatient.default_specialty_id) {
         appointment.value.specialty_id = selectedPatient.default_specialty_id;
       }
@@ -438,9 +436,6 @@ watch(
 );
 
 onMounted(async () => {
-  await fetchPatients();
-  await fetchSpecialties();
-
   if (props.appointmentId) {
     await fetchAppointment();
     await fetchPayments();
@@ -449,10 +444,7 @@ onMounted(async () => {
     }
   } else if (props.initialDate) {
     const startDate = new Date(props.initialDate);
-    appointment.value.start_time = format(
-      startDate,
-      "yyyy-MM-dd'T'HH:mm",
-    );
+    appointment.value.start_time = format(startDate, "yyyy-MM-dd'T'HH:mm");
     if (props.initialEndDate) {
       const endDate = new Date(props.initialEndDate);
       appointment.value.end_time = format(endDate, "yyyy-MM-dd'T'HH:mm");
@@ -467,7 +459,9 @@ watch(
   (newVal) => {
     if (!newVal) return;
 
-    const selectedSpecialty = specialties.value.find((s) => s.id === newVal);
+    const selectedSpecialty = specialtyStore.specialties.find(
+      (s) => s.id === newVal,
+    );
     if (!selectedSpecialty) return;
 
     appointment.value.cost = selectedSpecialty.current_price;
@@ -495,7 +489,6 @@ const fetchPatientSnippet = async () => {
     console.error("Error fetching patient snippet:", error);
   }
 };
-
 
 const saveAppointment = async () => {
   try {

@@ -62,7 +62,7 @@
             </td>
             <td class="hidden px-6 py-4 whitespace-nowrap md:table-cell">
               <div class="text-sm text-gray-500">
-                {{ patient.default_specialty || t("not_specified") }}
+                {{ specialties.find(s => s.id === patient.default_specialty_id)?.name || t("not_specified") }}
               </div>
             </td>
             <td class="hidden px-6 py-4 whitespace-nowrap md:table-cell">
@@ -94,30 +94,29 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { useI18n } from "vue-i18n";
-import api from "@/services/api";
 import { formatDate } from "@/utils/formatDate";
+import { usePatientStore } from "@/stores/patients";
+import { useSpecialtyStore } from "@/stores/specialties";
 
 const { t } = useI18n();
 
-const patients = ref([]);
 const searchQuery = ref("");
 
-const fetchPatients = async () => {
-  try {
-    const response = await api.get("/patients/");
-    patients.value = response.data;
-  } catch (error) {
-    console.error("Error fetching patients:", error);
-  }
-};
+const patientStore = usePatientStore();
+const specialtyStore = useSpecialtyStore();
 
-onMounted(fetchPatients);
+const patients = computed(() => patientStore.patients);
+const specialties = computed(() => specialtyStore.specialties);
+
+onMounted(() => {
+  patientStore.fetchPatients();
+});
 
 const filteredPatients = computed(() => {
   if (!searchQuery.value) {
-    return patients.value;
+    return patientStore.patients;
   }
-  return patients.value.filter(
+  return patientStore.patients.filter(
     (patient) =>
       patient.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
       (patient.nickname &&

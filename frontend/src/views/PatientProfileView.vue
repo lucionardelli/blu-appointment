@@ -198,7 +198,7 @@
                     </option>
                   </select>
                   <span v-else>{{
-                    patient.default_specialty?.name || t("not_specified")
+                    specialtyStore.specialties.find(s => s.id === patient.default_specialty_id)?.name || t("not_specified")
                   }}</span>
                 </dd>
               </div>
@@ -242,7 +242,7 @@
                     </option>
                   </select>
                   <span v-else>{{
-                    patient.referred_by?.name || t("not_specified")
+                    patientStore.patients.find(p => p.id === patient.referred_by_patient_id)?.name || t("not_specified")
                   }}</span>
                 </dd>
               </div>
@@ -514,18 +514,24 @@ import {
   formatDateForInput,
 } from "@/utils/formatDate";
 import EmergencyContactForm from "@/components/patients/EmergencyContactForm.vue";
+import { usePatientStore } from "@/stores/patients";
+import { useSpecialtyStore } from "@/stores/specialties";
 
 const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 
 const patient = ref(null);
-const patients = ref([]);
-const specialties = ref([]);
 const appointments = ref([]);
 const emergencyContacts = ref([]); // New ref for emergency contacts
 const deletedEmergencyContactIds = ref([]);
 const errors = ref({});
+
+const patientStore = usePatientStore();
+const specialtyStore = useSpecialtyStore();
+
+const patients = computed(() => patientStore.patients);
+const specialties = computed(() => specialtyStore.specialties);
 
 const isNew = ref(false);
 const isEditing = ref(false);
@@ -535,9 +541,9 @@ const md = new MarkdownIt();
 
 const filteredPatients = computed(() => {
   if (patient.value) {
-    return patients.value.filter((p) => p.id !== patient.value.id);
+    return patientStore.patients.filter((p) => p.id !== patient.value.id);
   }
-  return patients.value;
+  return patientStore.patients;
 });
 
 const renderedMedicalHistory = computed(() => {
@@ -570,24 +576,6 @@ const filteredAppointments = computed(() => {
     return appointments.value.filter((app) => !app.cancelled);
   }
 });
-
-const fetchSpecialties = async () => {
-  try {
-    const response = await api.get("/specialties/");
-    specialties.value = response.data;
-  } catch (error) {
-    console.error("Error fetching specialties:", error);
-  }
-};
-
-const fetchPatients = async () => {
-  try {
-    const response = await api.get("/patients/");
-    patients.value = response.data;
-  } catch (error) {
-    console.error("Error fetching patients:", error);
-  }
-};
 
 const fetchPatient = async () => {
   if (route.params.id === "new") {
@@ -726,8 +714,10 @@ const savePatient = async () => {
     isEditing.value = false;
     if (isNew.value) {
       isNew.value = false;
+      patientStore.addPatient(patientData); // Add the new patient to the store
       router.push({ name: "view-patient", params: { id: patientData.id } });
     } else {
+      patientStore.updatePatient(patientData); // Update the patient in the store
       // Re-fetch patient to get the latest financial summary and other data, but not emergency contacts
       const response = await api.get(`/patients/${route.params.id}`);
       patient.value = response.data;
@@ -752,8 +742,6 @@ const cancelEdit = () => {
 };
 
 onMounted(async () => {
-  await fetchSpecialties();
-  await fetchPatients();
   await fetchPatient();
   await fetchAppointments();
 });
