@@ -27,13 +27,29 @@
             class="block text-sm font-medium text-gray-700"
             >{{ t("password") }}</label
           >
-          <input
-            id="password"
-            v-model="password"
-            type="password"
-            required
-            class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-          />
+          <div class="relative">
+            <input
+              id="password"
+              v-model="password"
+              :type="showPassword ? 'text' : 'password'"
+              required
+              class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+            />
+            <button
+              type="button"
+              class="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500"
+              @click="showPassword = !showPassword"
+            >
+              <i-heroicons-eye-20-solid
+                v-if="!showPassword"
+                class="h-6 w-6 text-gray-500"
+              />
+              <i-heroicons-eye-slash-20-solid
+                v-else
+                class="h-6 w-6 text-gray-500"
+              />
+            </button>
+          </div>
         </div>
         <div>
           <button
@@ -59,6 +75,7 @@ const { t } = useI18n();
 
 const username = ref("");
 const password = ref("");
+const showPassword = ref(false);
 const error = ref(null);
 const router = useRouter();
 const authStore = useAuthStore();

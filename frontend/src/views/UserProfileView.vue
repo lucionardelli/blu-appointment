@@ -200,8 +200,14 @@
                       class="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500"
                       @click="showCurrentPassword = !showCurrentPassword"
                     >
-                      <EyeIcon v-if="!showCurrentPassword" class="w-5 h-5" />
-                      <EyeSlashedIcon v-else class="w-5 h-5" />
+                      <i-heroicons-eye-20-solid
+                        v-if="!showPassword"
+                        class="h-6 w-6 text-gray-500"
+                      />
+                      <i-heroicons-eye-slash-20-solid
+                        v-else
+                        class="h-6 w-6 text-gray-500"
+                      />
                     </button>
                   </div>
                   <p
@@ -231,8 +237,14 @@
                       class="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500"
                       @click="showNewPassword = !showNewPassword"
                     >
-                      <EyeIcon v-if="!showNewPassword" class="w-5 h-5" />
-                      <EyeSlashedIcon v-else class="w-5 h-5" />
+                      <i-heroicons-eye-20-solid
+                        v-if="!showPassword"
+                        class="h-6 w-6 text-gray-500"
+                      />
+                      <i-heroicons-eye-slash-20-solid
+                        v-else
+                        class="h-6 w-6 text-gray-500"
+                      />
                     </button>
                   </div>
                   <p
@@ -262,8 +274,14 @@
                       class="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500"
                       @click="showConfirmNewPassword = !showConfirmNewPassword"
                     >
-                      <EyeIcon v-if="!showConfirmNewPassword" class="w-5 h-5" />
-                      <EyeSlashedIcon v-else class="w-5 h-5" />
+                      <i-heroicons-eye-20-solid
+                        v-if="!showPassword"
+                        class="h-6 w-6 text-gray-500"
+                      />
+                      <i-heroicons-eye-slash-20-solid
+                        v-else
+                        class="h-6 w-6 text-gray-500"
+                      />
                     </button>
                   </div>
                   <p
@@ -286,8 +304,6 @@
 import { ref, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import api from "@/services/api";
-import EyeIcon from "@/components/icons/EyeIcon.vue";
-import EyeSlashedIcon from "@/components/icons/EyeSlashedIcon.vue";
 
 const { t } = useI18n();
 
