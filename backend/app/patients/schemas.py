@@ -6,6 +6,30 @@ from pydantic import BaseModel, ConfigDict, EmailStr
 from app.specialties.schemas import Specialty
 
 
+class EmergencyContactBase(BaseModel):
+    full_name: str
+    patient_relationship: str | None = None
+    email: EmailStr | None = None
+    phone_number: str | None = None
+    cellphone: str | None = None
+
+
+class EmergencyContactCreate(EmergencyContactBase): ...
+
+
+class EmergencyContactUpdate(EmergencyContactBase):
+    full_name: str | None = None
+    priority: int | None = None
+
+
+class EmergencyContact(EmergencyContactBase):
+    id: int
+    patient_id: int
+    priority: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class PatientBase(BaseModel):
     name: str
     nickname: str | None = None
@@ -20,8 +44,7 @@ class PatientBase(BaseModel):
     referred_by_patient_id: int | None = None
 
 
-class PatientCreate(PatientBase):
-    pass
+class PatientCreate(PatientBase): ...
 
 
 class PatientUpdate(PatientBase):
@@ -64,5 +87,6 @@ class PatientDetails(Patient):
     appointment_summary: dict[str, PatientAppointmentSummary] | None = None
     default_specialty: Specialty | None = None
     referred_by: PatientSummary | None = None
+    emergency_contacts: list[EmergencyContact] = []
 
     model_config = ConfigDict(from_attributes=True)

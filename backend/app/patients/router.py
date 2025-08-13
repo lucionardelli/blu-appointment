@@ -83,3 +83,83 @@ def delete_patient(
     if db_patient is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Patient not found")
     return db_patient
+
+
+@router.post(
+    "/{patient_id}/emergency_contacts",
+    response_model=schemas.EmergencyContact,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_emergency_contact(
+    patient_id: int,
+    contact: schemas.EmergencyContactCreate,
+    db: Annotated[Session, Depends(get_db)],
+    _current_user: Annotated[User, Depends(get_current_user)],
+) -> schemas.EmergencyContact:
+    db_patient = crud.get_patient(db, patient_id=patient_id)
+    if db_patient is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Patient not found")
+    return crud.create_emergency_contact(db=db, patient_id=patient_id, contact=contact)
+
+
+@router.get(
+    "/{patient_id}/emergency_contacts", response_model=list[schemas.EmergencyContact]
+)
+def read_emergency_contacts(
+    patient_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    _current_user: Annotated[User, Depends(get_current_user)],
+) -> list[schemas.EmergencyContact]:
+    db_patient = crud.get_patient(db, patient_id=patient_id)
+    if db_patient is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Patient not found")
+    return crud.get_emergency_contacts_for_patient(db=db, patient_id=patient_id)
+
+
+@router.get(
+    "/{patient_id}/emergency_contacts/{contact_id}",
+    response_model=schemas.EmergencyContact,
+)
+def read_emergency_contact(
+    patient_id: int,
+    contact_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    _current_user: Annotated[User, Depends(get_current_user)],
+) -> schemas.EmergencyContact:
+    db_contact = crud.get_emergency_contact(db, contact_id=contact_id)
+    if db_contact is None or db_contact.patient_id != patient_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Emergency contact not found")
+    return db_contact
+
+
+@router.put(
+    "/{patient_id}/emergency_contacts/{contact_id}",
+    response_model=schemas.EmergencyContact,
+)
+def update_emergency_contact(
+    patient_id: int,
+    contact_id: int,
+    contact: schemas.EmergencyContactUpdate,
+    db: Annotated[Session, Depends(get_db)],
+    _current_user: Annotated[User, Depends(get_current_user)],
+) -> schemas.EmergencyContact:
+    db_contact = crud.get_emergency_contact(db, contact_id=contact_id)
+    if db_contact is None or db_contact.patient_id != patient_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Emergency contact not found")
+    return crud.update_emergency_contact(db=db, contact_id=contact_id, contact_update=contact)
+
+
+@router.delete(
+    "/{patient_id}/emergency_contacts/{contact_id}",
+    response_model=schemas.EmergencyContact,
+)
+def delete_emergency_contact(
+    patient_id: int,
+    contact_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    _current_user: Annotated[User, Depends(get_current_user)],
+) -> schemas.EmergencyContact:
+    db_contact = crud.get_emergency_contact(db, contact_id=contact_id)
+    if db_contact is None or db_contact.patient_id != patient_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Emergency contact not found")
+    return crud.delete_emergency_contact(db=db, contact_id=contact_id)

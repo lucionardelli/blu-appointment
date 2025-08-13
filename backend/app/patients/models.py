@@ -39,6 +39,10 @@ class Patient(Base):
 
     appointments = relationship("Appointment", back_populates="patient")
 
+    emergency_contacts = relationship(
+        "EmergencyContact", back_populates="patient", order_by="EmergencyContact.priority"
+    )
+
     credit_balance = column_property(
         select(func.coalesce(func.sum(Payment.amount), 0))
         .where(Payment.appointment_id.in_(select(Appointment.id).where(Appointment.patient_id == id)))
@@ -72,3 +76,18 @@ class Patient(Base):
     @property
     def is_underage(self) -> bool | None:
         return self.age and self.age < UNDERAGE_LIMIT
+
+
+class EmergencyContact(Base):
+    __tablename__ = "emergency_contacts"
+
+    id = sa.Column(sa.Integer, primary_key=True, index=True)
+    patient_id = sa.Column(sa.Integer, ForeignKey("patients.id"), nullable=False)
+    full_name = sa.Column(String(255), nullable=False)
+    patient_relationship = sa.Column(String(255))
+    email = sa.Column(String(255))
+    phone_number = sa.Column(String(50))
+    cellphone = sa.Column(String(50))
+    priority = sa.Column(sa.Integer, nullable=False, default=0)
+
+    patient = relationship("Patient", back_populates="emergency_contacts")

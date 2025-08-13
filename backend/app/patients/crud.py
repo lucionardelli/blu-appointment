@@ -1,9 +1,9 @@
 from sqlalchemy.orm import Session, joinedload
 
+from app.appointments.models import Appointment
 from app.core.encryption import decrypt, encrypt
 
 from . import models, schemas
-from app.appointments.models import Appointment
 
 
 def get_patient(db: Session, patient_id: int) -> models.Patient | None:
@@ -26,21 +26,12 @@ def get_patients(db: Session, skip: int = 0, limit: int = 100) -> list[models.Pa
     return patients
 
 
-def get_patient_appointments(
-    db: Session, patient_id: int, skip: int = 0, limit: int = 100
-) -> list[Appointment]:
+def get_patient_appointments(db: Session, patient_id: int, skip: int = 0, limit: int = 100) -> list[Appointment]:
     db_patient = db.query(models.Patient).filter(models.Patient.id == patient_id).first()
     if not db_patient:
         return []
 
-    appointments = (
-        db.query(Appointment)
-        .filter(Appointment.patient_id == patient_id)
-        .offset(skip)
-        .limit(limit)
-        .all()
-    )
-    return appointments
+    return db.query(Appointment).filter(Appointment.patient_id == patient_id).offset(skip).limit(limit).all()
 
 
 def create_patient(db: Session, patient: schemas.PatientCreate) -> models.Patient:
@@ -101,3 +92,65 @@ def delete_patient(db: Session, patient_id: int) -> models.Patient | None:
         db.delete(db_patient)
         db.commit()
     return db_patient
+
+
+def create_emergency_contact(
+    db: Session, patient_id: int, contact: schemas.EmergencyContactCreate
+) -> models.EmergencyContact:
+    db_contact = models.EmergencyContact(**contact.model_dump(), patient_id=patient_id)
+
+    existing_contacts_count = (
+        db.query(models.EmergencyContact).filter(models.EmergencyContact.patient_id == patient_id).count()
+    )
+    db_contact.priority = existing_contacts_count + 1
+    db.add(db_contact)
+    db.commit()
+    db.refresh(db_contact)
+    return db_contact
+
+
+def get_emergency_contact(db: Session, contact_id: int) -> models.EmergencyContact | None:
+    return db.query(models.EmergencyContact).filter(models.EmergencyContact.id == contact_id).first()
+
+
+def get_emergency_contacts_for_patient(db: Session, patient_id: int) -> list[models.EmergencyContact]:
+    return (
+        db.query(models.EmergencyContact)
+        .filter(models.EmergencyContact.patient_id == patient_id)
+        .order_by(models.EmergencyContact.priority)
+        .all()
+    )
+
+
+def update_emergency_contact(
+    db: Session,
+    contact_id: int,
+    contact_update: schemas.EmergencyContactUpdate,
+) -> models.EmergencyContact | None:
+    db_contact = db.query(models.EmergencyContact).filter(models.EmergencyContact.id == contact_id).first()
+    if not db_contact:
+        return None
+
+    # If the priority is being updated, ensure it is unique
+    if contact_update.priority is not None and contact_update.priority > len(db_contact.patient.emergency_contacts):
+        raise ValueError("Priority must be less than or equal to the number of emergency contacts.")
+
+    update_data = contact_update.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_contact, key, value)
+
+    for another_contact in db_contact.patient.emergency_contacts:
+        if another_contact.id != contact_id and another_contact.priority >= db_contact.priority:
+            another_contact.priority += 1
+
+    db.commit()
+    db.refresh(db_contact)
+    return db_contact
+
+
+def delete_emergency_contact(db: Session, contact_id: int) -> models.EmergencyContact | None:
+    db_contact = db.query(models.EmergencyContact).filter(models.EmergencyContact.id == contact_id).first()
+    if db_contact:
+        db.delete(db_contact)
+        db.commit()
+    return db_contact
