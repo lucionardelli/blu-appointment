@@ -38,3 +38,6 @@ migration::
 
 init-db::
 	docker compose exec -ti backend bash -c "python -m app.db.seeds all"
+
+import-patients::
+	docker compose exec -ti backend bash -c "python -m app.db.import_scripts.import_patients"
