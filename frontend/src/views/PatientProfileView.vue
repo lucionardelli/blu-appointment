@@ -315,6 +315,17 @@
             >
               {{ t("medical_history") }}
             </button>
+            <button
+              :class="[
+                activeTab === 'emergency_contacts'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
+                'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm',
+              ]"
+              @click="activeTab = 'emergency_contacts'"
+            >
+              {{ t("emergency_contacts") }}
+            </button>
           </nav>
         </div>
 
@@ -406,6 +417,84 @@
             <!-- eslint-enable vue/no-v-html -->
           </div>
         </div>
+        <div
+          v-show="activeTab === 'emergency_contacts'"
+          class="border-t border-gray-200 px-4 py-5 sm:p-0"
+        >
+          <div class="px-4 py-5 sm:px-6">
+            <div class="flex justify-between items-center mb-4">
+              <h4 class="text-lg leading-6 font-medium text-gray-900">
+                {{ t("emergency_contacts") }}
+              </h4>
+              <button
+                v-if="isEditing"
+                type="button"
+                class="px-3 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                @click="addEmergencyContact"
+              >
+                {{ t("add_emergency_contact") }}
+              </button>
+            </div>
+            <div v-if="emergencyContacts && emergencyContacts.length > 0">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th
+                      scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      {{ t("full_name") }}
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      {{ t("patient_relationship") }}
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      {{ t("email_address") }}
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      {{ t("phone_number") }}
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      {{ t("cell_phone") }}
+                    </th>
+                    <th
+                      v-if="isEditing"
+                      scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      {{ t("actions") }}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  <EmergencyContactForm
+                    v-for="(contact, index) in emergencyContacts"
+                    :key="contact.id"
+                    :contact="contact"
+                    :is-editing="isEditing"
+                    @delete="deleteEmergencyContact(contact)"
+                    @update:contact="updateEmergencyContact($event, index)"
+                  />
+                </tbody>
+              </table>
+            </div>
+            <div v-else class="text-sm text-gray-500">
+              {{ t("no_emergency_contacts") }}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -424,6 +513,7 @@ import {
   formatTime,
   formatDateForInput,
 } from "@/utils/formatDate";
+import EmergencyContactForm from "@/components/patients/EmergencyContactForm.vue";
 
 const { t } = useI18n();
 const route = useRoute();
@@ -433,11 +523,13 @@ const patient = ref(null);
 const patients = ref([]);
 const specialties = ref([]);
 const appointments = ref([]);
+const emergencyContacts = ref([]); // New ref for emergency contacts
+const deletedEmergencyContactIds = ref([]);
 const errors = ref({});
 
 const isNew = ref(false);
 const isEditing = ref(false);
-const activeTab = ref("appointments");
+const activeTab = ref("medical_history"); // Default to medical history for new patient, or appointments for existing
 const showCancelledAppointments = ref(false);
 const md = new MarkdownIt();
 
@@ -515,6 +607,7 @@ const fetchPatient = async () => {
       how_they_found_us: undefined,
       referred_by_patient_id: null,
     };
+    emergencyContacts.value = []; // Initialize empty for new patient
     return;
   }
   try {
@@ -524,6 +617,8 @@ const fetchPatient = async () => {
     if (patient.value.dob) {
       patient.value.dob = formatDateForInput(patient.value.dob);
     }
+    // Populate emergency contacts
+    emergencyContacts.value = patient.value.emergency_contacts || [];
   } catch (error) {
     console.error("Error fetching patient:", error);
   }
@@ -539,6 +634,31 @@ const fetchAppointments = async () => {
   }
 };
 
+const addEmergencyContact = () => {
+  emergencyContacts.value.push({
+    id: Date.now(), // Temporary ID for new contacts
+    full_name: undefined,
+    patient_relationship: undefined,
+    email: undefined,
+    phone_number: undefined,
+    cellphone: undefined,
+    isNew: true, // Flag to indicate a new contact
+  });
+};
+
+const updateEmergencyContact = (contact, index) => {
+  emergencyContacts.value[index] = contact;
+};
+
+const deleteEmergencyContact = (contact) => {
+  if (contact.id && !contact.isNew) {
+    deletedEmergencyContactIds.value.push(contact.id);
+  }
+  emergencyContacts.value = emergencyContacts.value.filter(
+    (c) => c.id !== contact.id,
+  );
+};
+
 const savePatient = async () => {
   errors.value = {};
 
@@ -550,7 +670,7 @@ const savePatient = async () => {
   }
   if (
     patient.value.email &&
-    !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(patient.value.email)
+    !/^["\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(patient.value.email)
   ) {
     errors.value.email = "Invalid email format.";
   }
@@ -560,14 +680,57 @@ const savePatient = async () => {
   }
 
   try {
+    let patientData;
     if (isNew.value) {
       const response = await api.post("/patients/", patient.value);
-      isEditing.value = false;
-      isNew.value = false;
-      router.push({ name: "view-patient", params: { id: response.data.id } });
+      patientData = response.data;
     } else {
-      await api.put(`/patients/${route.params.id}`, patient.value);
-      isEditing.value = false; // Exit edit mode after saving
+      const response = await api.put(
+        `/patients/${route.params.id}`,
+        patient.value,
+      );
+      patientData = response.data;
+    }
+
+    // Delete emergency contacts
+    for (const contactId of deletedEmergencyContactIds.value) {
+      await api.delete(
+        `/patients/${patientData.id}/emergency_contacts/${contactId}`,
+      );
+    }
+    deletedEmergencyContactIds.value = [];
+
+    // Save emergency contacts
+    const savedContacts = [];
+    for (const contact of emergencyContacts.value) {
+      if (contact.isNew) {
+        // remove temporary ID and isNew flag
+        const newContact = { ...contact };
+        delete newContact.id;
+        delete newContact.isNew;
+        const response = await api.post(
+          `/patients/${patientData.id}/emergency_contacts`,
+          newContact,
+        );
+        savedContacts.push(response.data);
+      } else if (contact.id) {
+        const response = await api.put(
+          `/patients/${patientData.id}/emergency_contacts/${contact.id}`,
+          contact,
+        );
+        savedContacts.push(response.data);
+      }
+    }
+    emergencyContacts.value = savedContacts;
+
+    isEditing.value = false;
+    if (isNew.value) {
+      isNew.value = false;
+      router.push({ name: "view-patient", params: { id: patientData.id } });
+    } else {
+      // Re-fetch patient to get the latest financial summary and other data, but not emergency contacts
+      const response = await api.get(`/patients/${route.params.id}`);
+      patient.value = response.data;
     }
   } catch (error) {
     console.error("Error saving patient:", error);

@@ -89,5 +89,10 @@
   "current_password": "Contraseña Actual",
   "new_password": "Nueva Contraseña",
   "confirm_new_password": "Confirmar Nueva Contraseña",
-  "save_password": "Guardar Contraseña"
+  "save_password": "Guardar Contraseña",
+  "emergency_contacts": "Contactos de Emergencia",
+  "no_emergency_contacts": "No hay contactos de emergencia",
+  "add_emergency_contact": "Agregar Contacto de Emergencia",
+  "patient_relationship": "Relación",
+  "actions": "Acciones"
 }

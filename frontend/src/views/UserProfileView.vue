@@ -187,12 +187,23 @@
                   {{ t("current_password") }}
                 </dt>
                 <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  <input
-                    id="current_password"
-                    v-model="currentPassword"
-                    type="password"
-                    class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                  />
+                  <div class="relative">
+                    <input
+                      id="current_password"
+                      v-model="currentPassword"
+                      :type="showCurrentPassword ? 'text' : 'password'"
+                      required
+                      class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                    />
+                    <button
+                      type="button"
+                      class="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500"
+                      @click="showCurrentPassword = !showCurrentPassword"
+                    >
+                      <EyeIcon v-if="!showCurrentPassword" class="w-5 h-5" />
+                      <EyeSlashedIcon v-else class="w-5 h-5" />
+                    </button>
+                  </div>
                   <p
                     v-if="passwordErrors.currentPassword"
                     class="mt-1 text-sm text-red-600"
@@ -208,12 +219,22 @@
                   {{ t("new_password") }}
                 </dt>
                 <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  <input
-                    id="new_password"
-                    v-model="newPassword"
-                    type="password"
-                    class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                  />
+                  <div class="relative">
+                    <input
+                      id="new_password"
+                      v-model="newPassword"
+                      :type="showNewPassword ? 'text' : 'password'"
+                      class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                    />
+                    <button
+                      type="button"
+                      class="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500"
+                      @click="showNewPassword = !showNewPassword"
+                    >
+                      <EyeIcon v-if="!showNewPassword" class="w-5 h-5" />
+                      <EyeSlashedIcon v-else class="w-5 h-5" />
+                    </button>
+                  </div>
                   <p
                     v-if="passwordErrors.newPassword"
                     class="mt-1 text-sm text-red-600"
@@ -229,12 +250,22 @@
                   {{ t("confirm_new_password") }}
                 </dt>
                 <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  <input
-                    id="confirm_new_password"
-                    v-model="confirmNewPassword"
-                    type="password"
-                    class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                  />
+                  <div class="relative">
+                    <input
+                      id="confirm_new_password"
+                      v-model="confirmNewPassword"
+                      :type="showConfirmNewPassword ? 'text' : 'password'"
+                      class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                    />
+                    <button
+                      type="button"
+                      class="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500"
+                      @click="showConfirmNewPassword = !showConfirmNewPassword"
+                    >
+                      <EyeIcon v-if="!showConfirmNewPassword" class="w-5 h-5" />
+                      <EyeSlashedIcon v-else class="w-5 h-5" />
+                    </button>
+                  </div>
                   <p
                     v-if="passwordErrors.confirmNewPassword"
                     class="mt-1 text-sm text-red-600"
@@ -255,6 +286,8 @@
 import { ref, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import api from "@/services/api";
+import EyeIcon from "@/components/icons/EyeIcon.vue";
+import EyeSlashedIcon from "@/components/icons/EyeSlashedIcon.vue";
 
 const { t } = useI18n();
 
@@ -265,6 +298,9 @@ const currentPassword = ref("");
 const newPassword = ref("");
 const confirmNewPassword = ref("");
 const passwordErrors = ref({});
+const showCurrentPassword = ref(false);
+const showNewPassword = ref(false);
+const showConfirmNewPassword = ref(false);
 
 const getTimezoneOffset = (tz) => {
   if (tz === "UTC") return "UTC+0";
