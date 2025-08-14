@@ -58,7 +58,9 @@ const fetchAppointments = async () => {
 
 onMounted(async () => {
   await fetchAppointments();
-  await settingsStore.fetchWorkingHours();
+  if (!workingHoursRaw.value.length) {
+    await settingsStore.fetchWorkingHours();
+  }
 });
 
 const openNewAppointmentModal = () => {

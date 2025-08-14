@@ -54,22 +54,24 @@
               v-if="patientSnippet"
               class="mt-2 p-4 bg-gray-100 rounded-md sm:flex sm:justify-between"
             >
-              <div class="flex items-baseline">
-                <h4 class="text-sm font-medium text-gray-900">
-                  {{ patientSnippet.name }}
-                </h4>
-                <p class="ml-2 text-xs text-gray-600">
-                  ({{ patientSnippet.nickname }})
-                </p>
-              </div>
+              <p
+                v-if="patientSnippet.nickname"
+                class="ml-2 text-xs text-gray-600"
+              >
+                {{ t("nickname") }}: ({{ patientSnippet.nickname }})
+              </p>
               <p class="text-sm text-gray-500">
-                {{ t("dob") }}: {{ formatDate(patientSnippet.dob) }}
+                {{ t("age") }}:
                 <span
                   :class="{
                     'text-red-500 font-semibold': patientSnippet.is_underage,
                   }"
-                  >({{ patientSnippet.age }})</span
+                  >{{ patientSnippet.age }}</span
                 >
+              </p>
+              <p class="text-sm text-gray-500">
+                {{ t("total_appointments_qty") }}:
+                {{ patientSnippet.appointment_summary.total_appointments }}
               </p>
               <p class="text-sm text-gray-500">
                 {{ t("last_appointment") }}:
@@ -411,8 +413,6 @@ const handlePaymentSave = () => {
   fetchPayments();
   fetchAppointment(); // Refetch appointment to update total_paid
 };
-
-
 
 watch(
   () => appointment.value.patient_id,
