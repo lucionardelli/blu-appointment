@@ -1,3 +1,5 @@
+from datetime import UTC, datetime
+
 from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
 
@@ -26,23 +28,28 @@ def get_appointment_summary(db: Session, patient_id: int) -> schemas.Appointment
 
     appointments = db.query(Appointment).filter(Appointment.patient_id == patient_id).all()
 
+    # Do this on db side if performance becomes an issue
     total_appointments = len(appointments)
-    upcoming_appointments = sum(1 for app in appointments if app.start_time > func.now())
+    upcoming_appointments = sum(1 for app in appointments if app.start_time.replace(tzinfo=UTC) > datetime.now(tz=UTC))
     past_appointments = total_appointments - upcoming_appointments
 
-    specialty_counts = (
-        db.query(Specialty.name, func.count(Appointment.id))
-        .join(Appointment)
-        .filter(Appointment.patient_id == patient_id)
-        .group_by(Specialty.name)
-        .all()
-    )
+    specialty_counts = {}
+    for app in appointments:
+        if not app.specialty_id:
+            continue  # Skip appointments without a specialty
+
+        this_specialty_count = specialty_counts.setdefault(app.specialty_id, {"total": 0, "upcoming": 0, "past": 0})
+        this_specialty_count["total"] += 1
+        if app.start_time.replace(tzinfo=UTC) > datetime.now(tz=UTC):
+            this_specialty_count["upcoming"] += 1
+        else:
+            this_specialty_count["past"] += 1
 
     return schemas.AppointmentSummary(
         total_appointments=total_appointments,
         upcoming_appointments=upcoming_appointments,
         past_appointments=past_appointments,
-        specialty_counts=dict(specialty_counts),
+        specialty_counts=specialty_counts,
     )
 
 

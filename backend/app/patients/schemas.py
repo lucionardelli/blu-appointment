@@ -73,7 +73,7 @@ class AppointmentSummary(BaseModel):
     total_appointments: int
     upcoming_appointments: int
     past_appointments: int
-    specialty_counts: dict[str, int] = Field(default_factory=dict)
+    specialty_counts: dict[int, dict[str, int]] = Field(default_factory=dict)
 
 
 class PatientSummary(BaseModel):
