@@ -108,11 +108,15 @@ const searchQuery = ref("");
 const patientStore = usePatientStore();
 const specialtyStore = useSpecialtyStore();
 
-
 const specialties = computed(() => specialtyStore.specialties);
 
 onMounted(() => {
-  patientStore.fetchPatients();
+  if (!patientStore.patients.length) {
+    patientStore.fetchPatients();
+  }
+  if (!specialtyStore.specialties.length) {
+    specialtyStore.fetchSpecialties();
+  }
 });
 
 const filteredPatients = computed(() => {

@@ -70,8 +70,24 @@
                 >
               </p>
               <p class="text-sm text-gray-500">
-                {{ t("total_appointments_qty") }}:
-                {{ patientSnippet.appointment_summary.total_appointments }}
+                {{ t("past_appointments") }}:
+                {{ patientSnippet.appointment_summary.past_appointments }}
+              </p>
+              <p
+                v-if="
+                  selectedSpecialtyName &&
+                  patientSnippet.appointment_summary.specialty_counts[
+                    selectedSpecialtyId
+                  ] !== undefined
+                "
+                class="text-sm text-gray-500"
+              >
+                {{ t("appointments") }} {{ selectedSpecialtyName }}:
+                {{
+                  patientSnippet.appointment_summary.specialty_counts[
+                    selectedSpecialtyId
+                  ]["past"]
+                }}
               </p>
               <p class="text-sm text-gray-500">
                 {{ t("last_appointment") }}:
@@ -340,6 +356,18 @@ const payments = ref([]);
 const showPaymentForm = ref(false);
 
 const isNew = computed(() => !props.appointmentId);
+
+const selectedSpecialtyId = computed(() => appointment.value.specialty_id);
+
+const selectedSpecialtyName = computed(() => {
+  if (selectedSpecialtyId.value) {
+    const specialty = specialties.value.find(
+      (s) => s.id === selectedSpecialtyId.value,
+    );
+    return specialty ? specialty.name : null;
+  }
+  return null;
+});
 
 const amountDue = computed(() => {
   if (!appointment.value) {

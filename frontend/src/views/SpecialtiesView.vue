@@ -72,23 +72,19 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { onMounted, computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { formatCurrency } from "@/utils/formatDate";
-import api from "@/services/api";
+import { useSpecialtyStore } from "@/stores/specialties";
 
 const { t } = useI18n();
 
-const specialties = ref([]);
+const specialtyStore = useSpecialtyStore();
+const specialties = computed(() => specialtyStore.specialties);
 
-const fetchSpecialties = async () => {
-  try {
-    const response = await api.get("/specialties/");
-    specialties.value = response.data;
-  } catch (error) {
-    console.error("Error fetching specialties:", error);
+onMounted(() => {
+  if (!specialtyStore.specialties.length) {
+    specialtyStore.fetchSpecialties();
   }
-};
-
-onMounted(fetchSpecialties);
+});
 </script>

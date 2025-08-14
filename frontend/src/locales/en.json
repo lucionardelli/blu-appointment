@@ -1,7 +1,10 @@
 {
   "appointments": "Appointments",
+  "past_appointments": "Past Appointments",
+  "upcoming_appointments": "Upcoming Appointments",
   "new_appointment": "New Appointment",
   "edit_appointment": "Edit Appointment",
+  "done": "Done",
   "patient": "Patient",
   "specialty": "Specialty",
   "edit_specialty": "Edit Specialty",
@@ -76,6 +79,7 @@
   "appointments_this_week": "Appts this Week",
   "appointment_qty": "# Appts",
   "total_appointments_qty": "Total # Appts",
+  "appointments_per_specialty": "Appointments per Specialty",
   "financial_overview": "Financial Overview",
   "this_month": "This Month",
   "last_month": "Last Month",
