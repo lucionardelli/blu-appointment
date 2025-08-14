@@ -91,3 +91,8 @@ class PatientDetails(Patient):
     emergency_contacts: list[EmergencyContact] = []
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class PaginatedPatientsResponse(BaseModel):
+    total_count: int
+    items: list[Patient]
