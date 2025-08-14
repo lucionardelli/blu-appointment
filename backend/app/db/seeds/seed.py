@@ -73,7 +73,7 @@ def seed_working_hours(file_path: Path) -> None:
             except KeyError:
                 raise ValueError(f"Invalid day_of_week value: {row['day_of_week']}") from None
 
-            working_hours = session.execute(select(WorkingHours).where(WorkingHours.day_of_week == day_of_week)).first()
+            working_hours = session.execute(select(WorkingHours).where(WorkingHours.day_of_week == day_of_week)).scalars().first()
             if not working_hours:
                 working_hours = WorkingHours(day_of_week=day_of_week)
                 session.add(working_hours)
