@@ -62,7 +62,10 @@
             </td>
             <td class="hidden px-6 py-4 whitespace-nowrap md:table-cell">
               <div class="text-sm text-gray-500">
-                {{ specialties.find(s => s.id === patient.default_specialty_id)?.name || t("not_specified") }}
+                {{
+                  specialties.find((s) => s.id === patient.default_specialty_id)
+                    ?.name || t("not_specified")
+                }}
               </div>
             </td>
             <td class="hidden px-6 py-4 whitespace-nowrap md:table-cell">
@@ -105,7 +108,7 @@ const searchQuery = ref("");
 const patientStore = usePatientStore();
 const specialtyStore = useSpecialtyStore();
 
-const patients = computed(() => patientStore.patients);
+
 const specialties = computed(() => specialtyStore.specialties);
 
 onMounted(() => {

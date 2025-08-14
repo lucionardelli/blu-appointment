@@ -7,9 +7,7 @@
             class="mr-2 p-1 rounded-full hover:bg-gray-200"
             @click="goBack"
           >
-            <i-heroicons-arrow-left-20-solid
-              class="h-6 w-6 text-gray-500"
-            />
+            <i-heroicons-arrow-left-20-solid class="h-6 w-6 text-gray-500" />
           </button>
           <h3 class="text-lg leading-6 font-medium text-gray-900">
             {{ isNew ? t("new_specialty") : t("edit_specialty") }}

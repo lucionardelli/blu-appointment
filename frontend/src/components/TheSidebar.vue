@@ -19,11 +19,17 @@
         <span v-else class="text-2xl font-semibold text-white">B</span>
       </div>
       <button
-        @click="toggleCollapse"
         class="p-1 text-gray-200 hover:bg-primary-dark hover:bg-opacity-25 hover:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+        @click="toggleCollapse"
       >
-        <i-heroicons-arrow-right-start-on-rectangle-20-solid v-if="isCollapsed" class="w-6 h-6" />
-        <i-heroicons-arrow-left-end-on-rectangle-20-solid v-else class="w-6 h-6" />
+        <i-heroicons-arrow-right-start-on-rectangle-20-solid
+          v-if="isCollapsed"
+          class="w-6 h-6"
+        />
+        <i-heroicons-arrow-left-end-on-rectangle-20-solid
+          v-else
+          class="w-6 h-6"
+        />
       </button>
     </div>
     <nav class="mt-10 px-3">
@@ -42,9 +48,7 @@
           ]"
         >
           <i-heroicons-calendar-days-20-solid class="w-6 h-6" />
-          <span v-if="!isCollapsed" class="mx-3">{{
-            t("appointments")
-          }}</span>
+          <span v-if="!isCollapsed" class="mx-3">{{ t("appointments") }}</span>
         </div>
       </router-link>
       <router-link
@@ -101,9 +105,7 @@
           <span v-if="!isCollapsed" class="mx-3">{{ t("specialties") }}</span>
         </div>
       </router-link>
-
     </nav>
-
   </div>
 </template>
 
