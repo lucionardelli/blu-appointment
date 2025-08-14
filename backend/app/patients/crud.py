@@ -1,9 +1,49 @@
+from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
 
-from app.appointments.models import Appointment
+from app.appointments.models import Appointment, Payment
 from app.core.encryption import decrypt, encrypt
 
 from . import models, schemas
+
+
+def get_financial_summary(db: Session, patient_id: int) -> schemas.PatientFinancialSummary:
+    total_paid = (
+        db.query(func.sum(Payment.amount)).join(Appointment).filter(Appointment.patient_id == patient_id).scalar()
+    ) or 0
+
+    total_due = (db.query(func.sum(Appointment.cost)).filter(Appointment.patient_id == patient_id).scalar()) or 0
+
+    return schemas.PatientFinancialSummary(
+        total_paid=total_paid,
+        total_due=total_due,
+        balance=total_paid - total_due,
+    )
+
+
+def get_appointment_summary(db: Session, patient_id: int) -> schemas.AppointmentSummary:
+    from app.specialties.models import Specialty
+
+    appointments = db.query(Appointment).filter(Appointment.patient_id == patient_id).all()
+
+    total_appointments = len(appointments)
+    upcoming_appointments = sum(1 for app in appointments if app.start_time > func.now())
+    past_appointments = total_appointments - upcoming_appointments
+
+    specialty_counts = (
+        db.query(Specialty.name, func.count(Appointment.id))
+        .join(Appointment)
+        .filter(Appointment.patient_id == patient_id)
+        .group_by(Specialty.name)
+        .all()
+    )
+
+    return schemas.AppointmentSummary(
+        total_appointments=total_appointments,
+        upcoming_appointments=upcoming_appointments,
+        past_appointments=past_appointments,
+        specialty_counts=dict(specialty_counts),
+    )
 
 
 def get_patient(db: Session, patient_id: int) -> models.Patient | None:

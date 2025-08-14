@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from app.specialties.schemas import Specialty
 
@@ -69,10 +69,11 @@ class PatientFinancialSummary(BaseModel):
     balance: Decimal
 
 
-class PatientAppointmentSummary(BaseModel):
+class AppointmentSummary(BaseModel):
     total_appointments: int
     upcoming_appointments: int
     past_appointments: int
+    specialty_counts: dict[str, int] = Field(default_factory=dict)
 
 
 class PatientSummary(BaseModel):
@@ -84,7 +85,7 @@ class PatientSummary(BaseModel):
 
 class PatientDetails(Patient):
     financial_summary: PatientFinancialSummary | None = None
-    appointment_summary: dict[str, PatientAppointmentSummary] | None = None
+    appointment_summary: AppointmentSummary | None = None
     default_specialty: Specialty | None = None
     referred_by: PatientSummary | None = None
     emergency_contacts: list[EmergencyContact] = []

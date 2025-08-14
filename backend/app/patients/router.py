@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.appointments import schemas as appt_schemas
-from app.users.logged import get_current_user
 from app.db import get_db
+from app.users.logged import get_current_user
 from app.users.models import User
 
 from . import crud, schemas
@@ -22,7 +22,7 @@ def create_patient(
     try:
         return crud.create_patient(db=db, patient=patient)
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from None
 
 
 @router.get("/", response_model=list[schemas.Patient])
@@ -42,7 +42,11 @@ def read_patient(
     db_patient = crud.get_patient(db, patient_id=patient_id)
     if db_patient is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Patient not found")
-    return db_patient
+
+    db_patient.financial_summary = crud.get_financial_summary(db, patient_id=patient_id)
+    db_patient.appointment_summary = crud.get_appointment_summary(db, patient_id=patient_id)
+
+    return schemas.PatientDetails.model_validate(db_patient)
 
 
 @router.get("/{patient_id}/appointments", response_model=list[appt_schemas.Appointment])
@@ -69,7 +73,7 @@ def update_patient(
     try:
         db_patient = crud.update_patient(db, patient_id=patient_id, patient_update=patient)
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from None
     if db_patient is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Patient not found")
     return db_patient
@@ -102,9 +106,7 @@ def create_emergency_contact(
     return crud.create_emergency_contact(db=db, patient_id=patient_id, contact=contact)
 
 
-@router.get(
-    "/{patient_id}/emergency_contacts", response_model=list[schemas.EmergencyContact]
-)
+@router.get("/{patient_id}/emergency_contacts", response_model=list[schemas.EmergencyContact])
 def read_emergency_contacts(
     patient_id: int,
     db: Annotated[Session, Depends(get_db)],
