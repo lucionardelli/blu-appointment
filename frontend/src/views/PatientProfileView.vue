@@ -198,7 +198,9 @@
                     </option>
                   </select>
                   <span v-else>{{
-                    specialtyStore.specialties.find(s => s.id === patient.default_specialty_id)?.name || t("not_specified")
+                    specialtyStore.specialties.find(
+                      (s) => s.id === patient.default_specialty_id,
+                    )?.name || t("not_specified")
                   }}</span>
                 </dd>
               </div>
@@ -226,23 +228,24 @@
                   {{ t("referred_by") }}
                 </dt>
                 <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  <select
+                  <v-select
                     v-if="isEditing"
                     id="referred_by_patient_id"
                     v-model="patient.referred_by_patient_id"
-                    class="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                    :options="filteredPatients"
+                    label="name"
+                    :reduce="(patient) => patient.id"
+                    :searchable="true"
+                    class="block w-full mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
                   >
-                    <option :value="null">{{ t("not_specified") }}</option>
-                    <option
-                      v-for="p in filteredPatients"
-                      :key="p.id"
-                      :value="p.id"
-                    >
-                      {{ p.name }}
-                    </option>
-                  </select>
+                    <template #option="option">
+                      <div>{{ option.name }}</div>
+                    </template>
+                  </v-select>
                   <span v-else>{{
-                    patientStore.patients.find(p => p.id === patient.referred_by_patient_id)?.name || t("not_specified")
+                    patientStore.patients.find(
+                      (p) => p.id === patient.referred_by_patient_id,
+                    )?.name || t("not_specified")
                   }}</span>
                 </dd>
               </div>
@@ -517,6 +520,9 @@ import EmergencyContactForm from "@/components/patients/EmergencyContactForm.vue
 import { usePatientStore } from "@/stores/patients";
 import { useSpecialtyStore } from "@/stores/specialties";
 
+import vSelect from "vue-select";
+import "vue-select/dist/vue-select.css";
+
 const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
@@ -530,7 +536,6 @@ const errors = ref({});
 const patientStore = usePatientStore();
 const specialtyStore = useSpecialtyStore();
 
-const patients = computed(() => patientStore.patients);
 const specialties = computed(() => specialtyStore.specialties);
 
 const isNew = ref(false);

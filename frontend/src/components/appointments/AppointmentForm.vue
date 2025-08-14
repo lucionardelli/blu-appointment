@@ -40,21 +40,16 @@
               class="block text-sm font-medium text-gray-700"
               >{{ t("patient") }}</label
             >
-            <select
+            <v-select
               id="patient"
               v-model="appointment.patient_id"
-              required
-              class="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+              :options="patients"
+              label="name"
+              :reduce="(patient) => patient.id"
+              :searchable="true"
+              class="block w-full mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
               @change="fetchPatientSnippet"
-            >
-              <option
-                v-for="patient in patients"
-                :key="patient.id"
-                :value="patient.id"
-              >
-                {{ patient.name }}
-              </option>
-            </select>
+            ></v-select>
             <div
               v-if="patientSnippet"
               class="mt-2 p-4 bg-gray-100 rounded-md sm:flex sm:justify-between"
@@ -296,6 +291,9 @@ import PaymentForm from "./PaymentForm.vue";
 import { usePatientStore } from "@/stores/patients";
 import { useSpecialtyStore } from "@/stores/specialties";
 
+import vSelect from "vue-select";
+import "vue-select/dist/vue-select.css";
+
 const { t } = useI18n();
 
 const props = defineProps({
@@ -414,11 +412,7 @@ const handlePaymentSave = () => {
   fetchAppointment(); // Refetch appointment to update total_paid
 };
 
-const handleNewPatientSave = async (newPatient) => {
-  showNewPatientModal.value = false;
-  patientStore.addPatient(newPatient); // Add the new patient to the store
-  appointment.value.patient_id = newPatient.id; // Select the newly created patient
-};
+
 
 watch(
   () => appointment.value.patient_id,
