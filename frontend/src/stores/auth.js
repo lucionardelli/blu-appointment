@@ -1,6 +1,5 @@
 import { defineStore } from "pinia";
 import api from "@/services/api";
-import { usePatientStore } from "@/stores/patients";
 import { useSpecialtyStore } from "@/stores/specialties";
 
 export const useAuthStore = defineStore("auth", {
@@ -50,10 +49,8 @@ export const useAuthStore = defineStore("auth", {
         localStorage.setItem("token", access_token);
         localStorage.setItem("user", JSON.stringify(this.user));
 
-        // Fetch initial data for patients and specialties
-        const patientStore = usePatientStore();
+        // Fetch initial data for specialties
         const specialtyStore = useSpecialtyStore();
-        await patientStore.fetchPatients();
         await specialtyStore.fetchSpecialties();
 
         return true;
@@ -70,9 +67,7 @@ export const useAuthStore = defineStore("auth", {
       localStorage.removeItem("user");
 
       // Reset Pinia stores
-      const patientStore = usePatientStore();
       const specialtyStore = useSpecialtyStore();
-      patientStore.reset();
       specialtyStore.reset();
     },
   },

@@ -256,9 +256,7 @@
                       </template>
                     </v-select>
                     <span v-else>{{
-                      patientStore.patients.find(
-                        (p) => p.id === patient.referred_by_patient_id,
-                      )?.name || t("not_specified")
+                      referredByPatientName || t("not_specified")
                     }}</span>
                   </dd>
                 </div>
@@ -532,7 +530,6 @@ import {
   formatDateForInput,
 } from "@/utils/formatDate";
 import EmergencyContactForm from "@/components/patients/EmergencyContactForm.vue";
-import { usePatientStore } from "@/stores/patients";
 import { useSpecialtyStore } from "@/stores/specialties";
 
 import vSelect from "vue-select";
@@ -549,6 +546,7 @@ const deletedEmergencyContactIds = ref([]);
 const errors = ref({});
 const referredByOptions = ref([]);
 const referredBySearchLoading = ref(false);
+const referredByPatientName = ref(null);
 
 const onReferredBySearch = async (search, loading) => {
   if (search.length) {
@@ -570,7 +568,6 @@ const onReferredBySearch = async (search, loading) => {
 const loading = ref(true);
 const error = ref(false);
 
-const patientStore = usePatientStore();
 const specialtyStore = useSpecialtyStore();
 
 const specialties = computed(() => specialtyStore.specialties);
@@ -751,10 +748,8 @@ const savePatient = async () => {
     isEditing.value = false;
     if (isNew.value) {
       isNew.value = false;
-      patientStore.addPatient(patientData); // Add the new patient to the store
       router.push({ name: "view-patient", params: { id: patientData.id } });
     } else {
-      patientStore.updatePatient(patientData); // Update the patient in the store
       // Re-fetch patient to get the latest financial summary and other data, but not emergency contacts
       const response = await api.get(`/patients/${route.params.id}`);
       patient.value = response.data;
@@ -804,12 +799,15 @@ onMounted(async () => {
             `/patients/${patient.value.referred_by_patient_id}`,
           );
           referredByOptions.value.push(responseSelected.data);
+          referredByPatientName.value = responseSelected.data.name;
         } catch (errorSelected) {
           console.error(
             "Error fetching selected referred by patient:",
             errorSelected,
           );
         }
+      } else {
+        referredByPatientName.value = selectedReferredBy.name;
       }
     }
   } catch (err) {

@@ -58,7 +58,7 @@
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
-            <tr v-for="patient in filteredPatients" :key="patient.id">
+            <tr v-for="patient in patients" :key="patient.id">
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="text-sm font-medium text-gray-900">
                   {{ patient.name }}
@@ -131,12 +131,12 @@
               <span class="font-medium">{{
                 Math.min(
                   currentPage * itemsPerPage,
-                  patientStore.totalPatientsCount,
+                  totalPatientsCount,
                 )
               }}</span>
               {{ t("of") }}
               <span class="font-medium">{{
-                patientStore.totalPatientsCount
+                totalPatientsCount
               }}</span>
               {{ t("results") }}
             </p>
@@ -190,34 +190,42 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { formatDate } from "@/utils/formatDate";
-import { usePatientStore } from "@/stores/patients";
 import { useSpecialtyStore } from "@/stores/specialties";
+import api from "@/services/api";
+import debounce from "lodash/debounce";
 
 const { t } = useI18n();
 
+const patients = ref([]);
 const searchQuery = ref("");
 const loading = ref(true);
 const error = ref(false);
 const currentPage = ref(1);
 const itemsPerPage = ref(10);
+const totalPatientsCount = ref(0);
 
-const patientStore = usePatientStore();
 const specialtyStore = useSpecialtyStore();
-
 const specialties = computed(() => specialtyStore.specialties);
 
 const totalPages = computed(() => {
-  return Math.ceil(patientStore.totalPatientsCount / itemsPerPage.value);
+  return Math.ceil(totalPatientsCount.value / itemsPerPage.value);
 });
 
-const fetchPatientsWithPagination = async () => {
+const fetchPatients = async () => {
   try {
     loading.value = true;
-    const skip = (currentPage.value - 1) * itemsPerPage.value;
-    await patientStore.fetchPatients(skip, itemsPerPage.value);
+    const response = await api.get("/patients/search", {
+      params: {
+        query: searchQuery.value,
+        skip: (currentPage.value - 1) * itemsPerPage.value,
+        limit: itemsPerPage.value,
+      },
+    });
+    patients.value = response.data.items;
+    totalPatientsCount.value = response.data.total;
     if (!specialtyStore.specialties.length) {
       await specialtyStore.fetchSpecialties();
     }
@@ -229,29 +237,22 @@ const fetchPatientsWithPagination = async () => {
   }
 };
 
+const debouncedFetchPatients = debounce(fetchPatients, 300);
+
+watch(searchQuery, () => {
+  currentPage.value = 1;
+  debouncedFetchPatients();
+});
+
 const changePage = (page) => {
   if (page >= 1 && page <= totalPages.value) {
     currentPage.value = page;
-    fetchPatientsWithPagination();
+    fetchPatients();
   }
 };
 
 onMounted(() => {
-  fetchPatientsWithPagination();
-});
-
-const filteredPatients = computed(() => {
-  if (!searchQuery.value) {
-    return patientStore.patients;
-  }
-  return patientStore.patients.filter(
-    (patient) =>
-      patient.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      (patient.nickname &&
-        patient.nickname
-          .toLowerCase()
-          .includes(searchQuery.value.toLowerCase())),
-  );
+  fetchPatients();
 });
 
 const visiblePages = computed(() => {
@@ -259,13 +260,10 @@ const visiblePages = computed(() => {
   const total = totalPages.value;
   const current = currentPage.value;
   if (total <= 7) {
-    // Show all if few pages
     for (let i = 1; i <= total; i++) pages.push(i);
   } else {
-    pages.push(1); // Always show first page
-
+    pages.push(1);
     if (current > 4) pages.push("...");
-
     const startShowing = Math.max(2, current - 1);
     const endShowing = Math.min(total - 1, current + 1);
     for (let i = startShowing; i <= endShowing; i++) {
