@@ -43,11 +43,13 @@
             <v-select
               id="patient"
               v-model="appointment.patient_id"
-              :options="patients"
+              :options="patientsOptions"
               label="name"
               :reduce="(patient) => patient.id"
               :searchable="true"
+              :loading="patientSearchLoading"
               class="block w-full mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+              @search="onPatientSearch"
               @change="fetchPatientSnippet"
             ></v-select>
             <div
@@ -306,7 +308,6 @@ import DatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 import { formatDate, formatCurrency } from "@/utils/formatDate";
 import PaymentForm from "./PaymentForm.vue";
-import { usePatientStore } from "@/stores/patients";
 import { useSpecialtyStore } from "@/stores/specialties";
 
 import vSelect from "vue-select";
@@ -345,10 +346,11 @@ const appointment = ref({
   total_paid: 0,
 });
 
-const patientStore = usePatientStore();
 const specialtyStore = useSpecialtyStore();
 
-const patients = computed(() => patientStore.patients);
+const patientsOptions = ref([]);
+const patientSearchLoading = ref(false);
+
 const specialties = computed(() => specialtyStore.specialties);
 const patientSnippet = ref(null);
 const activeTab = ref("details");
@@ -442,16 +444,44 @@ const handlePaymentSave = () => {
   fetchAppointment(); // Refetch appointment to update total_paid
 };
 
+const onPatientSearch = async (search, loading) => {
+  if (search.length) {
+    loading(true);
+    try {
+      const response = await api.get("/patients/search", {
+        params: { query: search, limit: 10 },
+      });
+      patientsOptions.value = response.data.items;
+    } catch (error) {
+      console.error("Error searching patients:", error);
+    } finally {
+      loading(false);
+    }
+  } else {
+    patientsOptions.value = [];
+  }
+};
+
 watch(
   () => appointment.value.patient_id,
-  (newPatientId) => {
+  async (newPatientId) => {
     if (newPatientId) {
-      fetchPatientSnippet();
-      const selectedPatient = patientStore.patients.find(
+      await fetchPatientSnippet();
+      const selectedPatient = patientsOptions.value.find(
         (p) => p.id === newPatientId,
       );
-      if (selectedPatient && selectedPatient.default_specialty_id) {
-        appointment.value.specialty_id = selectedPatient.default_specialty_id;
+      if (!selectedPatient) {
+        // If the selected patient is not in the current options, fetch it and add it
+        try {
+          const response = await api.get(`/patients/${newPatientId}`);
+          patientsOptions.value.push(response.data);
+        } catch (error) {
+          console.error("Error fetching selected patient:", error);
+        }
+      }
+      if (patientSnippet.value && patientSnippet.value.default_specialty_id) {
+        appointment.value.specialty_id =
+          patientSnippet.value.default_specialty_id;
       }
     }
   },

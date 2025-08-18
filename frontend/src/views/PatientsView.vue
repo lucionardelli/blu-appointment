@@ -70,8 +70,9 @@
               <td class="hidden px-6 py-4 whitespace-nowrap md:table-cell">
                 <div class="text-sm text-gray-500">
                   {{
-                    specialties.find((s) => s.id === patient.default_specialty_id)
-                      ?.name || t("not_specified")
+                    specialties.find(
+                      (s) => s.id === patient.default_specialty_id,
+                    )?.name || t("not_specified")
                   }}
                 </div>
               </td>
@@ -98,64 +99,87 @@
           </tbody>
         </table>
       </div>
-      <div class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
+      <div
+        class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6"
+      >
         <div class="flex flex-1 justify-between sm:hidden">
           <button
-            @click="changePage(currentPage - 1)"
             :disabled="currentPage === 1"
             class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            @click="changePage(currentPage - 1)"
           >
             {{ t("previous") }}
           </button>
           <button
-            @click="changePage(currentPage + 1)"
             :disabled="currentPage === totalPages"
             class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            @click="changePage(currentPage + 1)"
           >
             {{ t("next") }}
           </button>
         </div>
-        <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+        <div
+          class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between"
+        >
           <div>
             <p class="text-sm text-gray-700">
               {{ t("showing") }}
-              <span class="font-medium">{{ (currentPage - 1) * itemsPerPage + 1 }}</span>
+              <span class="font-medium">{{
+                (currentPage - 1) * itemsPerPage + 1
+              }}</span>
               {{ t("to") }}
-              <span class="font-medium">{{ Math.min(currentPage * itemsPerPage, patientStore.totalPatientsCount) }}</span>
+              <span class="font-medium">{{
+                Math.min(
+                  currentPage * itemsPerPage,
+                  patientStore.totalPatientsCount,
+                )
+              }}</span>
               {{ t("of") }}
-              <span class="font-medium">{{ patientStore.totalPatientsCount }}</span>
+              <span class="font-medium">{{
+                patientStore.totalPatientsCount
+              }}</span>
               {{ t("results") }}
             </p>
           </div>
           <div>
-            <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+            <nav
+              class="isolate inline-flex -space-x-px rounded-md shadow-sm"
+              aria-label="Pagination"
+            >
               <button
-                @click="changePage(currentPage - 1)"
                 :disabled="currentPage === 1"
                 class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                @click="changePage(currentPage - 1)"
               >
                 <span class="sr-only">{{ t("previous") }}</span>
-                <i-heroicons-chevron-left-20-solid class="h-5 w-5" aria-hidden="true" />
+                <i-heroicons-chevron-left-20-solid
+                  class="h-5 w-5"
+                  aria-hidden="true"
+                />
               </button>
               <button
-                v-for="page in totalPages"
+                v-for="page in visiblePages"
                 :key="page"
-                @click="changePage(page)"
+                :disabled="page === '...'"
                 :class="[
                   page === currentPage
                     ? 'relative z-10 inline-flex items-center bg-primary px-4 py-2 text-sm font-semibold text-white focus:z-20 focus:outline-offset-0'
                     : 'relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0',
                 ]"
+                @click="typeof page === 'number' && changePage(page)"
               >
                 {{ page }}
               </button>
               <button
-                @click="changePage(currentPage + 1)"
                 :disabled="currentPage === totalPages"
                 class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                @click="changePage(currentPage + 1)"
               >
                 <span class="sr-only">{{ t("next") }}</span>
-                <i-heroicons-chevron-right-20-solid class="h-5 w-5" aria-hidden="true" />
+                <i-heroicons-chevron-right-20-solid
+                  class="h-5 w-5"
+                  aria-hidden="true"
+                />
               </button>
             </nav>
           </div>
@@ -228,5 +252,28 @@ const filteredPatients = computed(() => {
           .toLowerCase()
           .includes(searchQuery.value.toLowerCase())),
   );
+});
+
+const visiblePages = computed(() => {
+  const pages = [];
+  const total = totalPages.value;
+  const current = currentPage.value;
+  if (total <= 7) {
+    // Show all if few pages
+    for (let i = 1; i <= total; i++) pages.push(i);
+  } else {
+    pages.push(1); // Always show first page
+
+    if (current > 4) pages.push("...");
+
+    const startShowing = Math.max(2, current - 1);
+    const endShowing = Math.min(total - 1, current + 1);
+    for (let i = startShowing; i <= endShowing; i++) {
+      pages.push(i);
+    }
+    if (current < total - 3) pages.push("...");
+    pages.push(total);
+  }
+  return pages;
 });
 </script>

@@ -1,5 +1,5 @@
 {
-  "appointments": "Sessiones",
+  "appointments": "Sesiones",
   "past_appointments": "Sesiones",
   "upcoming_appointments": "Próximas sesiones",
   "new_appointment": "Nueva sesión",
@@ -77,7 +77,7 @@
   "dashboard_error": "No se pudieron cargar las métricas del tablero. Por favor, inténtelo de nuevo más tarde",
   "appointments_today": "Sesiones para hoy",
   "appointments_this_week": "Sesiones esta semana",
-  "appointment_qty": "# Sessiones",
+  "appointment_qty": "# Sesiones",
   "total_appointments_qty": "# Sesiones totales",
   "appointments_per_specialty": "Sesiones por especialidad",
   "financial_overview": "Resumen financiero",
@@ -101,5 +101,19 @@
   "no_emergency_contacts": "No hay contactos de emergencia",
   "add_emergency_contact": "Agregar Contacto de Emergencia",
   "patient_relationship": "Relación",
-  "actions": "Acciones"
+  "actions": "Acciones",
+  "loading_patients": "Cargando pacientes...",
+  "error_loading_patients": "Error al cargar pacientes",
+  "loading_patient_profile": "Cargando perfil del paciente...",
+  "error_loading_patient_profile": "Error al cargar el perfil del paciente",
+  "loading_specialties": "Cargando especialidades...",
+  "error_loading_specialties": "Error al cargar especialidades",
+  "previous": "Anterior",
+  "next": "Siguiente",
+  "showing": "Mostrando",
+  "to": "a",
+  "of": "de",
+  "results": "resultados",
+  "loading_appointments": "Cargando turnos...",
+  "error_loading_appointments": "Error al cargar turnos"
 }

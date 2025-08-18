@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="p-4 sm:p-6 lg:p-8">
     <div class="flex items-center justify-between mb-6">
       <h1 class="text-2xl font-semibold text-gray-900">
         {{ t("appointments") }}
@@ -41,23 +41,39 @@ const { t, locale } = useI18n();
 const settingsStore = useSettingsStore();
 const { workingHoursRaw, businessHours } = storeToRefs(settingsStore);
 
-const appointments = ref([]);
 const showModal = ref(false);
 const selectedDate = ref("");
 const selectedEndDate = ref("");
 const selectedAppointmentId = ref(null);
 
-const fetchAppointments = async () => {
+const fetchAppointments = async (info, successCallback, failureCallback) => {
   try {
-    const response = await api.get("/appointments");
-    appointments.value = response.data;
+    const response = await api.get("/appointments/", {
+      params: {
+        start_time: info.startStr,
+        end_time: info.endStr,
+      },
+    });
+    const fetchedAppointments = response.data;
+    const events = fetchedAppointments.map((appointment) => ({
+      title: appointment.patient.nickname || appointment.patient.name,
+      start: appointment.start_time,
+      end: appointment.end_time,
+      extendedProps: {
+        appointment,
+        specialty: appointment.specialty.name,
+      },
+      backgroundColor: getEventColor(appointment),
+      borderColor: getEventColor(appointment),
+    }));
+    successCallback(events);
   } catch (error) {
     console.error("Error fetching appointments:", error);
+    failureCallback(error);
   }
 };
 
 onMounted(async () => {
-  await fetchAppointments();
   if (!workingHoursRaw.value.length) {
     await settingsStore.fetchWorkingHours();
   }
@@ -77,18 +93,9 @@ const calendarOptions = computed(() => ({
     center: "title",
     right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek",
   },
-  events: appointments.value.map((appointment) => ({
-    title: appointment.patient.nickname || appointment.patient.name,
-    start: appointment.start_time,
-    end: appointment.end_time,
-    extendedProps: {
-      appointment,
-      specialty: appointment.specialty.name,
-    },
-    // Add visual cues
-    backgroundColor: getEventColor(appointment),
-    borderColor: getEventColor(appointment),
-  })),
+  events: (info, successCallback, failureCallback) => {
+    fetchAppointments(info, successCallback, failureCallback);
+  },
   selectable: true,
   select: (arg) => {
     selectedAppointmentId.value = null; // New appointment
@@ -104,19 +111,33 @@ const calendarOptions = computed(() => ({
     selectedDate.value = arg.dateStr;
     showModal.value = true;
   },
+  editable: true,
+  eventDrop: (info) => {
+    const appointment = info.event.extendedProps.appointment;
+    const newStartTime = info.event.startStr;
+    const newEndTime = info.event.endStr;
+
+    api
+      .put(`/appointments/${appointment.id}`, {
+        start_time: newStartTime,
+        end_time: newEndTime,
+      })
+      .catch((error) => {
+        console.error("Error updating appointment:", error);
+        info.revert();
+      });
+  },
   eventClick: (info) => {
     selectedAppointmentId.value = info.event.extendedProps.appointment.id;
     selectedDate.value = info.event.extendedProps.appointment.start_time;
     selectedEndDate.value = info.event.extendedProps.appointment.end_time;
     showModal.value = true;
   },
-  // Correctly placed eventContent function
   eventContent: (arg) => {
     const appointment = arg.event.extendedProps.appointment;
     const patientName =
       appointment.patient.nickname || appointment.patient.name;
 
-    // Check duration
     const start = new Date(arg.event.start);
     const end = new Date(arg.event.end);
     const durationMinutes = (end - start) / (1000 * 60);
@@ -130,15 +151,6 @@ const calendarOptions = computed(() => ({
 
     let icons = "";
     let tooltipWarnings = [];
-
-    if (isDoubleBooked(appointment)) {
-      if (isShort) {
-        tooltipWarnings.push("Double-booked");
-      } else {
-        icons +=
-          '<span class="text-yellow-500" title="Double-booked">⚠️</span>';
-      }
-    }
     if (isOutsideWorkingHours(appointment)) {
       if (isShort) {
         tooltipWarnings.push("Outside working hours");
@@ -179,9 +191,8 @@ const calendarOptions = computed(() => ({
   slotLabelInterval: { hours: 1 }, // Only show labels every hour
 }));
 
-const handleSave = () => {
+const handleSave = async () => {
   showModal.value = false;
-  fetchAppointments();
 };
 
 // Move these to the BE as an attribute of the specialty
@@ -207,21 +218,6 @@ function applyOpacity(hex, opacity) {
   const b = bigint & 255;
   return `rgba(${r}, ${g}, ${b}, ${opacity})`;
 }
-
-const isDoubleBooked = (appointment) => {
-  const start = new Date(appointment.start_time);
-  const end = new Date(appointment.end_time);
-  return appointments.value.some((other) => {
-    if (other.id === appointment.id) return false;
-    const otherStart = new Date(other.start_time);
-    const otherEnd = new Date(other.end_time);
-    return (
-      (start >= otherStart && start < otherEnd) ||
-      (end > otherStart && end <= otherEnd) ||
-      (start <= otherStart && end >= otherEnd)
-    );
-  });
-};
 
 const isOutsideWorkingHours = (appointment) => {
   const start = new Date(appointment.start_time);

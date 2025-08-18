@@ -1,258 +1,273 @@
 <template>
-  <div>
-    <div v-if="patient || isNew">
-      <div class="bg-white shadow overflow-hidden sm:rounded-lg">
-        <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
-          <div class="flex items-center">
-            <button
-              v-if="isEditing"
-              class="mr-2 p-1 rounded-full hover:bg-gray-200"
-              @click="cancelEdit"
-            >
-              <i-heroicons-arrow-left-20-solid class="h-6 w-6 text-gray-500" />
-            </button>
+  <div class="p-4 sm:p-6 lg:p-8">
+    <div v-if="loading" class="text-center">
+      <p>{{ t("loading_patient_profile") }}</p>
+    </div>
+    <div v-else-if="error" class="text-center text-red-500">
+      <p>{{ t("error_loading_patient_profile") }}</p>
+    </div>
+    <div v-else>
+      <div v-if="patient || isNew">
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+          <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+            <div class="flex items-center">
+              <button
+                v-if="isEditing"
+                class="mr-2 p-1 rounded-full hover:bg-gray-200"
+                @click="cancelEdit"
+              >
+                <i-heroicons-arrow-left-20-solid
+                  class="h-6 w-6 text-gray-500"
+                />
+              </button>
+              <button
+                v-if="!isEditing && !isNew"
+                class="mr-2 p-1 rounded-full hover:bg-gray-200"
+                @click="router.push('/patients')"
+              >
+                <i-heroicons-arrow-left-20-solid
+                  class="h-6 w-6 text-gray-500"
+                />
+              </button>
+              <h3 class="text-lg leading-6 font-medium text-gray-900">
+                <span v-if="isNew">{{ t("new_patient") }}</span>
+                <span v-else-if="isEditing">{{ t("edit_patient") }}</span>
+                <span v-else>{{ t("patient_profile") }}</span>
+              </h3>
+            </div>
             <button
               v-if="!isEditing && !isNew"
-              class="mr-2 p-1 rounded-full hover:bg-gray-200"
-              @click="router.push('/patients')"
+              class="px-4 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+              @click="startEdit"
             >
-              <i-heroicons-arrow-left-20-solid class="h-6 w-6 text-gray-500" />
+              {{ t("edit") }}
             </button>
-            <h3 class="text-lg leading-6 font-medium text-gray-900">
-              <span v-if="isNew">{{ t("new_patient") }}</span>
-              <span v-else-if="isEditing">{{ t("edit_patient") }}</span>
-              <span v-else>{{ t("patient_profile") }}</span>
-            </h3>
+            <button
+              v-else
+              class="px-4 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+              @click="savePatient"
+            >
+              {{ t("save") }}
+            </button>
           </div>
-          <button
-            v-if="!isEditing && !isNew"
-            class="px-4 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-            @click="startEdit"
-          >
-            {{ t("edit") }}
-          </button>
-          <button
-            v-else
-            class="px-4 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-            @click="savePatient"
-          >
-            {{ t("save") }}
-          </button>
-        </div>
-        <div class="border-t border-gray-200">
-          <form @submit.prevent="savePatient">
-            <dl class="sm:divide-y sm:divide-gray-200">
-              <div
-                class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
-              >
-                <dt class="text-sm font-medium text-gray-500">
-                  {{ t("full_name") }}
-                </dt>
-                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  <div v-if="isEditing" class="grid grid-cols-2 gap-4">
-                    <div>
-                      <input
-                        id="name"
-                        v-model="patient.name"
-                        type="text"
-                        required
-                        class="block w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                      />
-                      <p v-if="errors.name" class="mt-1 text-sm text-red-600">
-                        {{ errors.name }}
-                      </p>
+          <div class="border-t border-gray-200">
+            <form @submit.prevent="savePatient">
+              <dl class="sm:divide-y sm:divide-gray-200">
+                <div
+                  class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
+                >
+                  <dt class="text-sm font-medium text-gray-500">
+                    {{ t("full_name") }}
+                  </dt>
+                  <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    <div v-if="isEditing" class="grid grid-cols-2 gap-4">
+                      <div>
+                        <input
+                          id="name"
+                          v-model="patient.name"
+                          type="text"
+                          required
+                          class="block w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                        />
+                        <p v-if="errors.name" class="mt-1 text-sm text-red-600">
+                          {{ errors.name }}
+                        </p>
+                      </div>
+                      <div>
+                        <label for="nickname" class="sr-only">{{
+                          t("nickname")
+                        }}</label>
+                        <input
+                          id="nickname"
+                          v-model="patient.nickname"
+                          type="text"
+                          :placeholder="t('nickname')"
+                          class="block w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <label for="nickname" class="sr-only">{{
-                        t("nickname")
-                      }}</label>
-                      <input
-                        id="nickname"
-                        v-model="patient.nickname"
-                        type="text"
-                        :placeholder="t('nickname')"
-                        class="block w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                      />
-                    </div>
-                  </div>
-                  <span v-else
-                    >{{ patient.name }}
-                    <span v-if="patient.nickname"
-                      >({{ patient.nickname }})</span
-                    ></span
-                  >
-                </dd>
-              </div>
-              <div
-                class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
-              >
-                <dt class="text-sm font-medium text-gray-500">
-                  {{ t("date_of_birth") }}
-                </dt>
-                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  <input
-                    v-if="isEditing"
-                    id="dob"
-                    v-model="patient.dob"
-                    type="date"
-                    required
-                    class="block w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                  />
-                  <span v-else>{{ formatDate(patient.dob) }}</span>
-                  <p v-if="errors.dob" class="mt-1 text-sm text-red-600">
-                    {{ errors.dob }}
-                  </p>
-                </dd>
-              </div>
-              <div
-                class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
-              >
-                <dt class="text-sm font-medium text-gray-500">
-                  {{ t("email_address") }}
-                </dt>
-                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  <input
-                    v-if="isEditing"
-                    id="email"
-                    v-model="patient.email"
-                    type="email"
-                    class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                  />
-                  <span v-else>{{ patient.email }}</span>
-                  <p v-if="errors.email" class="mt-1 text-sm text-red-600">
-                    {{ errors.email }}
-                  </p>
-                </dd>
-              </div>
-              <div
-                class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
-              >
-                <dt class="text-sm font-medium text-gray-500">
-                  {{ t("phone_number") }}
-                </dt>
-                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  <input
-                    v-if="isEditing"
-                    id="phone"
-                    v-model="patient.phone"
-                    type="text"
-                    class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  />
-                  <span v-else>{{ patient.phone }}</span>
-                </dd>
-              </div>
-              <div
-                class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
-              >
-                <dt class="text-sm font-medium text-gray-500">
-                  {{ t("cell_phone") }}
-                </dt>
-                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  <input
-                    v-if="isEditing"
-                    id="cellphone"
-                    v-model="patient.cellphone"
-                    type="text"
-                    class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  />
-                  <span v-else>{{ patient.cellphone }}</span>
-                </dd>
-              </div>
-              <div
-                class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
-              >
-                <dt class="text-sm font-medium text-gray-500">
-                  {{ t("address") }}
-                </dt>
-                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  <input
-                    v-if="isEditing"
-                    id="address"
-                    v-model="patient.address"
-                    type="text"
-                    class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                  />
-                  <span v-else>{{ patient.address }}</span>
-                </dd>
-              </div>
-              <div
-                class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
-              >
-                <dt class="text-sm font-medium text-gray-500">
-                  {{ t("default_specialty") }}
-                </dt>
-                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  <select
-                    v-if="isEditing"
-                    id="default_specialty"
-                    v-model="patient.default_specialty_id"
-                    class="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                  >
-                    <option :value="null">{{ t("not_specified") }}</option>
-                    <option
-                      v-for="specialty in specialties"
-                      :key="specialty.id"
-                      :value="specialty.id"
+                    <span v-else
+                      >{{ patient.name }}
+                      <span v-if="patient.nickname"
+                        >({{ patient.nickname }})</span
+                      ></span
                     >
-                      {{ specialty.name }}
-                    </option>
-                  </select>
-                  <span v-else>{{
-                    specialtyStore.specialties.find(
-                      (s) => s.id === patient.default_specialty_id,
-                    )?.name || t("not_specified")
-                  }}</span>
-                </dd>
-              </div>
-              <div
-                class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
-              >
-                <dt class="text-sm font-medium text-gray-500">
-                  {{ t("how_they_found_us") }}
-                </dt>
-                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  <input
-                    v-if="isEditing"
-                    id="how_they_found_us"
-                    v-model="patient.how_they_found_us"
-                    type="text"
-                    class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                  />
-                  <span v-else>{{ patient.how_they_found_us }}</span>
-                </dd>
-              </div>
-              <div
-                class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
-              >
-                <dt class="text-sm font-medium text-gray-500">
-                  {{ t("referred_by") }}
-                </dt>
-                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  <v-select
-                    v-if="isEditing"
-                    id="referred_by_patient_id"
-                    v-model="patient.referred_by_patient_id"
-                    :options="filteredPatients"
-                    label="name"
-                    :reduce="(patient) => patient.id"
-                    :searchable="true"
-                    class="block w-full mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                  >
-                    <template #option="option">
-                      <div>{{ option.name }}</div>
-                    </template>
-                  </v-select>
-                  <span v-else>{{
-                    patientStore.patients.find(
-                      (p) => p.id === patient.referred_by_patient_id,
-                    )?.name || t("not_specified")
-                  }}</span>
-                </dd>
-              </div>
-            </dl>
-          </form>
+                  </dd>
+                </div>
+                <div
+                  class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
+                >
+                  <dt class="text-sm font-medium text-gray-500">
+                    {{ t("date_of_birth") }}
+                  </dt>
+                  <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    <input
+                      v-if="isEditing"
+                      id="dob"
+                      v-model="patient.dob"
+                      type="date"
+                      required
+                      class="block w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                    />
+                    <span v-else>{{ formatDate(patient.dob) }}</span>
+                    <p v-if="errors.dob" class="mt-1 text-sm text-red-600">
+                      {{ errors.dob }}
+                    </p>
+                  </dd>
+                </div>
+                <div
+                  class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
+                >
+                  <dt class="text-sm font-medium text-gray-500">
+                    {{ t("email_address") }}
+                  </dt>
+                  <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    <input
+                      v-if="isEditing"
+                      id="email"
+                      v-model="patient.email"
+                      type="email"
+                      class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                    />
+                    <span v-else>{{ patient.email }}</span>
+                    <p v-if="errors.email" class="mt-1 text-sm text-red-600">
+                      {{ errors.email }}
+                    </p>
+                  </dd>
+                </div>
+                <div
+                  class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
+                >
+                  <dt class="text-sm font-medium text-gray-500">
+                    {{ t("phone_number") }}
+                  </dt>
+                  <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    <input
+                      v-if="isEditing"
+                      id="phone"
+                      v-model="patient.phone"
+                      type="text"
+                      class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    />
+                    <span v-else>{{ patient.phone }}</span>
+                  </dd>
+                </div>
+                <div
+                  class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
+                >
+                  <dt class="text-sm font-medium text-gray-500">
+                    {{ t("cell_phone") }}
+                  </dt>
+                  <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    <input
+                      v-if="isEditing"
+                      id="cellphone"
+                      v-model="patient.cellphone"
+                      type="text"
+                      class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    />
+                    <span v-else>{{ patient.cellphone }}</span>
+                  </dd>
+                </div>
+                <div
+                  class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
+                >
+                  <dt class="text-sm font-medium text-gray-500">
+                    {{ t("address") }}
+                  </dt>
+                  <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    <input
+                      v-if="isEditing"
+                      id="address"
+                      v-model="patient.address"
+                      type="text"
+                      class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                    />
+                    <span v-else>{{ patient.address }}</span>
+                  </dd>
+                </div>
+                <div
+                  class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
+                >
+                  <dt class="text-sm font-medium text-gray-500">
+                    {{ t("default_specialty") }}
+                  </dt>
+                  <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    <select
+                      v-if="isEditing"
+                      id="default_specialty"
+                      v-model="patient.default_specialty_id"
+                      class="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                    >
+                      <option :value="null">{{ t("not_specified") }}</option>
+                      <option
+                        v-for="specialty in specialties"
+                        :key="specialty.id"
+                        :value="specialty.id"
+                      >
+                        {{ specialty.name }}
+                      </option>
+                    </select>
+                    <span v-else>{{
+                      specialtyStore.specialties.find(
+                        (s) => s.id === patient.default_specialty_id,
+                      )?.name || t("not_specified")
+                    }}</span>
+                  </dd>
+                </div>
+                <div
+                  class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
+                >
+                  <dt class="text-sm font-medium text-gray-500">
+                    {{ t("how_they_found_us") }}
+                  </dt>
+                  <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    <input
+                      v-if="isEditing"
+                      id="how_they_found_us"
+                      v-model="patient.how_they_found_us"
+                      type="text"
+                      class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                    />
+                    <span v-else>{{ patient.how_they_found_us }}</span>
+                  </dd>
+                </div>
+                <div
+                  class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
+                >
+                  <dt class="text-sm font-medium text-gray-500">
+                    {{ t("referred_by") }}
+                  </dt>
+                  <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    <v-select
+                      v-if="isEditing"
+                      id="referred_by_patient_id"
+                      v-model="patient.referred_by_patient_id"
+                      :options="referredByOptions"
+                      label="name"
+                      :reduce="(patient) => patient.id"
+                      :searchable="true"
+                      :loading="referredBySearchLoading"
+                      class="block w-full mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                      @search="onReferredBySearch"
+                    >
+                      <template #option="option">
+                        <div>{{ option.name }}</div>
+                      </template>
+                    </v-select>
+                    <span v-else>{{
+                      patientStore.patients.find(
+                        (p) => p.id === patient.referred_by_patient_id,
+                      )?.name || t("not_specified")
+                    }}</span>
+                  </dd>
+                </div>
+              </dl>
+            </form>
+          </div>
         </div>
       </div>
+      <!-- v-if="patient || isNew"> -->
 
       <div
         v-if="patient.financialSummary && !isNew"
@@ -532,6 +547,28 @@ const appointments = ref([]);
 const emergencyContacts = ref([]); // New ref for emergency contacts
 const deletedEmergencyContactIds = ref([]);
 const errors = ref({});
+const referredByOptions = ref([]);
+const referredBySearchLoading = ref(false);
+
+const onReferredBySearch = async (search, loading) => {
+  if (search.length) {
+    loading(true);
+    try {
+      const response = await api.get("/patients/search", {
+        params: { query: search, limit: 10 },
+      });
+      referredByOptions.value = response.data.items;
+    } catch (error) {
+      console.error("Error searching referred by patients:", error);
+    } finally {
+      loading(false);
+    }
+  } else {
+    referredByOptions.value = [];
+  }
+};
+const loading = ref(true);
+const error = ref(false);
 
 const patientStore = usePatientStore();
 const specialtyStore = useSpecialtyStore();
@@ -543,13 +580,6 @@ const isEditing = ref(false);
 const activeTab = ref("medical_history"); // Default to medical history for new patient, or appointments for existing
 const showCancelledAppointments = ref(false);
 const md = new MarkdownIt();
-
-const filteredPatients = computed(() => {
-  if (patient.value) {
-    return patientStore.patients.filter((p) => p.id !== patient.value.id);
-  }
-  return patientStore.patients;
-});
 
 const renderedMedicalHistory = computed(() => {
   if (patient.value && patient.value.medical_history) {
@@ -612,8 +642,9 @@ const fetchPatient = async () => {
     }
     // Populate emergency contacts
     emergencyContacts.value = patient.value.emergency_contacts || [];
-  } catch (error) {
-    console.error("Error fetching patient:", error);
+  } catch (err) {
+    error.value = true;
+    console.error("Error fetching patient:", err);
   }
 };
 
@@ -622,8 +653,9 @@ const fetchAppointments = async () => {
   try {
     const response = await api.get(`/patients/${route.params.id}/appointments`);
     appointments.value = response.data;
-  } catch (error) {
-    console.error("Error fetching appointments:", error);
+  } catch (err) {
+    error.value = true;
+    console.error("Error fetching appointments:", err);
   }
 };
 
@@ -747,7 +779,44 @@ const cancelEdit = () => {
 };
 
 onMounted(async () => {
-  await fetchPatient();
-  await fetchAppointments();
+  loading.value = true;
+  try {
+    await fetchPatient();
+    await fetchAppointments();
+    if (!specialtyStore.specialties.length) {
+      await specialtyStore.fetchSpecialties();
+    }
+
+    // Initial load for referred by v-select options
+    const response = await api.get("/patients/search", {
+      params: { limit: 10 },
+    });
+    referredByOptions.value = response.data.items;
+
+    // If a referred_by_patient_id is already set, ensure it's in the options
+    if (patient.value && patient.value.referred_by_patient_id) {
+      const selectedReferredBy = referredByOptions.value.find(
+        (p) => p.id === patient.value.referred_by_patient_id,
+      );
+      if (!selectedReferredBy) {
+        try {
+          const responseSelected = await api.get(
+            `/patients/${patient.value.referred_by_patient_id}`,
+          );
+          referredByOptions.value.push(responseSelected.data);
+        } catch (errorSelected) {
+          console.error(
+            "Error fetching selected referred by patient:",
+            errorSelected,
+          );
+        }
+      }
+    }
+  } catch (err) {
+    error.value = true;
+    console.error("Error loading patient profile:", err);
+  } finally {
+    loading.value = false;
+  }
 });
 </script>
