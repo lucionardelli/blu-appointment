@@ -63,13 +63,25 @@ def get_patient(db: Session, patient_id: int) -> models.Patient | None:
     return db_patient
 
 
-def get_patients(db: Session, skip: int = 0, limit: int = 100) -> tuple[int, list[models.Patient]]:
-    total_patients = db.query(models.Patient).count()
-    patients = db.query(models.Patient).offset(skip).limit(limit).all()
+def get_patients(db: Session, query: str = "", skip: int = 0, limit: int = 100) -> tuple[int, list[models.Patient]]:
+    if query:
+        query_lower = f"%{query.lower()}%"
+        patients_query = db.query(models.Patient).filter(
+            (func.lower(models.Patient.name).like(query_lower)) | (func.lower(models.Patient.nickname).like(query_lower))
+        )
+    else:
+        patients_query = db.query(models.Patient)
+
+    total_count = patients_query.count()
+
+    if limit:
+        patients_query = patients_query.order_by(models.Patient.name).offset(skip).limit(limit)
+
+    patients = patients_query.all()
     for p in patients:
         if p.encrypted_medical_history:
             p.medical_history = decrypt(p.encrypted_medical_history)
-    return total_patients, patients
+    return total_count, patients
 
 
 def get_patient_appointments(db: Session, patient_id: int, skip: int = 0, limit: int = 100) -> list[Appointment]:
@@ -200,17 +212,3 @@ def delete_emergency_contact(db: Session, contact_id: int) -> models.EmergencyCo
         db.delete(db_contact)
         db.commit()
     return db_contact
-
-
-def search_patients(db: Session, query: str = "", skip: int = 0, limit: int = 100) -> tuple[int, list[models.Patient]]:
-    query_lower = f"%{query.lower()}%"
-    patients_query = db.query(models.Patient).filter(
-        (func.lower(models.Patient.name).like(query_lower)) | (func.lower(models.Patient.nickname).like(query_lower))
-    )
-    total_count = patients_query.count()
-    patients = patients_query.offset(skip).limit(limit).all()
-
-    for p in patients:
-        if p.encrypted_medical_history:
-            p.medical_history = decrypt(p.encrypted_medical_history)
-    return total_count, patients

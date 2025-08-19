@@ -448,7 +448,7 @@ const onPatientSearch = async (search, loading) => {
   if (search.length) {
     loading(true);
     try {
-      const response = await api.get("/patients/search", {
+      const response = await api.get("/patients", {
         params: { query: search, limit: 10 },
       });
       patientsOptions.value = response.data.items;

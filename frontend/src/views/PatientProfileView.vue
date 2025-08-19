@@ -783,7 +783,7 @@ onMounted(async () => {
     }
 
     // Initial load for referred by v-select options
-    const response = await api.get("/patients/search", {
+    const response = await api.get("/patients", {
       params: { limit: 10 },
     });
     referredByOptions.value = response.data.items;

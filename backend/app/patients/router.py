@@ -29,10 +29,11 @@ def create_patient(
 def read_patients(
     db: Annotated[Session, Depends(get_db)],
     _current_user: Annotated[User, Depends(get_current_user)],
+    query: str = "",
     skip: int = 0,
     limit: int = 100,
 ) -> schemas.PaginatedPatientsResponse:
-    total_count, patients = crud.get_patients(db, skip=skip, limit=limit)
+    total_count, patients = crud.get_patients(db, query=query, skip=skip, limit=limit)
     return schemas.PaginatedPatientsResponse(total_count=total_count, items=patients)
 
 
@@ -48,18 +49,6 @@ def read_patient(
     db_patient.appointment_summary = crud.get_appointment_summary(db, patient_id=patient_id)
 
     return schemas.PatientDetails.model_validate(db_patient)
-
-
-@router.get("/search", response_model=schemas.PaginatedPatientsResponse)
-def search_patients(
-    db: Annotated[Session, Depends(get_db)],
-    _current_user: Annotated[User, Depends(get_current_user)],
-    query: str = "",
-    skip: int = 0,
-    limit: int = 100,
-) -> schemas.PaginatedPatientsResponse:
-    total_count, patients = crud.search_patients(db, query=query, skip=skip, limit=limit)
-    return schemas.PaginatedPatientsResponse(total_count=total_count, items=patients)
 
 
 @router.get("/{patient_id}/appointments", response_model=list[appt_schemas.Appointment])

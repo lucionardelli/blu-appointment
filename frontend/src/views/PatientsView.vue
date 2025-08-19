@@ -129,15 +129,10 @@
               }}</span>
               {{ t("to") }}
               <span class="font-medium">{{
-                Math.min(
-                  currentPage * itemsPerPage,
-                  totalPatientsCount,
-                )
+                Math.min(currentPage * itemsPerPage, totalPatientsCount)
               }}</span>
               {{ t("of") }}
-              <span class="font-medium">{{
-                totalPatientsCount
-              }}</span>
+              <span class="font-medium">{{ totalPatientsCount }}</span>
               {{ t("results") }}
             </p>
           </div>
@@ -217,7 +212,7 @@ const totalPages = computed(() => {
 const fetchPatients = async () => {
   try {
     loading.value = true;
-    const response = await api.get("/patients/search", {
+    const response = await api.get("/patients/", {
       params: {
         query: searchQuery.value,
         skip: (currentPage.value - 1) * itemsPerPage.value,
@@ -225,7 +220,7 @@ const fetchPatients = async () => {
       },
     });
     patients.value = response.data.items;
-    totalPatientsCount.value = response.data.total;
+    totalPatientsCount.value = response.data.total_count;
     if (!specialtyStore.specialties.length) {
       await specialtyStore.fetchSpecialties();
     }
