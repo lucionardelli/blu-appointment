@@ -104,6 +104,22 @@ def get_appointment(db: Session, appointment_id: int) -> models.Appointment | No
     return db.query(models.Appointment).filter(models.Appointment.id == appointment_id).first()
 
 
+def count_past_appointments_for_specialty(
+    db: Session, patient_id: int, specialty_id: int, before_time: datetime
+) -> int:
+    """Counts the number of past appointments for a given patient and specialty."""
+    return (
+        db.query(models.Appointment)
+        .filter(
+            models.Appointment.patient_id == patient_id,
+            models.Appointment.specialty_id == specialty_id,
+            models.Appointment.start_time < before_time,
+            models.Appointment.status != models.AppointmentStatus.CANCELLED,
+        )
+        .count()
+    )
+
+
 def update_appointment(
     db: Session,
     appointment_id: int,

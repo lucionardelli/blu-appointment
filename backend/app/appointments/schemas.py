@@ -66,6 +66,7 @@ class Appointment(AppointmentBase):
     status: AppointmentStatus
     payments: list[Payment] = []
     total_paid: Decimal = Field(0, ge=0)
+    suggested_treatment_duration_minutes: int | None = None
 
     patient: MinPatientInfo
 

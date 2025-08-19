@@ -41,6 +41,7 @@ ignore = [
   "ANN401",  # Dynamically typed expressions (typing.Any) are disallowed
 
   "TRY003",  # Avoid specifying long messages outside the exception class
+  "TRY400",  # Use `logging.exception` instead of `logging.error
 ]
 fixable = ["ALL"]
 

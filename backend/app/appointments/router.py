@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.users.logged import get_current_user
 from app.db.base import get_db
 from app.users.models import User
+from app.specialties.rules import get_treatment_duration
 
 from . import crud, metrics, models, schemas
 
@@ -49,6 +50,19 @@ def get_appointment(
     db_appointment = crud.get_appointment(db, appointment_id=appointment_id)
     if db_appointment is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Appointment not found")
+
+    logic_key = db_appointment.specialty.treatment_duration_logic
+    if logic_key:
+        session_count = crud.count_past_appointments_for_specialty(
+            db,
+            patient_id=db_appointment.patient_id,
+            specialty_id=db_appointment.specialty_id,
+            before_time=db_appointment.start_time,
+        )
+        duration = get_treatment_duration(logic_key, db_appointment.patient, session_count)
+        # This dynamically added attribute will be picked up by the Pydantic model
+        db_appointment.suggested_treatment_duration_minutes = duration
+
     return db_appointment
 
 

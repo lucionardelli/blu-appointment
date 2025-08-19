@@ -115,5 +115,7 @@
   "of": "of",
   "results": "results",
   "loading_appointments": "Loading appointments...",
-  "error_loading_appointments": "Error loading appointments"
+  "error_loading_appointments": "Error loading appointments",
+  "suggested_treatment_duration": "Suggested Treatment Duration",
+  "minutes": "minutes"
 }

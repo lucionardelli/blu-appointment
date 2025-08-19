@@ -115,5 +115,7 @@
   "of": "de",
   "results": "resultados",
   "loading_appointments": "Cargando turnos...",
-  "error_loading_appointments": "Error al cargar turnos"
+  "error_loading_appointments": "Error al cargar turnos",
+  "suggested_treatment_duration": "Duración sugerida del tratamiento",
+  "minutes": "minutos"
 }

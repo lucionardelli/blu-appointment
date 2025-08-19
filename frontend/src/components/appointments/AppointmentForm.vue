@@ -101,6 +101,18 @@
               </p>
             </div>
           </div>
+          <div
+            v-if="appointment.suggested_treatment_duration_minutes"
+            class="mt-2 p-3 bg-blue-100 border-l-4 border-blue-500 rounded-md"
+          >
+            <p class="text-sm text-blue-700">
+              {{ t("suggested_treatment_duration") }}:
+              <span class="font-semibold">
+                {{ appointment.suggested_treatment_duration_minutes }}
+                {{ t("minutes") }}
+              </span>
+            </p>
+          </div>
           <div class="grid grid-cols-2 gap-6">
             <div>
               <label
@@ -344,6 +356,7 @@ const appointment = ref({
   end_time: "",
   cost: 0,
   total_paid: 0,
+  suggested_treatment_duration_minutes: null,
 });
 
 const specialtyStore = useSpecialtyStore();
