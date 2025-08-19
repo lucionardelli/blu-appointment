@@ -1,11 +1,15 @@
+import typing as t
 from collections.abc import Iterator
 from contextlib import contextmanager
-from pathlib import Path
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, declarative_base, sessionmaker
+from sqlalchemy.orm import sessionmaker
 
 from app.core.config import settings
+from app.db.base_class import Base
+
+if t.TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
 engine = create_engine(
     settings.DATABASE_URL,
@@ -14,18 +18,17 @@ engine = create_engine(
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-Base = declarative_base()
 
-
-def get_db() -> Iterator[Session]:
+def get_db() -> Iterator["Session"]:
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
 
+
 @contextmanager
-def get_db_context() -> Iterator[Session]:
+def get_db_context() -> Iterator["Session"]:
     db = SessionLocal()
     try:
         yield db

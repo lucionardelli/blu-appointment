@@ -19,13 +19,11 @@ app_dir = Path(__file__).parent.parent.resolve()
 sys.path.insert(0, str(app_dir))
 
 # Import the base model from your application
-from app.appointments.models import *
 from app.db.base import Base
-from app.patients.models import *
-from app.specialties.models import *
-
-# Import all your models here so that Alembic can see them
 from app.users.models import *
+from app.specialties.models import *
+from app.patients.models import *
+from app.appointments.models import *
 
 # The target metadata for 'autogenerate' support
 target_metadata = Base.metadata
