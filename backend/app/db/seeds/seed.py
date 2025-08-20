@@ -27,6 +27,8 @@ from app.patients.models import Patient as Patient
 from app.specialties.models import Specialty
 from app.specialties.models import SpecialtyPrice as SpecialtyPrice
 from app.users.models import User
+from app.payment_methods.models import PaymentMethod
+
 
 
 def seed_specialties(file_path: Path) -> None:
@@ -83,4 +85,17 @@ def seed_working_hours(file_path: Path) -> None:
             )
             working_hours.end_time = datetime.strptime(row["end_time"], "%H:%M").time() if row["end_time"] else None  # noqa: DTZ007
             working_hours.is_closed = bool(int(row["is_closed"]))
+        session.commit()
+
+
+def seed_payment_methods(file_path: Path) -> None:
+    with Session(engine) as session, file_path.open() as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            exists = session.execute(select(PaymentMethod).where(PaymentMethod.name == row["name"])).first()
+            if not exists:
+                payment_method = PaymentMethod(
+                    name=row["name"],
+                )
+                session.add(payment_method)
         session.commit()

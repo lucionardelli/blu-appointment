@@ -9,6 +9,7 @@ from app.patients.router import router as patients_router
 from app.specialties.router import router as specialties_router
 from app.users.router import router as users_router
 from app.auth.router import router as auth_router
+from app.payment_methods.router import router as payment_methods_router
 
 
 @asynccontextmanager
@@ -44,3 +45,4 @@ app.include_router(users_router, prefix="/api/v1/users", tags=["users"])
 app.include_router(patients_router, prefix="/api/v1/patients", tags=["patients"])
 app.include_router(specialties_router, prefix="/api/v1/specialties", tags=["specialties"])
 app.include_router(appointments_router, prefix="/api/v1/appointments", tags=["appointments"])
+app.include_router(payment_methods_router, prefix="/api/v1/payment_methods", tags=["payment_methods"])

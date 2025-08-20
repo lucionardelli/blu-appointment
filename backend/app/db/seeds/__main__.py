@@ -1,12 +1,18 @@
 import argparse
 from pathlib import Path
 
-from app.db.seeds.seed import seed_specialties, seed_users, seed_working_hours
+from app.db.seeds.seed import (
+    seed_payment_methods,
+    seed_specialties,
+    seed_users,
+    seed_working_hours,
+)
 
 MODEL_IMPORT_FUNCTIONS_PATHS = {
     "specialties": (seed_specialties, "app/db/seeds/specialties.csv"),
     "users": (seed_users, "app/db/seeds/users.csv"),
     "working_hours": (seed_working_hours, "app/db/seeds/working_hours.csv"),
+    "payment_methods": (seed_payment_methods, "app/db/seeds/payment_methods.csv"),
 }
 
 if __name__ == "__main__":
