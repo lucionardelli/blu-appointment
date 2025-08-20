@@ -117,5 +117,7 @@
   "loading_appointments": "Loading appointments...",
   "error_loading_appointments": "Error loading appointments",
   "suggested_treatment_duration": "Suggested Treatment Duration",
-  "minutes": "minutes"
+  "minutes": "minutes",
+  "no_matching_options": "No matching options",
+  "start_typing_to_search": "Start typing to search for a patient"
 }

@@ -51,7 +51,15 @@
               class="block w-full mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
               @search="onPatientSearch"
               @change="fetchPatientSnippet"
-            ></v-select>
+            >
+              <template #no-options="{ searching, loading }">
+                <template v-if="searching">
+                  <span v-if="!loading">{{ t("no_matching_options") }}</span>
+                  <span v-else>{{ t("loading") }}</span>
+                </template>
+                <span v-else>{{ t("start_typing_to_search") }}</span>
+              </template>
+            </v-select>
             <div
               v-if="patientSnippet"
               class="mt-2 p-4 bg-gray-100 rounded-md sm:flex sm:justify-between"
@@ -516,6 +524,12 @@ onMounted(async () => {
     } else {
       appointment.value.end_time = "";
     }
+  }
+  try {
+    const response = await api.get("/patients", { params: { limit: 4 } });
+    patientsOptions.value = response.data.items;
+  } catch (error) {
+    console.error("Error fetching initial patients:", error);
   }
 });
 

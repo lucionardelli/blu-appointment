@@ -117,5 +117,7 @@
   "loading_appointments": "Cargando turnos...",
   "error_loading_appointments": "Error al cargar turnos",
   "suggested_treatment_duration": "Duración sugerida del tratamiento",
-  "minutes": "minutos"
+  "minutes": "minutos",
+  "no_matching_options": "No se encontraron opciones",
+  "start_typing_to_search": "Escriba para buscar un paciente"
 }

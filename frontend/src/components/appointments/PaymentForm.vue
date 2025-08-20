@@ -15,7 +15,7 @@
               required
               class="block w-full pr-12 px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
             />
-            <div class="absolute inset-y-0 right-0 flex items-center pr-2">
+            <div v-if="dueAmount > 0" class="absolute inset-y-0 right-0 flex items-center pr-2">
               <button
                 type="button"
                 class="px-2 py-1 text-xs font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
