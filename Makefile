@@ -50,3 +50,6 @@ init-db::
 
 import-patients::
 	docker compose exec -ti backend bash -c "python -m app.db.import_scripts.import_patients"
+
+import-appointments::
+	docker compose exec -ti backend bash -c "python -m app.db.import_scripts.import_appointments"
