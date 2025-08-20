@@ -39,3 +39,42 @@ def delete_payment_method(db: Session, payment_method_id: int) -> models.Payment
         db.delete(db_payment_method)
         db.commit()
     return db_payment_method
+
+
+def get_payment(db: Session, payment_id: int) -> models.Payment | None:
+    return db.query(models.Payment).filter(models.Payment.id == payment_id).first()
+
+
+def get_payments(db: Session, skip: int = 0, limit: int = 100) -> list[models.Payment]:
+    return db.query(models.Payment).offset(skip).limit(limit).all()
+
+
+def create_payment(db: Session, payment: schemas.PaymentCreate) -> models.Payment:
+    db_payment = models.Payment(**payment.model_dump())
+    db.add(db_payment)
+    db.commit()
+    db.refresh(db_payment)
+    return db_payment
+
+
+def update_payment(db: Session, payment_id: int, payment_update: schemas.PaymentUpdate) -> models.Payment | None:
+    db_payment = db.query(models.Payment).filter(models.Payment.id == payment_id).first()
+    if not db_payment:
+        return None
+
+    for key, value in payment_update.model_dump(exclude_unset=True).items():
+        setattr(db_payment, key, value)
+
+    db.commit()
+    db.refresh(db_payment)
+    return db_payment
+
+
+def delete_payment(db: Session, payment_id: int) -> models.Payment | None:
+    db_payment = db.query(models.Payment).filter(models.Payment.id == payment_id).first()
+    if not db_payment:
+        return None
+
+    db.delete(db_payment)
+    db.commit()
+    return db_payment

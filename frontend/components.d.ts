@@ -29,6 +29,7 @@ declare module 'vue' {
     IHeroiconsXMark20Solid: typeof import('~icons/heroicons/x-mark20-solid')['default']
     LanguageSwitcher: typeof import('./src/components/LanguageSwitcher.vue')['default']
     PaymentForm: typeof import('./src/components/appointments/PaymentForm.vue')['default']
+    PaymentFormModal: typeof import('./src/components/payments/PaymentFormModal.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SpecialtyForm: typeof import('./src/components/specialties/SpecialtyForm.vue')['default']

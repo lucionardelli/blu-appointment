@@ -92,6 +92,14 @@ def get_patient_appointments(db: Session, patient_id: int, skip: int = 0, limit:
     return db.query(Appointment).filter(Appointment.patient_id == patient_id).offset(skip).limit(limit).all()
 
 
+def get_patient_payments(db: Session, patient_id: int) -> list[Payment]:
+    db_patient = db.query(models.Patient).filter(models.Patient.id == patient_id).first()
+    if not db_patient:
+        return []
+
+    return db.query(Payment).filter(Payment.patient_id == patient_id).all()
+
+
 def create_patient(db: Session, patient: schemas.PatientCreate) -> models.Patient:
     encrypted_history = encrypt(patient.medical_history) if patient.medical_history else None
 

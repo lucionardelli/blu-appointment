@@ -27,7 +27,7 @@ from app.patients.models import Patient as Patient
 from app.specialties.models import Specialty
 from app.specialties.models import SpecialtyPrice as SpecialtyPrice
 from app.users.models import User
-from app.payment_methods.models import PaymentMethod
+from app.payments.models import PaymentMethod
 
 
 

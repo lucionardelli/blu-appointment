@@ -1,14 +1,14 @@
 from datetime import date, datetime, time
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from app.payments.schemas import Payment, PaymentMethod
 from app.specialties.schemas import MinSpecialtyInfo
 
 from .models import (
     AppointmentStatus,
     DayOfWeek,
-    PaymentMethod,
     RecurringFrequency,
 )
 
@@ -20,13 +20,6 @@ class PaymentBase(BaseModel):
 
 class PaymentCreate(PaymentBase):
     pass
-
-
-class Payment(PaymentBase):
-    id: int
-    payment_date: datetime
-
-    model_config = ConfigDict(from_attributes=True)
 
 
 class AppointmentBase(BaseModel):

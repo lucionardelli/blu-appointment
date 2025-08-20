@@ -81,6 +81,18 @@ def update_patient(
     return db_patient
 
 
+@router.get("/{patient_id}/payments", response_model=list[appt_schemas.Payment])
+def read_patient_payments(
+    patient_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    _current_user: Annotated[User, Depends(get_current_user)],
+) -> list[appt_schemas.Payment]:
+    db_payments = crud.get_patient_payments(db, patient_id=patient_id)
+    if db_payments is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Patient not found or no payments")
+    return db_payments
+
+
 @router.delete("/{patient_id}", response_model=schemas.Patient)
 def delete_patient(
     patient_id: int, db: Annotated[Session, Depends(get_db)], _current_user: Annotated[User, Depends(get_current_user)]
