@@ -34,16 +34,17 @@
           >
           <select
             id="payment_method"
-            v-model="payment.method"
+            v-model="payment.method_id"
             required
             class="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
           >
-            <option value="CASH">Cash</option>
-            <option value="CREDIT_CARD">Card</option>
-            <option value="TRANSFER">Transfer</option>
-            <option value="MERCADOPAGO">Mercado Pago</option>
-            <option value="GIFT_CARD">Gift Card</option>
-            <option value="PATIENT_CREDIT">Patient Credit</option>
+            <option
+              v-for="pm in paymentMethods"
+              :key="pm.value"
+              :value="pm.value"
+            >
+              {{ pm.name }}
+            </option>
           </select>
         </div>
       </div>
@@ -67,7 +68,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import api from "@/services/api";
 
@@ -92,8 +93,24 @@ const dueAmount = computed(() => {
 
 const payment = ref({
   amount: 0,
-  method: "CASH",
+  method_id: null,
+  patient_id: props.patientId,
+  appointment_id: props.appointmentId,
 });
+
+const paymentMethods = ref([]);
+
+const fetchPaymentMethods = async () => {
+  try {
+    const response = await api.get("/payment_methods/");
+    paymentMethods.value = response.data;
+    if (paymentMethods.value.length > 0) {
+      payment.value.method_id = paymentMethods.value[0].value;
+    }
+  } catch (error) {
+    console.error("Error fetching payment methods:", error);
+  }
+};
 
 const payInFull = () => {
   if (dueAmount.value <= 0) {
@@ -115,4 +132,8 @@ const submitPayment = async () => {
     // Handle error display to user
   }
 };
+
+onMounted(() => {
+  fetchPaymentMethods();
+});
 </script>
