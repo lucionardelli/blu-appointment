@@ -375,6 +375,17 @@
             </button>
             <button
               :class="[
+                activeTab === 'payments'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
+                'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm',
+              ]"
+              @click="activeTab = 'payments'"
+            >
+              {{ t("payments") }}
+            </button>
+            <button
+              :class="[
                 activeTab === 'medical_history'
                   ? 'border-primary text-primary'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
@@ -421,7 +432,7 @@
                   scope="col"
                   class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
-                  {{ t("payment") }}
+                  {{ t("status") }}
                 </th>
               </tr>
             </thead>
@@ -442,24 +453,63 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   <span :class="getPaymentStatus(appointment).color">
-                    {{ getPaymentStatus(appointment).emoji }}
                     {{ getPaymentStatus(appointment).text }}
                   </span>
-                  <span
-                    v-if="appointment.cost - appointment.total_paid > 0"
-                    class="ml-2"
-                  >
-                    {{ formatCurrency(appointment.total_paid) }} /
-                    {{ formatCurrency(appointment.cost) }}
-                    <span :class="getPaymentStatus(appointment).color">
-                      ({{ t("due") }}:
-                      {{
-                        formatCurrency(
-                          appointment.cost - appointment.total_paid,
-                        )
-                      }})
-                    </span>
-                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div v-show="activeTab === 'payments'" class="border-t border-gray-200">
+          <div class="flex justify-between items-center mb-4 px-4 py-5 sm:px-6">
+            <h4 class="text-lg leading-6 font-medium text-gray-900">
+              {{ t("payments") }}
+            </h4>
+            <button
+              type="button"
+              class="px-3 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+              @click="showPaymentForm = true"
+            >
+              {{ t("add_payment") }}
+            </button>
+          </div>
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  {{ t("date") }}
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  {{ t("payment_method") }}
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  {{ t("amount") }}
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr v-for="payment in payments" :key="payment.id">
+                <td
+                  class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
+                >
+                  {{ formatDate(payment.payment_date) }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {{ payment.method }}
+                </td>
+                <td
+                  class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right"
+                >
+                  {{ formatCurrency(payment.amount) }}
                 </td>
               </tr>
             </tbody>
@@ -566,6 +616,12 @@
         </div>
       </div>
     </div>
+    <PaymentFormModal
+      v-if="showPaymentForm"
+      :patient-id="patient.id"
+      @close="showPaymentForm = false"
+      @save="handlePaymentSave"
+    />
   </div>
 </template>
 
@@ -583,6 +639,7 @@ import {
   formatDateForInput,
 } from "@/utils/formatDate";
 import EmergencyContactForm from "@/components/patients/EmergencyContactForm.vue";
+import PaymentFormModal from "@/components/payments/PaymentFormModal.vue";
 import { useSpecialtyStore } from "@/stores/specialties";
 
 import vSelect from "vue-select";
@@ -594,12 +651,14 @@ const router = useRouter();
 
 const patient = ref(null);
 const appointments = ref([]);
+const payments = ref([]);
 const emergencyContacts = ref([]); // New ref for emergency contacts
 const deletedEmergencyContactIds = ref([]);
 const errors = ref({});
 const referredByOptions = ref([]);
 const referredBySearchLoading = ref(false);
 const referredByPatientName = ref(null);
+const showPaymentForm = ref(false);
 const referredBySnippet = ref(null);
 
 const onReferredBySearch = async (search, loading) => {
@@ -669,7 +728,7 @@ const specialties = computed(() => specialtyStore.specialties);
 
 const isNew = ref(false);
 const isEditing = ref(false);
-const activeTab = ref("medical_history"); // Default to medical history for new patient, or appointments for existing
+const activeTab = ref("appointments"); // Default to medical history for new patient, or appointments for existing
 const showCancelledAppointments = ref(false);
 const md = new MarkdownIt();
 
@@ -681,19 +740,13 @@ const renderedMedicalHistory = computed(() => {
 });
 
 const getPaymentStatus = (appointment) => {
-  const now = new Date();
-  const appointmentDate = new Date(appointment.start_time);
-  const amountDue = appointment.cost - appointment.total_paid;
-
-  if (amountDue <= 0) {
-    return { text: t("paid"), color: "text-green-500", emoji: "✅" };
+  if (appointment.total_paid >= appointment.cost) {
+    return { text: t("paid"), color: "text-green-500" };
   }
-
-  if (appointmentDate > now) {
-    return { text: t("pending"), color: "text-balck-500", emoji: "" };
-  } else {
-    return { text: t("overdue"), color: "text-red-500", emoji: "🔴" };
+  if (new Date(appointment.start_time) > new Date()) {
+    return { text: t("pending"), color: "text-gray-500" };
   }
+  return { text: t("overdue"), color: "text-red-500" };
 };
 
 const filteredAppointments = computed(() => {
@@ -749,6 +802,23 @@ const fetchAppointments = async () => {
     error.value = true;
     console.error("Error fetching appointments:", err);
   }
+};
+
+const fetchPayments = async () => {
+  if (isNew.value) return;
+  try {
+    const response = await api.get(`/patients/${route.params.id}/payments`);
+    payments.value = response.data;
+  } catch (err) {
+    error.value = true;
+    console.error("Error fetching payments:", err);
+  }
+};
+
+const handlePaymentSave = () => {
+  showPaymentForm.value = false;
+  fetchPatient();
+  fetchPayments();
 };
 
 const addEmergencyContact = () => {
@@ -873,6 +943,7 @@ onMounted(async () => {
   try {
     await fetchPatient();
     await fetchAppointments();
+    await fetchPayments();
     if (!specialtyStore.specialties.length) {
       await specialtyStore.fetchSpecialties();
     }

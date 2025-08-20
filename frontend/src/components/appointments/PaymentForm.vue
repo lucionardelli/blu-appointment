@@ -77,17 +77,24 @@ const { t } = useI18n();
 const props = defineProps({
   appointmentId: {
     type: [String, Number],
+    required: false,
+    default: null,
+  },
+  patientId: {
+    type: [String, Number],
     required: true,
   },
   appointment: {
     type: Object,
-    required: true,
+    required: false,
+    default: () => ({}),
   },
 });
 
 const emit = defineEmits(["save", "cancel"]);
 
 const dueAmount = computed(() => {
+  if (!props.appointment) return 0;
   return props.appointment.cost - (props.appointment.total_paid || 0);
 });
 
@@ -122,10 +129,7 @@ const payInFull = () => {
 
 const submitPayment = async () => {
   try {
-    await api.post(
-      `/appointments/${props.appointmentId}/payments`,
-      payment.value,
-    );
+    await api.post("/payments/", payment.value);
     emit("save");
   } catch (error) {
     console.error("Error saving payment:", error);

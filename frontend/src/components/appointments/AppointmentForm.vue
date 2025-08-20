@@ -240,6 +240,7 @@
       <PaymentForm
         v-if="showPaymentForm"
         :appointment-id="props.appointmentId"
+        :patient-id="appointment.patient_id"
         :appointment="appointment"
         @save="handlePaymentSave"
         @cancel="showPaymentForm = false"
@@ -247,7 +248,7 @@
 
       <div v-else>
         <table
-          v-if="payments.length"
+          v-if="appointment.payments && appointment.payments.length"
           class="min-w-full divide-y divide-gray-200"
         >
           <thead class="bg-gray-50">
@@ -273,7 +274,7 @@
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
-            <tr v-for="payment in payments" :key="payment.id">
+            <tr v-for="payment in appointment.payments" :key="payment.id">
               <td
                 class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
               >
@@ -365,6 +366,7 @@ const appointment = ref({
   cost: 0,
   total_paid: 0,
   suggested_treatment_duration_minutes: null,
+  payments: [],
 });
 
 const specialtyStore = useSpecialtyStore();
@@ -375,7 +377,6 @@ const patientSearchLoading = ref(false);
 const specialties = computed(() => specialtyStore.specialties);
 const patientSnippet = ref(null);
 const activeTab = ref("details");
-const payments = ref([]);
 const showPaymentForm = ref(false);
 
 const isNew = computed(() => !props.appointmentId);
@@ -445,24 +446,9 @@ const fetchAppointment = async () => {
   }
 };
 
-const fetchPayments = async () => {
-  if (isNew.value) return;
-  try {
-    const response = await api.get(
-      `/appointments/${props.appointmentId}/payments`,
-    );
-    payments.value = response.data.sort(
-      (a, b) => new Date(b.payment_date) - new Date(a.payment_date),
-    );
-  } catch (error) {
-    console.error("Error fetching payments:", error);
-  }
-};
-
 const handlePaymentSave = () => {
   showPaymentForm.value = false;
-  fetchPayments();
-  fetchAppointment(); // Refetch appointment to update total_paid
+  fetchAppointment(); // Refetch appointment to update total_paid and payments
 };
 
 const onPatientSearch = async (search, loading) => {
@@ -514,7 +500,6 @@ onMounted(async () => {
   }
   if (props.appointmentId) {
     await fetchAppointment();
-    await fetchPayments();
     if (appointment.value.patient_id) {
       await fetchPatientSnippet();
     }
