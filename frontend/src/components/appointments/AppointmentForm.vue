@@ -509,6 +509,9 @@ watch(
 );
 
 onMounted(async () => {
+  if (!specialtyStore.specialties.length) {
+    await specialtyStore.fetchSpecialties();
+  }
   if (props.appointmentId) {
     await fetchAppointment();
     await fetchPayments();
