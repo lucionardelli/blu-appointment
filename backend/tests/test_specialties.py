@@ -2,7 +2,7 @@ from fastapi import status
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app.specialties import crud as specialty_crud
+from app.specialties import services as specialty_services
 from app.specialties import schemas as specialty_schemas
 
 
@@ -28,7 +28,7 @@ def test_read_specialties(authenticated_client: TestClient, db_session: Session)
         default_duration_minutes=20,
         current_price=50.00,
     )
-    specialty_crud.create_specialty(db_session, specialty_data)
+    specialty_services.create_specialty(db_session, specialty_data)
 
     response = authenticated_client.get("/api/v1/specialties/")
     assert response.status_code == status.HTTP_200_OK
@@ -45,7 +45,7 @@ def test_update_specialty(authenticated_client: TestClient, db_session: Session)
         default_duration_minutes=60,
         current_price=120.00,
     )
-    specialty = specialty_crud.create_specialty(db_session, specialty_data)
+    specialty = specialty_services.create_specialty(db_session, specialty_data)
 
     response = authenticated_client.put(
         f"/api/v1/specialties/{specialty.id}",
@@ -63,7 +63,7 @@ def test_add_new_specialty_price(authenticated_client: TestClient, db_session: S
         default_duration_minutes=30,
         current_price=75.00,
     )
-    specialty = specialty_crud.create_specialty(db_session, specialty_data)
+    specialty = specialty_services.create_specialty(db_session, specialty_data)
 
     response = authenticated_client.post(
         f"/api/v1/specialties/{specialty.id}/prices",

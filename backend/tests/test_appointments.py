@@ -4,11 +4,11 @@ from fastapi import status
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app.patients.crud import create_patient
+from app.patients.services import create_patient
 from app.patients.schemas import PatientCreate
-from app.specialties.crud import create_specialty
+from app.specialties.services import create_specialty
 from app.specialties.schemas import SpecialtyCreate
-from app.appointments import crud as appointment_crud
+from app.appointments import services as appointment_services
 from app.appointments import schemas as appointment_schemas
 
 
@@ -93,7 +93,7 @@ def test_get_appointments(authenticated_client: TestClient, patient_in_db, speci
     # Create a few appointments
     app1_start = datetime.now() + timedelta(days=3)
     app2_start = datetime.now() + timedelta(days=4)
-    appointment_crud.create_appointment(
+    appointment_services.create_appointment(
         db_session,
         appointment_schemas.AppointmentCreate(
             patient_id=patient_in_db.id,
@@ -102,7 +102,7 @@ def test_get_appointments(authenticated_client: TestClient, patient_in_db, speci
             end_time=app1_start + timedelta(minutes=30),
         ),
     )
-    appointment_crud.create_appointment(
+    appointment_services.create_appointment(
         db_session,
         appointment_schemas.AppointmentCreate(
             patient_id=patient_in_db.id,
@@ -126,7 +126,7 @@ def test_get_appointments(authenticated_client: TestClient, patient_in_db, speci
 
 def test_get_appointment(authenticated_client: TestClient, patient_in_db, specialty_in_db, db_session: Session):
     start_time = datetime.now() + timedelta(days=5)
-    appointment = appointment_crud.create_appointment(
+    appointment = appointment_services.create_appointment(
         db_session,
         appointment_schemas.AppointmentCreate(
             patient_id=patient_in_db.id,
@@ -151,7 +151,7 @@ def test_get_appointment_not_found(authenticated_client: TestClient):
 
 def test_update_appointment(authenticated_client: TestClient, patient_in_db, specialty_in_db, db_session: Session):
     start_time = datetime.now() + timedelta(days=6)
-    appointment = appointment_crud.create_appointment(
+    appointment = appointment_services.create_appointment(
         db_session,
         appointment_schemas.AppointmentCreate(
             patient_id=patient_in_db.id,
@@ -192,7 +192,7 @@ def test_update_appointment_not_found(authenticated_client: TestClient):
 
 def test_cancel_appointment(authenticated_client: TestClient, patient_in_db, specialty_in_db, db_session: Session):
     start_time = datetime.now() + timedelta(days=7)
-    appointment = appointment_crud.create_appointment(
+    appointment = appointment_services.create_appointment(
         db_session,
         appointment_schemas.AppointmentCreate(
             patient_id=patient_in_db.id,
@@ -216,7 +216,7 @@ def test_cancel_appointment_not_found(authenticated_client: TestClient):
 
 def test_reschedule_appointment(authenticated_client: TestClient, patient_in_db, specialty_in_db, db_session: Session):
     start_time = datetime.now() + timedelta(days=8)
-    appointment = appointment_crud.create_appointment(
+    appointment = appointment_services.create_appointment(
         db_session,
         appointment_schemas.AppointmentCreate(
             patient_id=patient_in_db.id,
@@ -249,7 +249,7 @@ def test_reschedule_appointment_not_found(authenticated_client: TestClient):
 
 def test_add_payment_to_appointment(authenticated_client: TestClient, patient_in_db, specialty_in_db, db_session: Session):
     start_time = datetime.now() + timedelta(days=10)
-    appointment = appointment_crud.create_appointment(
+    appointment = appointment_services.create_appointment(
         db_session,
         appointment_schemas.AppointmentCreate(
             patient_id=patient_in_db.id,
@@ -272,7 +272,7 @@ def test_add_payment_to_appointment(authenticated_client: TestClient, patient_in
     assert "payment_date" in data
 
     # Verify total_paid is updated on the appointment
-    updated_appointment = appointment_crud.get_appointment(db_session, appointment.id)
+    updated_appointment = appointment_services.get_appointment(db_session, appointment.id)
     assert updated_appointment.total_paid == 50.00
 
 
@@ -286,7 +286,7 @@ def test_add_payment_to_appointment_not_found(authenticated_client: TestClient):
 
 def test_get_payments_for_appointment(authenticated_client: TestClient, patient_in_db, specialty_in_db, db_session: Session):
     start_time = datetime.now() + timedelta(days=11)
-    appointment = appointment_crud.create_appointment(
+    appointment = appointment_services.create_appointment(
         db_session,
         appointment_schemas.AppointmentCreate(
             patient_id=patient_in_db.id,
@@ -403,7 +403,7 @@ def test_get_appointment_metrics(authenticated_client: TestClient, patient_in_db
     tomorrow = today + timedelta(days=1)
 
     # Appointment within the period
-    appointment_crud.create_appointment(
+    appointment_services.create_appointment(
         db_session,
         appointment_schemas.AppointmentCreate(
             patient_id=patient_in_db.id,
@@ -414,7 +414,7 @@ def test_get_appointment_metrics(authenticated_client: TestClient, patient_in_db
         ),
     )
     # Another appointment within the period, partially paid
-    app2 = appointment_crud.create_appointment(
+    app2 = appointment_services.create_appointment(
         db_session,
         appointment_schemas.AppointmentCreate(
             patient_id=patient_in_db.id,
@@ -424,10 +424,10 @@ def test_get_appointment_metrics(authenticated_client: TestClient, patient_in_db
             cost=200.00,
         ),
     )
-    appointment_crud.add_payment(db_session, appointment_id=app2.id, payment_in={"amount": 50.00, "method": "cash"})
+    appointment_services.add_payment(db_session, appointment_id=app2.id, payment_in={"amount": 50.00, "method": "cash"})
 
     # Appointment outside the period (yesterday)
-    appointment_crud.create_appointment(
+    appointment_services.create_appointment(
         db_session,
         appointment_schemas.AppointmentCreate(
             patient_id=patient_in_db.id,

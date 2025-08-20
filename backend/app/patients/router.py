@@ -8,7 +8,7 @@ from app.db import get_db
 from app.users.logged import get_current_user
 from app.users.models import User
 
-from . import crud, schemas
+from . import services, schemas
 
 router = APIRouter()
 
@@ -20,7 +20,7 @@ def create_patient(
     _current_user: Annotated[User, Depends(get_current_user)],
 ) -> schemas.Patient:
     try:
-        return crud.create_patient(db=db, patient=patient)
+        return services.create_patient(db=db, patient=patient)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from None
 
@@ -33,7 +33,7 @@ def read_patients(
     skip: int = 0,
     limit: int = 100,
 ) -> schemas.PaginatedPatientsResponse:
-    total_count, patients = crud.get_patients(db, query=query, skip=skip, limit=limit)
+    total_count, patients = services.get_patients(db, query=query, skip=skip, limit=limit)
     return schemas.PaginatedPatientsResponse(total_count=total_count, items=patients)
 
 
@@ -41,12 +41,12 @@ def read_patients(
 def read_patient(
     patient_id: int, db: Annotated[Session, Depends(get_db)], _current_user: Annotated[User, Depends(get_current_user)]
 ) -> schemas.PatientDetails:
-    db_patient = crud.get_patient(db, patient_id=patient_id)
+    db_patient = services.get_patient(db, patient_id=patient_id)
     if db_patient is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Patient not found")
 
-    db_patient.financial_summary = crud.get_financial_summary(db, patient_id=patient_id)
-    db_patient.appointment_summary = crud.get_appointment_summary(db, patient_id=patient_id)
+    db_patient.financial_summary = services.get_financial_summary(db, patient_id=patient_id)
+    db_patient.appointment_summary = services.get_appointment_summary(db, patient_id=patient_id)
 
     return schemas.PatientDetails.model_validate(db_patient)
 
@@ -59,7 +59,7 @@ def read_patient_appointments(
     skip: int = 0,
     limit: int = 100,
 ) -> list[appt_schemas.Appointment]:
-    db_appointments = crud.get_patient_appointments(db, patient_id=patient_id, skip=skip, limit=limit)
+    db_appointments = services.get_patient_appointments(db, patient_id=patient_id, skip=skip, limit=limit)
     if db_appointments is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Patient not found or no appointments")
     return db_appointments
@@ -73,7 +73,7 @@ def update_patient(
     _current_user: Annotated[User, Depends(get_current_user)],
 ) -> schemas.Patient:
     try:
-        db_patient = crud.update_patient(db, patient_id=patient_id, patient_update=patient)
+        db_patient = services.update_patient(db, patient_id=patient_id, patient_update=patient)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from None
     if db_patient is None:
@@ -87,7 +87,7 @@ def read_patient_payments(
     db: Annotated[Session, Depends(get_db)],
     _current_user: Annotated[User, Depends(get_current_user)],
 ) -> list[appt_schemas.Payment]:
-    db_payments = crud.get_patient_payments(db, patient_id=patient_id)
+    db_payments = services.get_patient_payments(db, patient_id=patient_id)
     if db_payments is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Patient not found or no payments")
     return db_payments
@@ -97,7 +97,7 @@ def read_patient_payments(
 def delete_patient(
     patient_id: int, db: Annotated[Session, Depends(get_db)], _current_user: Annotated[User, Depends(get_current_user)]
 ) -> schemas.Patient:
-    db_patient = crud.delete_patient(db, patient_id=patient_id)
+    db_patient = services.delete_patient(db, patient_id=patient_id)
     if db_patient is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Patient not found")
     return db_patient
@@ -114,10 +114,10 @@ def create_emergency_contact(
     db: Annotated[Session, Depends(get_db)],
     _current_user: Annotated[User, Depends(get_current_user)],
 ) -> schemas.EmergencyContact:
-    db_patient = crud.get_patient(db, patient_id=patient_id)
+    db_patient = services.get_patient(db, patient_id=patient_id)
     if db_patient is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Patient not found")
-    return crud.create_emergency_contact(db=db, patient_id=patient_id, contact=contact)
+    return services.create_emergency_contact(db=db, patient_id=patient_id, contact=contact)
 
 
 @router.get("/{patient_id}/emergency_contacts", response_model=list[schemas.EmergencyContact])
@@ -126,10 +126,10 @@ def read_emergency_contacts(
     db: Annotated[Session, Depends(get_db)],
     _current_user: Annotated[User, Depends(get_current_user)],
 ) -> list[schemas.EmergencyContact]:
-    db_patient = crud.get_patient(db, patient_id=patient_id)
+    db_patient = services.get_patient(db, patient_id=patient_id)
     if db_patient is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Patient not found")
-    return crud.get_emergency_contacts_for_patient(db=db, patient_id=patient_id)
+    return services.get_emergency_contacts_for_patient(db=db, patient_id=patient_id)
 
 
 @router.get(
@@ -142,7 +142,7 @@ def read_emergency_contact(
     db: Annotated[Session, Depends(get_db)],
     _current_user: Annotated[User, Depends(get_current_user)],
 ) -> schemas.EmergencyContact:
-    db_contact = crud.get_emergency_contact(db, contact_id=contact_id)
+    db_contact = services.get_emergency_contact(db, contact_id=contact_id)
     if db_contact is None or db_contact.patient_id != patient_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Emergency contact not found")
     return db_contact
@@ -159,10 +159,10 @@ def update_emergency_contact(
     db: Annotated[Session, Depends(get_db)],
     _current_user: Annotated[User, Depends(get_current_user)],
 ) -> schemas.EmergencyContact:
-    db_contact = crud.get_emergency_contact(db, contact_id=contact_id)
+    db_contact = services.get_emergency_contact(db, contact_id=contact_id)
     if db_contact is None or db_contact.patient_id != patient_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Emergency contact not found")
-    return crud.update_emergency_contact(db=db, contact_id=contact_id, contact_update=contact)
+    return services.update_emergency_contact(db=db, contact_id=contact_id, contact_update=contact)
 
 
 @router.delete(
@@ -175,7 +175,7 @@ def delete_emergency_contact(
     db: Annotated[Session, Depends(get_db)],
     _current_user: Annotated[User, Depends(get_current_user)],
 ) -> schemas.EmergencyContact:
-    db_contact = crud.get_emergency_contact(db, contact_id=contact_id)
+    db_contact = services.get_emergency_contact(db, contact_id=contact_id)
     if db_contact is None or db_contact.patient_id != patient_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Emergency contact not found")
-    return crud.delete_emergency_contact(db=db, contact_id=contact_id)
+    return services.delete_emergency_contact(db=db, contact_id=contact_id)

@@ -7,7 +7,7 @@ from app.db import get_db
 from app.users.logged import get_current_user
 from app.users.models import User
 
-from . import crud, schemas
+from . import services, schemas
 
 payment_methods_router = APIRouter()
 payments_router = APIRouter()
@@ -20,7 +20,7 @@ def create_payment_method(
     _current_user: Annotated[User, Depends(get_current_user)],
 ) -> schemas.PaymentMethod:
     try:
-        return crud.create_payment_method(db=db, payment_method=payment_method)
+        return services.create_payment_method(db=db, payment_method=payment_method)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from None
 
@@ -32,7 +32,7 @@ def read_payment_methods(
     skip: int = 0,
     limit: int = 100,
 ) -> list[schemas.PaymentMethod]:
-    return crud.get_payment_methods(db, skip=skip, limit=limit)
+    return services.get_payment_methods(db, skip=skip, limit=limit)
 
 
 @payment_methods_router.get("/{payment_method_id}", response_model=schemas.PaymentMethod)
@@ -41,7 +41,7 @@ def read_payment_method(
     db: Annotated[Session, Depends(get_db)],
     _current_user: Annotated[User, Depends(get_current_user)],
 ) -> schemas.PaymentMethod:
-    db_payment_method = crud.get_payment_method(db, payment_method_id=payment_method_id)
+    db_payment_method = services.get_payment_method(db, payment_method_id=payment_method_id)
     if db_payment_method is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Payment method not found")
     return db_payment_method
@@ -55,7 +55,7 @@ def update_payment_method(
     _current_user: Annotated[User, Depends(get_current_user)],
 ) -> schemas.PaymentMethod:
     try:
-        db_payment_method = crud.update_payment_method(
+        db_payment_method = services.update_payment_method(
             db, payment_method_id=payment_method_id, payment_method_update=payment_method
         )
     except ValueError as e:
@@ -71,7 +71,7 @@ def delete_payment_method(
     db: Annotated[Session, Depends(get_db)],
     _current_user: Annotated[User, Depends(get_current_user)],
 ) -> schemas.PaymentMethod:
-    db_payment_method = crud.delete_payment_method(db, payment_method_id=payment_method_id)
+    db_payment_method = services.delete_payment_method(db, payment_method_id=payment_method_id)
     if db_payment_method is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Payment method not found")
     return db_payment_method
@@ -82,7 +82,7 @@ def create_payment(
     payment: schemas.PaymentCreate,
     db: Annotated[Session, Depends(get_db)],
 ) -> schemas.Payment:
-    return crud.create_payment(db=db, payment=payment)
+    return services.create_payment(db=db, payment=payment)
 
 
 @payments_router.get("/", response_model=list[schemas.Payment])
@@ -91,7 +91,7 @@ def read_payments(
     skip: int = 0,
     limit: int = 100,
 ) -> list[schemas.Payment]:
-    return crud.get_payments(db, skip=skip, limit=limit)
+    return services.get_payments(db, skip=skip, limit=limit)
 
 
 @payments_router.get("/{payment_id}", response_model=schemas.Payment)
@@ -99,7 +99,7 @@ def read_payment(
     payment_id: int,
     db: Annotated[Session, Depends(get_db)],
 ) -> schemas.Payment:
-    db_payment = crud.get_payment(db, payment_id=payment_id)
+    db_payment = services.get_payment(db, payment_id=payment_id)
     if db_payment is None:
         raise HTTPException(status_code=404, detail="Payment not found")
     return db_payment
@@ -111,7 +111,7 @@ def update_payment(
     payment: schemas.PaymentUpdate,
     db: Annotated[Session, Depends(get_db)],
 ) -> schemas.Payment:
-    db_payment = crud.update_payment(db, payment_id=payment_id, payment_update=payment)
+    db_payment = services.update_payment(db, payment_id=payment_id, payment_update=payment)
     if db_payment is None:
         raise HTTPException(status_code=404, detail="Payment not found")
     return db_payment
@@ -122,7 +122,7 @@ def delete_payment(
     payment_id: int,
     db: Annotated[Session, Depends(get_db)],
 ) -> schemas.Payment:
-    db_payment = crud.delete_payment(db, payment_id=payment_id)
+    db_payment = services.delete_payment(db, payment_id=payment_id)
     if db_payment is None:
         raise HTTPException(status_code=404, detail="Payment not found")
     return db_payment

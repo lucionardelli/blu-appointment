@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 
 from sqlalchemy.orm import Session
 
-from app.specialties.crud import get_current_price_for_specialty, get_specialty_by_id
+from app.specialties.services import get_current_price_for_specialty, get_specialty_by_id
 
 from . import models, schemas
 

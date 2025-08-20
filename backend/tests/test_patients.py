@@ -1,5 +1,5 @@
 import pytest
-from app.patients import crud as patient_crud
+from app.patients import services as patient_services
 from app.patients import schemas as patient_schemas
 from app.users.models import User
 from fastapi import status
@@ -26,7 +26,7 @@ def test_create_patient(authenticated_client: TestClient, db_session: Session):
 
 def test_read_patients(authenticated_client: TestClient, db_session: Session):
     patient_data = patient_schemas.PatientCreate(name="Jane Doe", email="jane.doe@example.com")
-    patient_crud.create_patient(db_session, patient_data)
+    patient_services.create_patient(db_session, patient_data)
 
     response = authenticated_client.get("/api/v1/patients/")
     assert response.status_code == status.HTTP_200_OK
@@ -37,7 +37,7 @@ def test_read_patients(authenticated_client: TestClient, db_session: Session):
 
 def test_read_patient(authenticated_client: TestClient, db_session: Session):
     patient_data = patient_schemas.PatientCreate(name="Jim Doe", email="jim.doe@example.com")
-    patient = patient_crud.create_patient(db_session, patient_data)
+    patient = patient_services.create_patient(db_session, patient_data)
 
     response = authenticated_client.get(f"/api/v1/patients/{patient.id}")
     assert response.status_code == status.HTTP_200_OK
@@ -48,7 +48,7 @@ def test_read_patient(authenticated_client: TestClient, db_session: Session):
 
 def test_update_patient(authenticated_client: TestClient, db_session: Session):
     patient_data = patient_schemas.PatientCreate(name="Jill Doe", email="jill.doe@example.com")
-    patient = patient_crud.create_patient(db_session, patient_data)
+    patient = patient_services.create_patient(db_session, patient_data)
 
     response = authenticated_client.put(
         f"/api/v1/patients/{patient.id}",
@@ -62,7 +62,7 @@ def test_update_patient(authenticated_client: TestClient, db_session: Session):
 
 def test_delete_patient(authenticated_client: TestClient, db_session: Session):
     patient_data = patient_schemas.PatientCreate(name="Jack Doe", email="jack.doe@example.com")
-    patient = patient_crud.create_patient(db_session, patient_data)
+    patient = patient_services.create_patient(db_session, patient_data)
 
     response = authenticated_client.delete(f"/api/v1/patients/{patient.id}")
     assert response.status_code == status.HTTP_200_OK
@@ -73,7 +73,7 @@ def test_delete_patient(authenticated_client: TestClient, db_session: Session):
 
 def test_create_emergency_contact(test_user: User, authenticated_client: TestClient, db_session: Session):
     patient_data = patient_schemas.PatientCreate(name="Patient for EC", email="ec@example.com")
-    patient = patient_crud.create_patient(db_session, patient_data)
+    patient = patient_services.create_patient(db_session, patient_data)
     ice_qty_before_post = len(patient.emergency_contacts)
 
     response = authenticated_client.post(
@@ -94,7 +94,7 @@ def test_create_emergency_contact(test_user: User, authenticated_client: TestCli
 
 def test_read_emergency_contacts(authenticated_client: TestClient, db_session: Session):
     patient_data = patient_schemas.PatientCreate(name="Patient for EC Read", email="ecread@example.com")
-    patient = patient_crud.create_patient(db_session, patient_data)
+    patient = patient_services.create_patient(db_session, patient_data)
 
     authenticated_client.post(
         f"/api/v1/patients/{patient.id}/emergency_contacts",
@@ -122,7 +122,7 @@ def test_read_emergency_contacts(authenticated_client: TestClient, db_session: S
 
 def test_read_single_emergency_contact(authenticated_client: TestClient, db_session: Session):
     patient_data = patient_schemas.PatientCreate(name="Patient for EC Single", email="ecsingle@example.com")
-    patient = patient_crud.create_patient(db_session, patient_data)
+    patient = patient_services.create_patient(db_session, patient_data)
 
     response = authenticated_client.post(
         f"/api/v1/patients/{patient.id}/emergency_contacts",
@@ -145,7 +145,7 @@ def test_read_single_emergency_contact(authenticated_client: TestClient, db_sess
 
     # Test 404 for contact belonging to another patient
     other_patient_data = patient_schemas.PatientCreate(name="Other Patient", email="other@example.com")
-    other_patient = patient_crud.create_patient(db_session, other_patient_data)
+    other_patient = patient_services.create_patient(db_session, other_patient_data)
     response = authenticated_client.post(
         f"/api/v1/patients/{other_patient.id}/emergency_contacts",
         json={
@@ -162,7 +162,7 @@ def test_read_single_emergency_contact(authenticated_client: TestClient, db_sess
 
 def test_update_emergency_contact(test_user: User, authenticated_client: TestClient, db_session: Session):
     patient_data = patient_schemas.PatientCreate(name="Patient for EC Update", email="ecupdate@example.com")
-    patient = patient_crud.create_patient(db_session, patient_data)
+    patient = patient_services.create_patient(db_session, patient_data)
 
     response = authenticated_client.post(
         f"/api/v1/patients/{patient.id}/emergency_contacts",
@@ -219,7 +219,7 @@ def test_update_emergency_contact(test_user: User, authenticated_client: TestCli
 
 def test_delete_emergency_contact(authenticated_client: TestClient, db_session: Session):
     patient_data = patient_schemas.PatientCreate(name="Patient for EC Delete", email="ecdelete@example.com")
-    patient = patient_crud.create_patient(db_session, patient_data)
+    patient = patient_services.create_patient(db_session, patient_data)
 
     response = authenticated_client.post(
         f"/api/v1/patients/{patient.id}/emergency_contacts",
@@ -240,7 +240,7 @@ def test_delete_emergency_contact(authenticated_client: TestClient, db_session: 
 
 def test_patient_details_includes_emergency_contacts(authenticated_client: TestClient, db_session: Session):
     patient_data = patient_schemas.PatientCreate(name="Patient with EC", email="patec@example.com")
-    patient = patient_crud.create_patient(db_session, patient_data)
+    patient = patient_services.create_patient(db_session, patient_data)
 
     authenticated_client.post(
         f"/api/v1/patients/{patient.id}/emergency_contacts",

@@ -7,7 +7,7 @@ from app.users.logged import get_current_user
 from app.db.base import get_db
 from app.users.models import User
 
-from . import crud, schemas
+from . import services, schemas
 
 router = APIRouter()
 
@@ -18,13 +18,13 @@ def create_specialty(
     db: Annotated[Session, Depends(get_db)],
     _current_user: Annotated[User, Depends(get_current_user)],
 ) -> schemas.Specialty:
-    db_specialty = crud.get_specialty_by_name(db, name=specialty.name)
+    db_specialty = services.get_specialty_by_name(db, name=specialty.name)
     if db_specialty:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Specialty with this name already exists",
         )
-    return crud.create_specialty(db=db, specialty=specialty)
+    return services.create_specialty(db=db, specialty=specialty)
 
 
 @router.get("/", response_model=list[schemas.Specialty])
@@ -34,7 +34,7 @@ def read_specialties(
     skip: int = 0,
     limit: int = 100,
 ) -> list[schemas.Specialty]:
-    return crud.get_specialties(db, skip=skip, limit=limit)
+    return services.get_specialties(db, skip=skip, limit=limit)
 
 
 @router.get("/{specialty_id}", response_model=schemas.Specialty)
@@ -43,7 +43,7 @@ def read_specialty(
     db: Annotated[Session, Depends(get_db)],
     _current_user: Annotated[User, Depends(get_current_user)],
 ) -> schemas.Specialty:
-    db_specialty = crud.get_specialty_by_id(db, specialty_id=specialty_id)
+    db_specialty = services.get_specialty_by_id(db, specialty_id=specialty_id)
     if db_specialty is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Specialty not found")
     return db_specialty
@@ -56,7 +56,7 @@ def update_specialty(
     db: Annotated[Session, Depends(get_db)],
     _current_user: Annotated[User, Depends(get_current_user)],
 ) -> schemas.Specialty:
-    db_specialty = crud.update_specialty(db, specialty_id=specialty_id, specialty_update=specialty)
+    db_specialty = services.update_specialty(db, specialty_id=specialty_id, specialty_update=specialty)
     if db_specialty is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Specialty not found")
     return db_specialty
@@ -68,7 +68,7 @@ def read_specialty_prices(
     db: Annotated[Session, Depends(get_db)],
     _current_user: Annotated[User, Depends(get_current_user)],
 ) -> list[schemas.SpecialtyPrice]:
-    db_specialty_prices = crud.get_specialty_prices(db, specialty_id=specialty_id)
+    db_specialty_prices = services.get_specialty_prices(db, specialty_id=specialty_id)
     if db_specialty_prices is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Specialty not found")
     return db_specialty_prices
@@ -81,7 +81,7 @@ def add_new_specialty_price(
     db: Annotated[Session, Depends(get_db)],
     _current_user: Annotated[User, Depends(get_current_user)],
 ) -> schemas.Specialty:
-    db_specialty = crud.add_specialty_price(db, specialty_id=specialty_id, price_create=price)
+    db_specialty = services.add_specialty_price(db, specialty_id=specialty_id, price_create=price)
     if db_specialty is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Specialty not found")
     return db_specialty

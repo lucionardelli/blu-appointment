@@ -6,7 +6,7 @@ from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
 from app.db.base import get_db
-from app.users.crud import get_user_by_username
+from app.users.services import get_user_by_username
 from app.core.security import ALGORITHM, oauth2_scheme, verify_password
 
 if TYPE_CHECKING:

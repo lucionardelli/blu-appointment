@@ -7,20 +7,20 @@ from app.db import get_db
 from app.users.logged import get_current_user
 from app.users.models import User
 
-from . import crud, schemas
+from . import services, schemas
 
 router = APIRouter()
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 def create_user(user: schemas.UserCreate, db: Annotated[Session, Depends(get_db)]) -> schemas.User:
-    db_user = crud.get_user_by_username(db, username=user.username)
+    db_user = services.get_user_by_username(db, username=user.username)
     if db_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Username already registered",
         )
-    return crud.create_user(db=db, user=user)
+    return services.create_user(db=db, user=user)
 
 
 @router.get("/", response_model=schemas.User)
@@ -34,7 +34,7 @@ def update_logged_user(
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> schemas.User:
-    updated_user = crud.update_user(db=db, user_id=current_user.id, user_update=user_update)
+    updated_user = services.update_user(db=db, user_id=current_user.id, user_update=user_update)
     if updated_user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     return updated_user
@@ -46,7 +46,7 @@ def update_logged_user_password(
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> schemas.User:
-    updated_user = crud.update_user_password(
+    updated_user = services.update_user_password(
         db=db, user_id=current_user.id, password_update=password_update
     )
     if updated_user is None:

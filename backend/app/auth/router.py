@@ -7,7 +7,7 @@ from app.core.security import (
     create_access_token,
 )
 from app.db.base import get_db
-from app.users.crud import get_user_by_username
+from app.users.services import get_user_by_username
 from app.users.logged import authenticate_user
 from app.users.schemas import User
 from fastapi import APIRouter, Depends, HTTPException, status

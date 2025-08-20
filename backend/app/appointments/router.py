@@ -9,7 +9,7 @@ from app.db.base import get_db
 from app.users.models import User
 from app.specialties.rules import get_treatment_duration
 
-from . import crud, metrics, models, schemas
+from . import services, metrics, models, schemas
 
 router = APIRouter()
 
@@ -21,7 +21,7 @@ def create_appointment(
     _current_user: Annotated[User, Depends(get_current_user)],
 ) -> schemas.Appointment:
     try:
-        return crud.create_appointment(db=db, appointment_in=appointment)
+        return services.create_appointment(db=db, appointment_in=appointment)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
 
@@ -38,7 +38,7 @@ def get_appointments(
     ] = None,
     _current_user: Annotated[User, Depends(get_current_user)] = None,
 ) -> list[schemas.Appointment]:
-    return crud.get_appointments(db=db, skip=skip, limit=limit, user_id=user_id, status=status)
+    return services.get_appointments(db=db, skip=skip, limit=limit, user_id=user_id, status=status)
 
 
 @router.get("/{appointment_id}", response_model=schemas.Appointment)
@@ -47,13 +47,13 @@ def get_appointment(
     db: Annotated[Session, Depends(get_db)],
     _current_user: Annotated[User, Depends(get_current_user)],
 ) -> schemas.Appointment:
-    db_appointment = crud.get_appointment(db, appointment_id=appointment_id)
+    db_appointment = services.get_appointment(db, appointment_id=appointment_id)
     if db_appointment is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Appointment not found")
 
     logic_key = db_appointment.specialty.treatment_duration_logic
     if logic_key:
-        session_count = crud.count_past_appointments_for_specialty(
+        session_count = services.count_past_appointments_for_specialty(
             db,
             patient_id=db_appointment.patient_id,
             specialty_id=db_appointment.specialty_id,
@@ -73,7 +73,7 @@ def update_appointment(
     db: Annotated[Session, Depends(get_db)],
     _current_user: Annotated[User, Depends(get_current_user)],
 ) -> schemas.Appointment:
-    db_appointment = crud.update_appointment(db, appointment_id=appointment_id, appointment_update=appointment_update)
+    db_appointment = services.update_appointment(db, appointment_id=appointment_id, appointment_update=appointment_update)
     if db_appointment is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Appointment not found")
     return db_appointment
@@ -85,7 +85,7 @@ def cancel_appointment(
     db: Annotated[Session, Depends(get_db)],
     _current_user: Annotated[User, Depends(get_current_user)],
 ) -> schemas.Appointment:
-    db_appointment = crud.cancel_appointment(db, appointment_id=appointment_id)
+    db_appointment = services.cancel_appointment(db, appointment_id=appointment_id)
     if db_appointment is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Appointment not found")
     return db_appointment
@@ -98,7 +98,7 @@ def reschedule_appointment(
     db: Annotated[Session, Depends(get_db)],
     _current_user: Annotated[User, Depends(get_current_user)],
 ) -> schemas.Appointment:
-    db_appointment = crud.reschedule_appointment(db, appointment_id=appointment_id, new_start_time=new_start_time)
+    db_appointment = services.reschedule_appointment(db, appointment_id=appointment_id, new_start_time=new_start_time)
     if db_appointment is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Appointment not found")
     return db_appointment
@@ -111,10 +111,10 @@ def add_payment_to_appointment(
     db: Annotated[Session, Depends(get_db)],
     _current_user: Annotated[User, Depends(get_current_user)],
 ) -> models.Payment:
-    db_appointment = crud.get_appointment(db, appointment_id=appointment_id)
+    db_appointment = services.get_appointment(db, appointment_id=appointment_id)
     if not db_appointment:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Appointment not found")
-    return crud.add_payment(db, appointment_id=appointment_id, payment_in=payment)
+    return services.add_payment(db, appointment_id=appointment_id, payment_in=payment)
 
 
 @router.get("/{appointment_id}/payments", response_model=list[schemas.Payment])
@@ -123,17 +123,17 @@ def get_payments_for_appointment(
     db: Annotated[Session, Depends(get_db)],
     _current_user: Annotated[User, Depends(get_current_user)],
 ) -> list[models.Payment]:
-    db_appointment = crud.get_appointment(db, appointment_id=appointment_id)
+    db_appointment = services.get_appointment(db, appointment_id=appointment_id)
     if not db_appointment:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Appointment not found")
-    return crud.get_payments_for_appointment(db, appointment_id=appointment_id)
+    return services.get_payments_for_appointment(db, appointment_id=appointment_id)
 
 
 @router.get("/working-hours/", response_model=list[schemas.WorkingHours])
 def get_working_hours(
     db: Annotated[Session, Depends(get_db)], _current_user: Annotated[User, Depends(get_current_user)]
 ) -> list[schemas.WorkingHours]:
-    return crud.get_working_hours(db)
+    return services.get_working_hours(db)
 
 
 @router.post("/working-hours/", response_model=list[schemas.WorkingHours])
@@ -142,7 +142,7 @@ def set_working_hours(
     db: Annotated[Session, Depends(get_db)],
     _current_user: Annotated[User, Depends(get_current_user)],
 ) -> list[schemas.WorkingHours]:
-    return crud.set_working_hours(db, hours_in=working_hours)
+    return services.set_working_hours(db, hours_in=working_hours)
 
 
 @router.post("/recurring/", status_code=status.HTTP_501_NOT_IMPLEMENTED, response_model=None)
