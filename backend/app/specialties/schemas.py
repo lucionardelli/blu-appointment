@@ -24,6 +24,7 @@ class MinSpecialtyInfo(BaseModel):
 
     id: int
     name: str
+    color: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -32,6 +33,7 @@ class SpecialtyBase(BaseModel):
     name: str
     default_duration_minutes: int = Field(..., gt=0)
     current_price: Decimal | None
+    color: str | None = None
 
 
 class SpecialtyCreate(SpecialtyBase): ...
@@ -41,6 +43,7 @@ class SpecialtyUpdate(BaseModel):
     name: str | None = None
     default_duration_minutes: int | None = Field(None, gt=0)
     current_price: Decimal | None = Field(None, gt=0)
+    color: str | None = None
 
 
 class Specialty(SpecialtyBase):

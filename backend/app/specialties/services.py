@@ -22,6 +22,7 @@ def create_specialty(db: Session, specialty: schemas.SpecialtyCreate) -> models.
     db_specialty = models.Specialty(
         name=specialty.name,
         default_duration_minutes=specialty.default_duration_minutes,
+        color=specialty.color,
     )
     db.add(db_specialty)
     db.commit()

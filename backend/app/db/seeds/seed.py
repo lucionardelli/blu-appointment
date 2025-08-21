@@ -41,6 +41,7 @@ def seed_specialties(file_path: Path) -> None:
                     name=row["name"],
                     default_duration_minutes=int(row["default_duration_minutes"]),
                     current_price=Decimal(row["current_price"]),
+                    color=row["color"],
                 )
                 session.add(specialty)
         session.commit()
