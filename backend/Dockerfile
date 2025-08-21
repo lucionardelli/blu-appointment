@@ -1,29 +1,37 @@
-FROM python:3.12-slim
+# Stage 1: Build stage - Install dependencies
+FROM python:3.12-slim as builder
 
-# Set the working directory in the container
 WORKDIR /app
-
-# Install sqlite3 command-line tool
-RUN apt update && apt install -y \
-    sqlite3 \
-    libsqlite3-dev \
-    && rm -rf /var/lib/apt/lists/*
 
 # Install uv, the Python package installer
 RUN pip install uv
 
-# Copy and install the requirements
-COPY ./requirements.txt /app/requirements.txt
-RUN uv pip install --system --no-cache -r /app/requirements.txt
+# Copy requirements and install dependencies into a virtual environment
+COPY requirements.txt .
+RUN uv venv /opt/venv
+RUN . /opt/venv/bin/activate && uv pip install --no-cache -r requirements.txt
 
-# Copy the backend application's source code from the host to the container
-COPY . /app
+# Stage 2: Production stage
+FROM python:3.12-slim
 
-# Make port 8000 available to the world outside this container
+# Create a non-root user
+RUN useradd --create-home appuser
+WORKDIR /home/appuser/app
+
+# Copy virtual environment from builder stage
+COPY --from=builder /opt/venv /opt/venv
+
+# Copy application code
+COPY . .
+
+# Change ownership of the app directory
+RUN chown -R appuser:appuser /home/appuser/app
+
+# Switch to the non-root user
+USER appuser
+
+# Make port 8000 available
 EXPOSE 8000
 
-# Define environment variable
-ENV APP_MODULE="app.main:app"
-
-# Run uvicorn server
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+# Run the application
+CMD ["/opt/venv/bin/uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

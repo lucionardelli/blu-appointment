@@ -1,25 +1,29 @@
-# Use an official Node.js runtime as a parent image
-FROM node:20-slim
+# Stage 1: Build the Vue.js application
+FROM node:20-slim as build
 
-# Set the working directory in the container
 WORKDIR /app
 
-# Copy package.json and package-lock.json (if available)
+# Copy package files and install dependencies
 COPY package*.json ./
-
-# Install project dependencies
 RUN npm install
 
-# Copy frontend application's source code
+# Copy the rest of the application source code
 COPY . .
 
-# Ensure the entrypoint script is executable
-RUN chmod +x ./entrypoint.sh
+# Build the application for production
+RUN npm run build
 
-ENTRYPOINT ["/app/entrypoint.sh"]
+# Stage 2: Serve the application with Nginx
+FROM nginx:stable-alpine
 
-# Make port 5173 available to the world outside this container
-EXPOSE 5173
+# Copy the built assets from the build stage
+COPY --from=build /app/dist /usr/share/nginx/html
 
-# Run the Vite development server
-CMD ["npm", "run", "dev", "--", "--host"]
+# Copy the custom Nginx configuration
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Expose port 80
+EXPOSE 80
+
+# Run Nginx
+CMD ["nginx", "-g", "daemon off;"]
