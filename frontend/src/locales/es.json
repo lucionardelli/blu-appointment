@@ -1,4 +1,5 @@
 {
+  "appointment": "Sesisón",
   "appointments": "Sesiones",
   "past_appointments": "Sesiones",
   "upcoming_appointments": "Próximas sesiones",
@@ -120,5 +121,8 @@
   "minutes": "minutos",
   "no_matching_options": "No se encontraron opciones",
   "start_typing_to_search": "Escriba para buscar un paciente",
-  "color": "Color"
+  "color": "Color",
+  "status": "Estado",
+  "no_specific_appointment": "Niguna sesión específica",
+  "placeholder_so_commas_dont_break_json": "Placeholder so commas don't break JSON"
 }

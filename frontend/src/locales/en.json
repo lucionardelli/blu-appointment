@@ -1,4 +1,6 @@
 {
+  "appointment": "Appointment",
+  "appointment": "Appointment",
   "appointments": "Appointments",
   "past_appointments": "Past Appointments",
   "upcoming_appointments": "Upcoming Appointments",
@@ -120,5 +122,8 @@
   "minutes": "minutes",
   "no_matching_options": "No matching options",
   "start_typing_to_search": "Start typing to search for a patient",
-  "color": "Color"
+  "color": "Color",
+  "status": "Status",
+  "no_specific_appointment": "No specific appointment",
+  "placeholder_so_commas_dont_break_json": "Placeholder so commas don't break JSON"
 }

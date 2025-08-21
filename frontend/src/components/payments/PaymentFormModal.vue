@@ -1,6 +1,6 @@
 <template>
   <div
-    class="fixed inset-0 z-10 overflow-y-auto bg-gray-500 bg-opacity-75"
+    class="fixed inset-0 z-50 overflow-y-auto bg-gray-500 bg-opacity-75"
     aria-labelledby="modal-title"
     role="dialog"
     aria-modal="true"
@@ -23,6 +23,7 @@
               <div class="mt-2">
                 <PaymentForm
                   :patient-id="props.patientId"
+                  :appointments="props.appointments"
                   @save="handleSave"
                   @cancel="handleCancel"
                 />
@@ -36,6 +37,7 @@
 </template>
 
 <script setup>
+import { onMounted, onUnmounted } from "vue";
 import PaymentForm from "@/components/appointments/PaymentForm.vue";
 import { useI18n } from "vue-i18n";
 
@@ -46,6 +48,10 @@ const props = defineProps({
     type: [String, Number],
     required: true,
   },
+  appointments: {
+    type: Array,
+    default: () => [],
+  },
 });
 
 const emit = defineEmits(["save", "close"]);
@@ -54,7 +60,21 @@ const handleSave = () => {
   emit("save");
 };
 
+const handleKeydown = (e) => {
+  if (e.key === "Escape") {
+    emit("close");
+  }
+};
+
 const handleCancel = () => {
   emit("close");
 };
+
+onMounted(() => {
+  document.addEventListener("keydown", handleKeydown);
+});
+
+onUnmounted(() => {
+  document.removeEventListener("keydown", handleKeydown);
+});
 </script>

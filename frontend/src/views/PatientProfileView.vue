@@ -249,19 +249,17 @@
                       :searchable="true"
                       :loading="referredBySearchLoading"
                       class="block w-full mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                      @search="onReferredBySearch"
                       :append-to-body="true"
+                      @search="onReferredBySearch"
                     >
-                      <template #no-options="{ searching, loading }">
+                      <template #no-options="{ searching }">
                         <template v-if="searching">
                           <span v-if="!loading">{{
                             t("no_matching_options")
                           }}</span>
                           <span v-else>{{ t("loading") }}</span>
                         </template>
-                        <span v-else>{{
-                          t("start_typing_to_search")
-                        }}</span>
+                        <span v-else>{{ t("start_typing_to_search") }}</span>
                       </template>
                     </v-select>
                     <div
@@ -272,9 +270,7 @@
                         v-if="referredBySnippet.nickname"
                         class="ml-2 text-xs text-gray-600"
                       >
-                        {{ t("nickname") }}: ({{
-                          referredBySnippet.nickname
-                        }})
+                        {{ t("nickname") }}: ({{ referredBySnippet.nickname }})
                       </p>
                       <p class="text-sm text-gray-500">
                         {{ t("age") }}:
@@ -296,16 +292,13 @@
                       <p class="text-sm text-gray-500">
                         {{ t("last_appointment") }}:
                         {{
-                          formatDate(
-                            referredBySnippet.last_appointment_date,
-                          ) || "N/A"
+                          formatDate(referredBySnippet.last_appointment_date) ||
+                          "N/A"
                         }}
                       </p>
                       <p class="text-sm text-gray-500">
                         {{ t("total_due") }}:
-                        {{
-                          formatCurrency(referredBySnippet.total_due || 0)
-                        }}
+                        {{ formatCurrency(referredBySnippet.total_due || 0) }}
                       </p>
                     </div>
                     <span v-if="!isEditing">{{
@@ -619,6 +612,7 @@
     <PaymentFormModal
       v-if="showPaymentForm"
       :patient-id="patient.id"
+      :appointments="appointments"
       @close="showPaymentForm = false"
       @save="handlePaymentSave"
     />
@@ -707,10 +701,7 @@ watch(
           const response = await api.get(`/patients/${newReferredById}`);
           referredByOptions.value.push(response.data);
         } catch (error) {
-          console.error(
-            "Error fetching selected referred by patient:",
-            error,
-          );
+          console.error("Error fetching selected referred by patient:", error);
         }
       }
     } else {
