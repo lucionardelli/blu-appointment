@@ -88,14 +88,14 @@ def get_appointments(
     db: Session,
     skip: int = 0,
     limit: int = 100,
-    user_id: int | None = None,
+    patient_id: int | None = None,
     status: list[models.AppointmentStatus] | None = None,
 ) -> list[models.Appointment]:
     """Get appointments with patient and specialty data for calendar display"""
     base_query = db.query(models.Appointment)
 
-    if user_id is not None:
-        base_query = base_query.filter(models.Appointment.patient_id == user_id)
+    if patient_id is not None:
+        base_query = base_query.filter(models.Appointment.patient_id == patient_id)
     if status is not None:
         base_query = base_query.filter(models.Appointment.status.in_(status))
 

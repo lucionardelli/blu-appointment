@@ -32,14 +32,14 @@ def get_appointments(
     db: Annotated[Session, Depends(get_db)],
     skip: int = 0,
     limit: int = 100,
-    user_id: int | None = None,
+    patient_id: int | None = None,
     status: Annotated[
         list[schemas.AppointmentStatus] | None,
         Query(description="Filter by appointment status. Can be specified multiple times."),
     ] = None,
     _current_user: Annotated[User, Depends(get_current_user)] = None,
 ) -> list[schemas.Appointment]:
-    return services.get_appointments(db=db, skip=skip, limit=limit, user_id=user_id, status=status)
+    return services.get_appointments(db=db, skip=skip, limit=limit, patient_id=patient_id, status=status)
 
 
 @router.get("/{appointment_id}", response_model=schemas.Appointment)
