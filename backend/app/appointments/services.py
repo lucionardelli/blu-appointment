@@ -5,6 +5,8 @@ from sqlalchemy.orm import Session
 from app.specialties.services import get_current_price_for_specialty, get_specialty_by_id
 
 from . import models, schemas
+from app.payments import schemas as payment_schemas
+from app.payments import models as payment_models
 
 
 def create_appointment(
@@ -144,13 +146,13 @@ def update_appointment(
 def add_payment(
     db: Session,
     appointment_id: int,
-    payment_in: schemas.PaymentCreate,
-) -> models.Payment:
+    payment_in: payment_schemas.PaymentCreate,
+) -> payment_models.Payment:
     db_appointment = db.query(models.Appointment).filter(models.Appointment.id == appointment_id).first()
     if not db_appointment:
         return None
 
-    db_payment = models.Payment(
+    db_payment = payment_models.Payment(
         appointment_id=appointment_id,
         amount=payment_in.amount,
         method=payment_in.method,
@@ -162,8 +164,8 @@ def add_payment(
     return db_payment
 
 
-def get_payments_for_appointment(db: Session, appointment_id: int) -> list[models.Payment]:
-    return db.query(models.Payment).filter(models.Payment.appointment_id == appointment_id).all()
+def get_payments_for_appointment(db: Session, appointment_id: int) -> list[payment_models.Payment]:
+    return db.query(payment_models.Payment).filter(payment_models.Payment.appointment_id == appointment_id).all()
 
 
 def get_working_hours(db: Session) -> list[models.WorkingHours]:

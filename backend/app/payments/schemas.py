@@ -23,21 +23,23 @@ class PaymentMethod(PaymentMethodBase):
 
 class PaymentBase(BaseModel):
     amount: Decimal
-    method: PaymentMethod
     payment_date: datetime | None = None
     appointment_id: int | None = None
     patient_id: int
 
 
 class PaymentCreate(PaymentBase):
+    payment_method_id: int
     pass
 
 
 class PaymentUpdate(PaymentBase):
+    payment_method_id: int
     pass
 
 
 class Payment(PaymentBase):
     id: int
+    payment_method: PaymentMethod
 
     model_config = ConfigDict(from_attributes=True)

@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from app.payments.schemas import Payment, PaymentMethod
+from app.payments.schemas import Payment
 from app.specialties.schemas import MinSpecialtyInfo
 
 from .models import (
@@ -11,16 +11,6 @@ from .models import (
     DayOfWeek,
     RecurringFrequency,
 )
-
-
-class PaymentBase(BaseModel):
-    amount: Decimal = Field(..., gt=0)
-    method: PaymentMethod
-
-
-class PaymentCreate(PaymentBase):
-    pass
-
 
 class AppointmentBase(BaseModel):
     id: int

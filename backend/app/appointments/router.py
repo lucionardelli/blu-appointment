@@ -10,6 +10,7 @@ from app.users.models import User
 from app.specialties.rules import get_treatment_duration
 
 from . import services, metrics, models, schemas
+from app.payments import schemas as payment_schemas
 
 router = APIRouter()
 
@@ -104,10 +105,10 @@ def reschedule_appointment(
     return db_appointment
 
 
-@router.post("/{appointment_id}/payments", response_model=schemas.Payment)
+@router.post("/{appointment_id}/payments", response_model=payment_schemas.Payment)
 def add_payment_to_appointment(
     appointment_id: int,
-    payment: schemas.PaymentCreate,
+    payment: payment_schemas.PaymentCreate,
     db: Annotated[Session, Depends(get_db)],
     _current_user: Annotated[User, Depends(get_current_user)],
 ) -> models.Payment:
@@ -117,7 +118,7 @@ def add_payment_to_appointment(
     return services.add_payment(db, appointment_id=appointment_id, payment_in=payment)
 
 
-@router.get("/{appointment_id}/payments", response_model=list[schemas.Payment])
+@router.get("/{appointment_id}/payments", response_model=list[payment_schemas.Payment])
 def get_payments_for_appointment(
     appointment_id: int,
     db: Annotated[Session, Depends(get_db)],
