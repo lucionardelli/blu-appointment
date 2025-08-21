@@ -75,6 +75,19 @@
                 />
               </dd>
             </div>
+            <div
+              class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
+            >
+              <dt class="text-sm font-medium text-gray-500">
+                {{ t("color") }}
+              </dt>
+              <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                <Chrome
+                  :model-value="specialtyColorObject"
+                  @update:model-value="updateColor"
+                />
+              </dd>
+            </div>
           </dl>
         </form>
       </div>
@@ -127,6 +140,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from "vue";
+import { Chrome } from "@ckpack/vue-color";
 import { useRoute, useRouter } from "vue-router";
 import api from "@/services/api";
 import { formatDate, formatCurrency } from "@/utils/formatDate";
@@ -140,7 +154,41 @@ const specialty = ref({
   name: "",
   default_duration_minutes: 0,
   current_price: 0,
+  color: "#4F46E5FF", // Default color with full opacity
 });
+
+function hexToRgba(hex) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  const a = hex.length === 9 ? parseInt(hex.slice(7, 9), 16) / 255 : 1;
+  return { r, g, b, a };
+}
+
+function rgbaToHex({ r, g, b, a }) {
+  const toHex = (c) => c.toString(16).padStart(2, "0");
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}${toHex(Math.round(a * 255))}`.toUpperCase();
+}
+
+const specialtyColorObject = computed({
+  get: () => {
+    if (!specialty.value.color) {
+      return { r: 0, g: 0, b: 0, a: 1 }; // Default to black if no color
+    }
+    return hexToRgba(specialty.value.color);
+  },
+  // eslint-disable-next-line no-unused-vars
+  set: (newColor) => {
+    // This setter is not directly used by Chrome
+    // The updateColor method will handle the actual model update
+  },
+});
+
+const updateColor = (newColor) => {
+  const { r, g, b, a } = newColor.rgba;
+  specialty.value.color = rgbaToHex({ r, g, b, a });
+};
+
 const pricingHistory = ref([]);
 
 const isNew = computed(() => !route.params.id);

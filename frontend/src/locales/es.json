@@ -119,5 +119,6 @@
   "suggested_treatment_duration": "Duración sugerida del tratamiento",
   "minutes": "minutos",
   "no_matching_options": "No se encontraron opciones",
-  "start_typing_to_search": "Escriba para buscar un paciente"
+  "start_typing_to_search": "Escriba para buscar un paciente",
+  "color": "Color"
 }

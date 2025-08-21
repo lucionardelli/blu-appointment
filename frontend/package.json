@@ -11,6 +11,7 @@
     "format": "prettier --write . --ignore-path .prettierignore"
   },
   "dependencies": {
+    "@ckpack/vue-color": "^1.6.0",
     "@fullcalendar/daygrid": "^6.1.18",
     "@fullcalendar/interaction": "^6.1.18",
     "@fullcalendar/list": "^6.1.19",

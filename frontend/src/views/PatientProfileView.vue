@@ -250,12 +250,65 @@
                       :loading="referredBySearchLoading"
                       class="block w-full mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
                       @search="onReferredBySearch"
+                      :append-to-body="true"
                     >
-                      <template #option="option">
-                        <div>{{ option.name }}</div>
+                      <template #no-options="{ searching, loading }">
+                        <template v-if="searching">
+                          <span v-if="!loading">{{
+                            t("no_matching_options")
+                          }}</span>
+                          <span v-else>{{ t("loading") }}</span>
+                        </template>
+                        <span v-else>{{
+                          t("start_typing_to_search")
+                        }}</span>
                       </template>
                     </v-select>
-                    <span v-else>{{
+                    <div
+                      v-if="isEditing && referredBySnippet"
+                      class="mt-2 p-4 bg-gray-100 rounded-md sm:flex sm:justify-between"
+                    >
+                      <p
+                        v-if="referredBySnippet.nickname"
+                        class="ml-2 text-xs text-gray-600"
+                      >
+                        {{ t("nickname") }}: ({{
+                          referredBySnippet.nickname
+                        }})
+                      </p>
+                      <p class="text-sm text-gray-500">
+                        {{ t("age") }}:
+                        <span
+                          :class="{
+                            'text-red-500 font-semibold':
+                              referredBySnippet.is_underage,
+                          }"
+                          >{{ referredBySnippet.age }}</span
+                        >
+                      </p>
+                      <p class="text-sm text-gray-500">
+                        {{ t("past_appointments") }}:
+                        {{
+                          referredBySnippet.appointment_summary
+                            .past_appointments
+                        }}
+                      </p>
+                      <p class="text-sm text-gray-500">
+                        {{ t("last_appointment") }}:
+                        {{
+                          formatDate(
+                            referredBySnippet.last_appointment_date,
+                          ) || "N/A"
+                        }}
+                      </p>
+                      <p class="text-sm text-gray-500">
+                        {{ t("total_due") }}:
+                        {{
+                          formatCurrency(referredBySnippet.total_due || 0)
+                        }}
+                      </p>
+                    </div>
+                    <span v-if="!isEditing">{{
                       referredByPatientName || t("not_specified")
                     }}</span>
                   </dd>
@@ -517,7 +570,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 import api from "@/services/api";
@@ -547,12 +600,14 @@ const errors = ref({});
 const referredByOptions = ref([]);
 const referredBySearchLoading = ref(false);
 const referredByPatientName = ref(null);
+const referredBySnippet = ref(null);
 
 const onReferredBySearch = async (search, loading) => {
   if (search.length) {
     loading(true);
+    referredBySearchLoading.value = true;
     try {
-      const response = await api.get("/patients/search", {
+      const response = await api.get("/patients", {
         params: { query: search, limit: 10 },
       });
       referredByOptions.value = response.data.items;
@@ -560,11 +615,51 @@ const onReferredBySearch = async (search, loading) => {
       console.error("Error searching referred by patients:", error);
     } finally {
       loading(false);
+      referredBySearchLoading.value = false;
     }
-  } else {
-    referredByOptions.value = [];
   }
 };
+
+const fetchReferredBySnippet = async () => {
+  if (!patient.value.referred_by_patient_id) {
+    referredBySnippet.value = null;
+    return;
+  }
+  try {
+    const response = await api.get(
+      `/patients/${patient.value.referred_by_patient_id}`,
+    );
+    referredBySnippet.value = response.data;
+  } catch (error) {
+    console.error("Error fetching referred by patient snippet:", error);
+  }
+};
+
+watch(
+  () => patient.value?.referred_by_patient_id,
+  async (newReferredById) => {
+    if (newReferredById) {
+      await fetchReferredBySnippet();
+      const selectedPatient = referredByOptions.value.find(
+        (p) => p.id === newReferredById,
+      );
+      if (!selectedPatient) {
+        try {
+          const response = await api.get(`/patients/${newReferredById}`);
+          referredByOptions.value.push(response.data);
+        } catch (error) {
+          console.error(
+            "Error fetching selected referred by patient:",
+            error,
+          );
+        }
+      }
+    } else {
+      referredBySnippet.value = null;
+    }
+  },
+);
+
 const loading = ref(true);
 const error = ref(false);
 
@@ -790,6 +885,7 @@ onMounted(async () => {
 
     // If a referred_by_patient_id is already set, ensure it's in the options
     if (patient.value && patient.value.referred_by_patient_id) {
+      await fetchReferredBySnippet();
       const selectedReferredBy = referredByOptions.value.find(
         (p) => p.id === patient.value.referred_by_patient_id,
       );

@@ -36,10 +36,12 @@ import esLocale from "@fullcalendar/core/locales/es";
 import api from "@/services/api";
 import AppointmentFormModal from "@/components/appointments/AppointmentFormModal.vue";
 import { useSettingsStore } from "@/stores/settings";
+import { useSpecialtyStore } from "@/stores/specialties";
 
 const { t, locale } = useI18n();
 const settingsStore = useSettingsStore();
 const { workingHoursRaw, businessHours } = storeToRefs(settingsStore);
+const specialtyStore = useSpecialtyStore();
 
 const showModal = ref(false);
 const selectedDate = ref("");
@@ -76,6 +78,9 @@ const fetchAppointments = async (info, successCallback, failureCallback) => {
 onMounted(async () => {
   if (!workingHoursRaw.value.length) {
     await settingsStore.fetchWorkingHours();
+  }
+  if (!specialtyStore.specialties.length) {
+    await specialtyStore.fetchSpecialties();
   }
 });
 
@@ -198,29 +203,47 @@ const handleSave = async () => {
   }
 };
 
-// Move these to the BE as an attribute of the specialty
-const specialtyColors = {
-  1: "#10B981", // Therapy
-  2: "#3B82F6", // Bluroom
-};
+function hexToRgbaArray(hex) {
+  let r = 0,
+    g = 0,
+    b = 0,
+    a = 1;
+
+  if (hex.length === 9) {
+    // #RRGGBBAA
+    r = parseInt(hex.slice(1, 3), 16);
+    g = parseInt(hex.slice(3, 5), 16);
+    b = parseInt(hex.slice(5, 7), 16);
+    a = parseInt(hex.slice(7, 9), 16) / 255;
+  } else if (hex.length === 7) {
+    // #RRGGBB
+    r = parseInt(hex.slice(1, 3), 16);
+    g = parseInt(hex.slice(3, 5), 16);
+    b = parseInt(hex.slice(5, 7), 16);
+  } else if (hex.length === 4) {
+    // #RGB
+    r = parseInt(hex[1] + hex[1], 16);
+    g = parseInt(hex[2] + hex[2], 16);
+    b = parseInt(hex[3] + hex[3], 16);
+  }
+  return [r, g, b, a];
+}
 
 const getEventColor = (appointment) => {
-  const baseColor = specialtyColors[appointment.specialty.id] || "#4F46E5";
+  const specialtyColor = appointment.specialty?.color;
+  let [r, g, b, a] = hexToRgbaArray(specialtyColor || "#4F46E5FF"); // Default to a shade of indigo with full opacity
+
   // If appointment is on the past, show it as greyed out
   if (new Date(appointment.start_time) < new Date()) {
-    return applyOpacity(baseColor, 0.2);
+    a = 0.2; // Override opacity for past appointments
   }
-  return appointment.cancelled ? applyOpacity(baseColor, 0.1) : baseColor;
-};
+  // If cancelled, apply specific opacity
+  if (appointment.cancelled) {
+    a = 0.1; // Override opacity for cancelled appointments
+  }
 
-function applyOpacity(hex, opacity) {
-  // Simple hex to rgba converter
-  const bigint = parseInt(hex.slice(1), 16);
-  const r = (bigint >> 16) & 255;
-  const g = (bigint >> 8) & 255;
-  const b = bigint & 255;
-  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
-}
+  return `rgba(${r}, ${g}, ${b}, ${a})`;
+};
 
 const isOutsideWorkingHours = (appointment) => {
   const start = new Date(appointment.start_time);
