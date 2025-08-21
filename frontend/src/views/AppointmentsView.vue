@@ -11,7 +11,7 @@
         {{ t("new_appointment") }}
       </button>
     </div>
-    <FullCalendar :options="calendarOptions" />
+    <FullCalendar ref="fullCalendarRef" :options="calendarOptions" />
     <AppointmentFormModal
       v-if="showModal"
       :initial-date="selectedDate"
@@ -45,7 +45,7 @@ const showModal = ref(false);
 const selectedDate = ref("");
 const selectedEndDate = ref("");
 const selectedAppointmentId = ref(null);
-
+const fullCalendarRef = ref(null);
 const fetchAppointments = async (info, successCallback, failureCallback) => {
   try {
     const response = await api.get("/appointments/", {
@@ -193,6 +193,9 @@ const calendarOptions = computed(() => ({
 
 const handleSave = async () => {
   showModal.value = false;
+  if (fullCalendarRef.value) {
+    fullCalendarRef.value.getApi().refetchEvents();
+  }
 };
 
 // Move these to the BE as an attribute of the specialty
