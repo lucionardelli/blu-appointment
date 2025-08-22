@@ -24,8 +24,8 @@ WORKDIR /home/appuser/app
 # Copy virtual environment from builder stage
 COPY --from=builder /opt/venv /opt/venv
 
-# Copy application code from the app directory
-COPY ./app .
+# Copy application code
+COPY . .
 
 # Change ownership of the app directory and the virtual environment
 RUN chown -R appuser:appuser /home/appuser/app && chown -R appuser:appuser /opt/venv
@@ -40,4 +40,4 @@ ENV PATH="/opt/venv/bin:$PATH"
 EXPOSE 8000
 
 # Run the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
