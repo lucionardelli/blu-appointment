@@ -14,6 +14,9 @@ RUN . /opt/venv/bin/activate && uv pip install --no-cache -r requirements.txt
 # Stage 2: Production stage
 FROM python:3.12-slim
 
+# Install sqlite3 client
+RUN apt-get update && apt-get install -y sqlite3 && rm -rf /var/lib/apt/lists/*
+
 # Create a non-root user
 RUN useradd --create-home appuser
 WORKDIR /home/appuser/app

@@ -16,7 +16,7 @@ repos:
         name: Frontend Lint & Format
         # entry: docker compose exec -T frontend sh -c 'npx eslint --fix "$@" && npx prettier --write "$@"'
         entry: >
-            docker compose exec -T frontend sh -c '
+            docker compose -f docker-compose.dev.yml exec -T frontend sh -c '
                 if [ $# -eq 0 ]; then
                     echo "No frontend files to lint/format. Skipping.";
                     exit 0;
