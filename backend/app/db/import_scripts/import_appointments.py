@@ -8,7 +8,9 @@ from pathlib import Path
 
 from sqlalchemy.orm import Session
 
-from app.appointments.models import Appointment, AppointmentStatus, Payment, PaymentMethod
+from app.appointments.models import Appointment, AppointmentStatus
+from app.payments.models import Payment, PaymentMethod
+
 from app.patients.models import Patient
 from app.specialties.models import Specialty
 
