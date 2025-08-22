@@ -65,6 +65,10 @@ db.sqlite3-journal
 instance/
 .webassets-cache
 
+# DBs probably shouldn't go into version control
+# SQLite
+*.sqlite3
+
 # Scrapy stuff:
 .scrapy
 

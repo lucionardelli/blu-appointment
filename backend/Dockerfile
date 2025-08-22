@@ -1,5 +1,5 @@
 # Stage 1: Build stage - Install dependencies
-FROM python:3.12-slim as builder
+FROM python:3.12-slim AS builder
 
 WORKDIR /app
 
@@ -21,17 +21,20 @@ WORKDIR /home/appuser/app
 # Copy virtual environment from builder stage
 COPY --from=builder /opt/venv /opt/venv
 
-# Copy application code
-COPY . .
+# Copy application code from the app directory
+COPY ./app .
 
-# Change ownership of the app directory
-RUN chown -R appuser:appuser /home/appuser/app
+# Change ownership of the app directory and the virtual environment
+RUN chown -R appuser:appuser /home/appuser/app && chown -R appuser:appuser /opt/venv
 
 # Switch to the non-root user
 USER appuser
+
+# Add venv to the PATH
+ENV PATH="/opt/venv/bin:$PATH"
 
 # Make port 8000 available
 EXPOSE 8000
 
 # Run the application
-CMD ["/opt/venv/bin/uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

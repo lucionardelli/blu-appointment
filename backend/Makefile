@@ -25,7 +25,7 @@ test-bash::
 	docker compose run tests /bin/bash
 
 db::
-	docker compose exec -it backend sqlite3 /app/db/blu.db
+	docker compose exec -it backend sqlite3 /app/db/blu.sqlite3
 
 bash::
 	docker compose exec -ti backend bash

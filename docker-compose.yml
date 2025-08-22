@@ -13,9 +13,6 @@ services:
       - .env
     environment:
       - PYTHONPATH=/app
-      - DATABASE_URL=sqlite:///db/${DATABASE_NAME}
-      - SECRET_KEY=${SECRET_KEY}
-      - FERNET_KEY=${FERNET_KEY}
     healthcheck:
       test: [ "CMD-SHELL", "curl -s --max-time 5 localhost:8000 && exit 0 || exit 1" ]
       interval: 15s
@@ -31,17 +28,13 @@ services:
       - ./backend:/app:cached
     depends_on:
       - backend
-    environment:
-      - BACKEND_URL=http://backend:8000
-      - SECRET_KEY=${TEST_SECRET_KEY}
-      - FERNET_KEY=${TEST_FERNET_KEY}
     restart: unless-stopped
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "5173:5173"
+      - "5173:80"
     volumes:
       - ./frontend:/app:cached
       - /app/node_modules

@@ -1,19 +1,25 @@
+import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+# Base directory for the backend application
+APP_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.dirname(APP_DIR)
 
 class Settings(BaseSettings):
-    # This key is used for encrypting/decrypting sensitive data like medical history.
-    # It MUST be a 32-byte URL-safe base64-encoded string.
-    # You can generate one with: `from cryptography.fernet import Fernet; Fernet.generate_key().decode()`
-    FERNET_KEY: str = "super_secret_key_for_encryption"
+    # Security keys. These MUST be set in the environment for production.
+    # You can generate them with:
+    # FERNET_KEY: from cryptography.fernet import Fernet; Fernet.generate_key().decode()
+    # SECRET_KEY: openssl rand -hex 32
+    FERNET_KEY: str
+    SECRET_KEY: str
 
-    # This key is for signing JWTs
-    SECRET_KEY: str = "super_secret_key_for_jwt"  # noqa: S105
+    # Database URL.
+    # Defaults to a local SQLite database in the .app//db/ directory.
+    DATABASE_URL: str = f"sqlite:///{os.path.join(APP_DIR, 'db', 'blu.sqlite3')}"
 
-    DATABASE_NAME: str = "blu.db"
-    DATABASE_URL: str = f"sqlite:///db/{DATABASE_NAME}"
-
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+    # Pydantic settings configuration
+    # It will load variables from a .env file and the system environment.
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
 
 settings = Settings()

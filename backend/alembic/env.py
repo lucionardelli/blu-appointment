@@ -1,5 +1,6 @@
 import sys
 from logging.config import fileConfig
+from os import getenv
 from pathlib import Path
 
 from alembic import context
@@ -19,14 +20,18 @@ app_dir = Path(__file__).parent.parent.resolve()
 sys.path.insert(0, str(app_dir))
 
 # Import the base model from your application
-from app.db.base import Base
-from app.users.models import *
-from app.specialties.models import *
-from app.patients.models import *
 from app.appointments.models import *
+from app.db.base import Base
+from app.patients.models import *
+from app.specialties.models import *
+from app.users.models import *
 
 # The target metadata for 'autogenerate' support
 target_metadata = Base.metadata
+
+# Load URL from environment variable
+if url := getenv("DATABASE_URL"):
+    config.set_main_option("sqlalchemy.url", url)
 
 
 def run_migrations_offline() -> None:
