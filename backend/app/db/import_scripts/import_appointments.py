@@ -146,6 +146,30 @@ def load_specialties(db: Session) -> dict[str, int]:
     return specialties
 
 
+def load_payment_methods(db: Session) -> dict[str, PaymentMethod]:
+    """Load payment methods from database"""
+
+    payment_methods = {}
+
+    cash_method = db.query(PaymentMethod).filter(PaymentMethod.name.ilike("%cash%")).first()
+    cc_method = db.query(PaymentMethod).filter(PaymentMethod.name.ilike("%card%")).first()
+
+    if cash_method:
+        payment_methods["cash"] = cash_method.id
+        logger.info("Found cash payment method: %s (ID: %d)", cash_method.name, cash_method.id)
+    else:
+        logger.error("Cash payment method not found in database!")
+        raise ValueError("Required payment method 'cash' not found")
+
+    if cc_method:
+        payment_methods["card"] = cc_method.id
+        logger.info("Found card payment method: %s (ID: %d)", cc_method.name, cc_method.id)
+    else:
+        logger.error("Card payment method not found in database!")
+        raise ValueError("Required payment method 'card' not found")
+
+    return payment_methods
+
 def import_appointments_from_csv(file_path: str, db: Session) -> None:  # noqa: C901, PLR0912, PLR0915
     """Import appointments from CSV file into database.
 
@@ -168,6 +192,7 @@ def import_appointments_from_csv(file_path: str, db: Session) -> None:  # noqa: 
         logger.info("Reading CSV file: %s", file_path)
 
         specialties = load_specialties(db)
+        payment_methods = load_payment_methods(db)
 
         successful_imports = 0
         failed_imports = 0
@@ -309,9 +334,10 @@ def import_appointments_from_csv(file_path: str, db: Session) -> None:  # noqa: 
                     if cash_payment:
                         cash_payment_data = {
                             "amount": cash_payment,
-                            "method": PaymentMethod.CASH,
+                            "payment_method_id": payment_methods["cash"],
                             "payment_date": start_datetime,
                             "appointment_id": appointment.id,
+                            "patient_id": patient.id,
                         }
                         logger.debug("  Adding cash payment: $%s", cash_payment)
                         payment = Payment(**cash_payment_data)
@@ -322,9 +348,10 @@ def import_appointments_from_csv(file_path: str, db: Session) -> None:  # noqa: 
                     if card_payment:
                         card_payment_data = {
                             "amount": card_payment,
-                            "method": PaymentMethod.CREDIT_CARD,
+                            "payment_method_id": payment_methods["card"],
                             "payment_date": start_datetime,
                             "appointment_id": appointment.id,
+                            "patient_id": patient.id,
                         }
                         logger.debug("  Adding card payment: $%s", card_payment)
                         payment = Payment(**card_payment_data)
