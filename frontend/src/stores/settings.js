@@ -41,7 +41,7 @@ export const useSettingsStore = defineStore("settings", {
     async fetchWorkingHours() {
       this.loading = true;
       try {
-        const response = await api.get("/appointments/working-hours/");
+        const response = await api.get("/working-hours/");
         this.workingHoursRaw = response.data;
       } catch (error) {
         console.error("Error fetching working hours, using defaults.", error);

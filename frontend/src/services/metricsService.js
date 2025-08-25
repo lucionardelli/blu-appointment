@@ -3,7 +3,7 @@ import api from "./api";
 export default {
   async getAppointmentMetrics(startTime, endTime) {
     try {
-      const response = await api.get("/appointments/metrics/", {
+      const response = await api.get("/metrics/", {
         params: {
           start_date: startTime,
           end_date: endTime,
@@ -18,7 +18,7 @@ export default {
 
   async getDashboardMetrics() {
     try {
-      const response = await api.get("/appointments/metrics/dashboard/");
+      const response = await api.get("/metrics/dashboard/");
       return response.data;
     } catch (error) {
       console.error("Error fetching dashboard metrics:", error);
