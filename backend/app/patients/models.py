@@ -7,6 +7,7 @@ from sqlalchemy.types import Date, String, Text
 
 from app.appointments.models import Appointment, Payment
 from app.db.base import Base
+from app.gift_cards.models import GiftCard
 from app.payments.models import Payment
 from app.specialties.models import Specialty
 
@@ -46,6 +47,11 @@ class Patient(Base):
     emergency_contacts = relationship(
         "EmergencyContact", back_populates="patient", order_by="EmergencyContact.priority"
     )
+
+    gift_cards_sent = relationship(
+        "GiftCard", secondary="gift_card_patients", back_populates="from_patients"
+    )
+    gift_cards_received = relationship("GiftCard", back_populates="to_patient", foreign_keys=[GiftCard.to_patient_id])
 
     credit_balance = column_property(
         select(func.coalesce(func.sum(Payment.amount), 0))

@@ -11,6 +11,7 @@ from app.specialties.router import router as specialties_router
 from app.users.router import router as users_router
 from app.auth.router import router as auth_router
 from app.payments.router import payments_router, payment_methods_router
+from app.gift_cards.router import router as gift_cards_router
 
 
 @asynccontextmanager
@@ -54,3 +55,4 @@ app.include_router(working_hours_router, prefix="/api/v1/working-hours", tags=["
 app.include_router(metrics_router, prefix="/api/v1/metrics", tags=["metrics"])
 app.include_router(payment_methods_router, prefix="/api/v1/payment_methods", tags=["payment_methods"])
 app.include_router(payments_router, prefix="/api/v1/payments", tags=["payments"])
+app.include_router(gift_cards_router, prefix="/api/v1/gift_cards", tags=["gift_cards"])

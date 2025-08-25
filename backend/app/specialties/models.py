@@ -26,6 +26,7 @@ class Specialty(Base):
 
     prices = relationship("SpecialtyPrice", back_populates="specialty", cascade="all, delete-orphan")
     appointments = relationship("Appointment", back_populates="specialty")
+    gift_cards = relationship("GiftCard", back_populates="specialty")
 
     @hybrid_property
     def current_price(self) -> Decimal | None:
