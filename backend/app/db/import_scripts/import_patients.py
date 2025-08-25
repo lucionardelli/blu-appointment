@@ -4,6 +4,7 @@ import re
 from datetime import date
 
 from sqlalchemy.orm import Session
+from app.specialties.models import Specialty
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -146,6 +147,15 @@ def clean_email(email: str | None) -> str | None:
         logger.debug(f"Invalid email format: {cleaned_email}")
         return None
 
+def get_blu_specialty_id(db: Session) -> int:
+    # Look for bluroom specialty
+    bluroom = db.query(Specialty).filter(Specialty.name.ilike("%bluroom%")).first()
+    if not bluroom:
+        logger.error("Bluroom specialty not found in database!")
+        raise ValueError("Required specialty 'bluroom' not found")
+    logger.info("Found Bluroom specialty: %s (ID: %d)", bluroom.name, bluroom.id)
+    return bluroom.id
+
 
 def import_patients_from_csv(file_path: str, db: Session):
     """Import patients from CSV file into database.
@@ -171,7 +181,9 @@ def import_patients_from_csv(file_path: str, db: Session):
         logger.info(f"Reading CSV file: {file_path}")
 
         successful_imports = 0
+        sucessful_updates = 0
         failed_imports = 0
+        blu_specialty_id = get_blu_specialty_id(db)
 
         with open(file_path, encoding="utf-8", newline="") as csvfile:
             reader = csv.reader(csvfile)
@@ -223,6 +235,7 @@ def import_patients_from_csv(file_path: str, db: Session):
                         "cellphone": cellphone,
                         "phone": phone,
                         "how_they_found_us": origin,
+                        "default_specialty_id": blu_specialty_id,
                     }
 
                     # Remove None values
@@ -233,14 +246,24 @@ def import_patients_from_csv(file_path: str, db: Session):
 
                     patient = db.query(Patient).filter_by(name=full_name).first()
                     if patient is not None:
-                        raise ValueError(f"Patient already exists: {full_name}")
-                    try:
-                        patient = Patient(**patient_data)
-                        db.add(patient)
-                        db.flush()
-                    except Exception as e:
-                        logger.debug(f"Row {row_num}: Error creating patient object - {e!s}")
-                        raise
+                        logger.debug(f"  Patient {full_name} already exists. Updating record.")
+                        try:
+                            for key, value in patient_data.items():
+                                setattr(patient, key, value)
+                            db.flush()
+                        except Exception as e:
+                            logger.debug(f"Row {row_num}: Error updating patient object - {e!s}")
+                            raise
+                        sucessful_updates += 1
+                    else:
+                        try:
+                            patient = Patient(**patient_data)
+                            db.add(patient)
+                            db.flush()
+                            successful_imports += 1
+                        except Exception as e:
+                            logger.debug(f"Row {row_num}: Error creating patient object - {e!s}")
+                            raise
 
                     # Create emergency contacts
                     for ec_data in emergency_contacts_data:
@@ -256,7 +279,6 @@ def import_patients_from_csv(file_path: str, db: Session):
                             logger.debug(f"Row {row_num}: Error creating emergency contact - {e!s}")
                             raise
 
-                    successful_imports += 1
 
                 except Exception as e:
                     logger.error(f"Row {row_num}: Failed to import patient - {e!s}")
@@ -264,7 +286,7 @@ def import_patients_from_csv(file_path: str, db: Session):
                     # db.rollback()  # Rollback the failed transaction
                     continue
 
-        logger.info(f"Import completed. Successful: {successful_imports}, Failed: {failed_imports}")
+        logger.info(f"Import completed. Successful: {successful_imports}, Updated: {sucessful_updates}, Failed: {failed_imports}")
 
     except Exception as e:
         logger.error(f"Error reading CSV file: {e!s}")

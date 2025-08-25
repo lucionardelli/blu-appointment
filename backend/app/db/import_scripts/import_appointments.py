@@ -32,6 +32,17 @@ def normalize_patient_name(name: str) -> str:
         return ""
     return name.strip().title()
 
+def flip_first_name_last_name(name: str) -> str:
+    """ Patients in all caps are in "LASTNAME FIRSTNAME" format, flip them to "Firstname Lastname" """
+    if not name:
+        return ""
+    parts = name.strip().split()
+    if len(parts) >= 2:
+        last_name = parts[0]
+        first_name = " ".join(parts[1:])
+        return f"{first_name.title()} {last_name.title()}"
+    return name.title()
+
 
 def is_all_caps(name: str) -> bool:
     """Check if the patient name is all in uppercase (indicates Bluroom appointment)"""
@@ -251,6 +262,7 @@ def import_appointments_from_csv(file_path: str, db: Session) -> None:  # noqa: 
 
                     # Determine specialty based on patient name case
                     if is_all_caps(patient_name):
+                        patient_name = flip_first_name_last_name(patient_name)
                         specialty_id = specialties["bluroom"]
                         logger.debug("Row %s: Bluroom appointment (name in caps: %s)", row_num, patient_name)
                     else:
@@ -356,6 +368,13 @@ def import_appointments_from_csv(file_path: str, db: Session) -> None:  # noqa: 
                         logger.debug("  Adding card payment: $%s", card_payment)
                         payment = Payment(**card_payment_data)
                         db.add(payment)
+
+                    if not cash_payment and not card_payment:
+                        logger.warning(
+                            "Row %s: No payment recorded for appointment with cost $%s",
+                            row_num,
+                            cost,
+                        )
 
                     successful_imports += 1
 
