@@ -128,7 +128,7 @@ def find_or_create_patient(db: Session, patient_name: str, specialty_id: int) ->
     return patient
 
 
-def load_specialties(db: Session) -> dict[str, int]:
+def load_specialties(db: Session) -> dict[str, (int, int)]:
     """Load specialties from database"""
 
     specialties = {}
@@ -141,14 +141,14 @@ def load_specialties(db: Session) -> dict[str, int]:
     )
 
     if bluroom:
-        specialties["bluroom"] = bluroom.id
+        specialties["bluroom"] = bluroom.id, bluroom.default_duration_minutes
         logger.info("Found Bluroom specialty: %s (ID: %d)", bluroom.name, bluroom.id)
     else:
         logger.error("Bluroom specialty not found in database!")
         raise ValueError("Required specialty 'bluroom' not found")
 
     if therapy:
-        specialties["therapy"] = therapy.id
+        specialties["therapy"] = therapy.id, therapy.default_duration_minutes
         logger.info("Found Therapy specialty: %s (ID: %d)", therapy.name, therapy.id)
     else:
         logger.error("Therapy specialty not found in database!")
@@ -263,10 +263,10 @@ def import_appointments_from_csv(file_path: str, db: Session) -> None:  # noqa: 
                     # Determine specialty based on patient name case
                     if is_all_caps(patient_name):
                         patient_name = flip_first_name_last_name(patient_name)
-                        specialty_id = specialties["bluroom"]
+                        specialty_id, specialty_duration = specialties["bluroom"]
                         logger.debug("Row %s: Bluroom appointment (name in caps: %s)", row_num, patient_name)
                     else:
-                        specialty_id = specialties["therapy"]
+                        specialty_id, specialty_duration  = specialties["therapy"]
                         logger.debug("Row %s: therapy appointment (name: %s)", row_num, patient_name)
 
                     # Find or create patient
@@ -302,7 +302,7 @@ def import_appointments_from_csv(file_path: str, db: Session) -> None:  # noqa: 
 
                     # Create datetime objects
                     start_datetime = datetime.combine(appointment_date, appointment_time)
-                    end_datetime = start_datetime + timedelta(minutes=60)  # Default 60-minute sessions
+                    end_datetime = start_datetime + timedelta(minutes=specialty_duration)
 
                     # Create appointment data
                     appointment_data = {
