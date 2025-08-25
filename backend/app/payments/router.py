@@ -35,7 +35,7 @@ def read_payment_methods(
     return services.get_payment_methods(db, skip=skip, limit=limit)
 
 
-@payment_methods_router.get("/{payment_method_id}", response_model=schemas.PaymentMethod)
+@payment_methods_router.get("/{payment_method_id}/", response_model=schemas.PaymentMethod)
 def read_payment_method(
     payment_method_id: int,
     db: Annotated[Session, Depends(get_db)],
@@ -47,7 +47,7 @@ def read_payment_method(
     return db_payment_method
 
 
-@payment_methods_router.put("/{payment_method_id}", response_model=schemas.PaymentMethod)
+@payment_methods_router.put("/{payment_method_id}/", response_model=schemas.PaymentMethod)
 def update_payment_method(
     payment_method_id: int,
     payment_method: schemas.PaymentMethodUpdate,
@@ -65,7 +65,7 @@ def update_payment_method(
     return db_payment_method
 
 
-@payment_methods_router.delete("/{payment_method_id}", response_model=schemas.PaymentMethod)
+@payment_methods_router.delete("/{payment_method_id}/", response_model=schemas.PaymentMethod)
 def delete_payment_method(
     payment_method_id: int,
     db: Annotated[Session, Depends(get_db)],
@@ -94,7 +94,7 @@ def read_payments(
     return services.get_payments(db, skip=skip, limit=limit)
 
 
-@payments_router.get("/{payment_id}", response_model=schemas.Payment)
+@payments_router.get("/{payment_id}/", response_model=schemas.Payment)
 def read_payment(
     payment_id: int,
     db: Annotated[Session, Depends(get_db)],
@@ -105,7 +105,7 @@ def read_payment(
     return db_payment
 
 
-@payments_router.put("/{payment_id}", response_model=schemas.Payment)
+@payments_router.put("/{payment_id}/", response_model=schemas.Payment)
 def update_payment(
     payment_id: int,
     payment: schemas.PaymentUpdate,
@@ -117,7 +117,7 @@ def update_payment(
     return db_payment
 
 
-@payments_router.delete("/{payment_id}", response_model=schemas.Payment)
+@payments_router.delete("/{payment_id}/", response_model=schemas.Payment)
 def delete_payment(
     payment_id: int,
     db: Annotated[Session, Depends(get_db)],

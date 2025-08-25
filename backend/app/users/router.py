@@ -40,7 +40,7 @@ def update_logged_user(
     return updated_user
 
 
-@router.put("/password", response_model=schemas.User)
+@router.put("/me/password/", response_model=schemas.User)
 def update_logged_user_password(
     password_update: schemas.UserPasswordUpdate,
     db: Annotated[Session, Depends(get_db)],

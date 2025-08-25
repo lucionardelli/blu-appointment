@@ -42,7 +42,7 @@ def get_appointments(
     return services.get_appointments(db=db, skip=skip, limit=limit, patient_id=patient_id, status=status)
 
 
-@router.get("/{appointment_id}", response_model=schemas.Appointment)
+@router.get("/{appointment_id}/", response_model=schemas.Appointment)
 def get_appointment(
     appointment_id: int,
     db: Annotated[Session, Depends(get_db)],
@@ -67,7 +67,7 @@ def get_appointment(
     return db_appointment
 
 
-@router.put("/{appointment_id}", response_model=schemas.Appointment)
+@router.put("/{appointment_id}/", response_model=schemas.Appointment)
 def update_appointment(
     appointment_id: int,
     appointment_update: schemas.AppointmentUpdate,
@@ -80,7 +80,7 @@ def update_appointment(
     return db_appointment
 
 
-@router.patch("/{appointment_id}/cancel", response_model=schemas.Appointment)
+@router.patch("/{appointment_id}/cancel/", response_model=schemas.Appointment)
 def cancel_appointment(
     appointment_id: int,
     db: Annotated[Session, Depends(get_db)],
@@ -92,7 +92,7 @@ def cancel_appointment(
     return db_appointment
 
 
-@router.patch("/{appointment_id}/reschedule", response_model=schemas.Appointment)
+@router.patch("/{appointment_id}/reschedule/", response_model=schemas.Appointment)
 def reschedule_appointment(
     appointment_id: int,
     new_start_time: Annotated[datetime, Body(embed=True)],
@@ -105,7 +105,7 @@ def reschedule_appointment(
     return db_appointment
 
 
-@router.post("/{appointment_id}/payments", response_model=payment_schemas.Payment)
+@router.post("/{appointment_id}/payments/", response_model=payment_schemas.Payment)
 def add_payment_to_appointment(
     appointment_id: int,
     payment: payment_schemas.PaymentCreate,
@@ -118,7 +118,7 @@ def add_payment_to_appointment(
     return services.add_payment(db, appointment_id=appointment_id, payment_in=payment)
 
 
-@router.get("/{appointment_id}/payments", response_model=list[payment_schemas.Payment])
+@router.get("/{appointment_id}/payments/", response_model=list[payment_schemas.Payment])
 def get_payments_for_appointment(
     appointment_id: int,
     db: Annotated[Session, Depends(get_db)],

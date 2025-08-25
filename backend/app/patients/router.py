@@ -37,7 +37,7 @@ def read_patients(
     return schemas.PaginatedPatientsResponse(total_count=total_count, items=patients)
 
 
-@router.get("/{patient_id}", response_model=schemas.PatientDetails)
+@router.get("/{patient_id}/", response_model=schemas.PatientDetails)
 def read_patient(
     patient_id: int, db: Annotated[Session, Depends(get_db)], _current_user: Annotated[User, Depends(get_current_user)]
 ) -> schemas.PatientDetails:
@@ -51,7 +51,7 @@ def read_patient(
     return schemas.PatientDetails.model_validate(db_patient)
 
 
-@router.get("/{patient_id}/appointments", response_model=list[appt_schemas.Appointment])
+@router.get("/{patient_id}/appointments/", response_model=list[appt_schemas.Appointment])
 def read_patient_appointments(
     patient_id: int,
     db: Annotated[Session, Depends(get_db)],
@@ -65,7 +65,7 @@ def read_patient_appointments(
     return db_appointments
 
 
-@router.put("/{patient_id}", response_model=schemas.Patient)
+@router.put("/{patient_id}/", response_model=schemas.Patient)
 def update_patient(
     patient_id: int,
     patient: schemas.PatientUpdate,
@@ -81,7 +81,7 @@ def update_patient(
     return db_patient
 
 
-@router.get("/{patient_id}/payments", response_model=list[appt_schemas.Payment])
+@router.get("/{patient_id}/payments/", response_model=list[appt_schemas.Payment])
 def read_patient_payments(
     patient_id: int,
     db: Annotated[Session, Depends(get_db)],
@@ -93,7 +93,7 @@ def read_patient_payments(
     return db_payments
 
 
-@router.delete("/{patient_id}", response_model=schemas.Patient)
+@router.delete("/{patient_id}/", response_model=schemas.Patient)
 def delete_patient(
     patient_id: int, db: Annotated[Session, Depends(get_db)], _current_user: Annotated[User, Depends(get_current_user)]
 ) -> schemas.Patient:
@@ -104,7 +104,7 @@ def delete_patient(
 
 
 @router.post(
-    "/{patient_id}/emergency_contacts",
+    "/{patient_id}/emergency_contacts/",
     response_model=schemas.EmergencyContact,
     status_code=status.HTTP_201_CREATED,
 )
@@ -120,7 +120,7 @@ def create_emergency_contact(
     return services.create_emergency_contact(db=db, patient_id=patient_id, contact=contact)
 
 
-@router.get("/{patient_id}/emergency_contacts", response_model=list[schemas.EmergencyContact])
+@router.get("/{patient_id}/emergency_contacts/", response_model=list[schemas.EmergencyContact])
 def read_emergency_contacts(
     patient_id: int,
     db: Annotated[Session, Depends(get_db)],
@@ -133,7 +133,7 @@ def read_emergency_contacts(
 
 
 @router.get(
-    "/{patient_id}/emergency_contacts/{contact_id}",
+    "/{patient_id}/emergency_contacts/{contact_id}/",
     response_model=schemas.EmergencyContact,
 )
 def read_emergency_contact(
@@ -149,7 +149,7 @@ def read_emergency_contact(
 
 
 @router.put(
-    "/{patient_id}/emergency_contacts/{contact_id}",
+    "/{patient_id}/emergency_contacts/{contact_id}/",
     response_model=schemas.EmergencyContact,
 )
 def update_emergency_contact(
@@ -166,7 +166,7 @@ def update_emergency_contact(
 
 
 @router.delete(
-    "/{patient_id}/emergency_contacts/{contact_id}",
+    "/{patient_id}/emergency_contacts/{contact_id}/",
     response_model=schemas.EmergencyContact,
 )
 def delete_emergency_contact(

@@ -37,7 +37,7 @@ def read_specialties(
     return services.get_specialties(db, skip=skip, limit=limit)
 
 
-@router.get("/{specialty_id}", response_model=schemas.Specialty)
+@router.get("/{specialty_id}/", response_model=schemas.Specialty)
 def read_specialty(
     specialty_id: int,
     db: Annotated[Session, Depends(get_db)],
@@ -49,7 +49,7 @@ def read_specialty(
     return db_specialty
 
 
-@router.put("/{specialty_id}", response_model=schemas.Specialty)
+@router.put("/{specialty_id}/", response_model=schemas.Specialty)
 def update_specialty(
     specialty_id: int,
     specialty: schemas.SpecialtyUpdate,
@@ -62,7 +62,7 @@ def update_specialty(
     return db_specialty
 
 
-@router.get("/{specialty_id}/prices", response_model=list[schemas.SpecialtyPrice])
+@router.get("/{specialty_id}/prices/", response_model=list[schemas.SpecialtyPrice])
 def read_specialty_prices(
     specialty_id: int,
     db: Annotated[Session, Depends(get_db)],
@@ -74,7 +74,7 @@ def read_specialty_prices(
     return db_specialty_prices
 
 
-@router.post("/{specialty_id}/prices", response_model=schemas.Specialty)
+@router.post("/{specialty_id}/prices/", response_model=schemas.Specialty)
 def add_new_specialty_price(
     specialty_id: int,
     price: schemas.SpecialtyPriceCreate,
