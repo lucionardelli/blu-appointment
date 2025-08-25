@@ -172,6 +172,8 @@
                 :minutes-increment="15"
                 text-input
                 auto-apply
+                :locale="locale"
+                :format="formatForPicker"
                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
               />
             </div>
@@ -187,6 +189,8 @@
                 :minutes-increment="15"
                 text-input
                 auto-apply
+                :locale="locale"
+                :format="formatForPicker"
                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
               />
             </div>
@@ -324,17 +328,22 @@ import { ref, onMounted, computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import api from "@/services/api";
-import { format, addMinutes } from "date-fns";
+import { addMinutes } from "date-fns";
 import DatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
-import { formatDate, formatCurrency } from "@/utils/formatDate";
+import { formatDate, formatTime, formatCurrency } from "@/utils/formatDate";
 import PaymentForm from "./PaymentForm.vue";
 import { useSpecialtyStore } from "@/stores/specialties";
 
 import vSelect from "vue-select";
 import "vue-select/dist/vue-select.css";
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
+
+const formatForPicker = (date) => {
+  if (!date) return "";
+  return `${formatDate(date)} ${formatTime(date)}`;
+};
 
 const props = defineProps({
   inModal: {
@@ -430,16 +439,10 @@ const fetchAppointment = async () => {
     };
 
     if (appointment.value.start_time) {
-      appointment.value.start_time = format(
-        new Date(appointment.value.start_time),
-        "yyyy-MM-dd'T'HH:mm",
-      );
+      appointment.value.start_time = new Date(appointment.value.start_time);
     }
     if (appointment.value.end_time) {
-      appointment.value.end_time = format(
-        new Date(appointment.value.end_time),
-        "yyyy-MM-dd'T'HH:mm",
-      );
+      appointment.value.end_time = new Date(appointment.value.end_time);
     }
   } catch (error) {
     console.error("Error fetching appointment:", error);
@@ -505,10 +508,10 @@ onMounted(async () => {
     }
   } else if (props.initialDate) {
     const startDate = new Date(props.initialDate);
-    appointment.value.start_time = format(startDate, "yyyy-MM-dd'T'HH:mm");
+    appointment.value.start_time = startDate;
     if (props.initialEndDate) {
       const endDate = new Date(props.initialEndDate);
-      appointment.value.end_time = format(endDate, "yyyy-MM-dd'T'HH:mm");
+      appointment.value.end_time = endDate;
     } else {
       appointment.value.end_time = "";
     }
@@ -539,7 +542,7 @@ watch(
         startTime,
         selectedSpecialty.default_duration,
       );
-      appointment.value.end_time = format(newEndTime, "yyyy-MM-dd'T'HH:mm");
+      appointment.value.end_time = newEndTime;
     }
   },
 );
@@ -550,7 +553,9 @@ const fetchPatientSnippet = async () => {
     return;
   }
   try {
-    const response = await api.get(`/patients/${appointment.value.patient_id}/`);
+    const response = await api.get(
+      `/patients/${appointment.value.patient_id}/`,
+    );
     patientSnippet.value = response.data;
   } catch (error) {
     console.error("Error fetching patient snippet:", error);
