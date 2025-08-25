@@ -361,7 +361,7 @@ const languages = [
 
 const fetchUser = async () => {
   try {
-    const response = await api.get("/users");
+    const response = await api.get("/users/");
     user.value = response.data;
   } catch (error) {
     console.error("Error fetching user:", error);
@@ -390,7 +390,7 @@ const saveUser = async () => {
       last_name: user.value.last_name,
       email: user.value.email,
     };
-    await api.put("/users", userData);
+    await api.put("/users/", userData);
     isEditing.value = false;
     await fetchUser(); // Re-fetch user data to ensure consistency
   } catch (error) {
@@ -405,7 +405,7 @@ const changePassword = async () => {
   }
 
   try {
-    await api.put("/users/password", {
+    await api.put("/users/password/", {
       old_password: currentPassword.value,
       new_password: newPassword.value,
     });

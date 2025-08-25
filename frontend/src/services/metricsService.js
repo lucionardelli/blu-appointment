@@ -3,7 +3,7 @@ import api from "./api";
 export default {
   async getAppointmentMetrics(startTime, endTime) {
     try {
-      const response = await api.get("/appointments/metrics", {
+      const response = await api.get("/appointments/metrics/", {
         params: {
           start_date: startTime,
           end_date: endTime,

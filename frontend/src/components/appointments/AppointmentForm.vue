@@ -419,7 +419,7 @@ const paymentStatus = computed(() => {
 const fetchAppointment = async () => {
   if (isNew.value) return;
   try {
-    const response = await api.get(`/appointments/${props.appointmentId}`);
+    const response = await api.get(`/appointments/${props.appointmentId}/`);
     const fetchedAppointment = response.data;
 
     // Flatten nested patient and specialty objects
@@ -455,7 +455,7 @@ const onPatientSearch = async (search, loading) => {
   if (search.length) {
     loading(true);
     try {
-      const response = await api.get("/patients", {
+      const response = await api.get("/patients/", {
         params: { query: search, limit: 10 },
       });
       patientsOptions.value = response.data.items;
@@ -480,7 +480,7 @@ watch(
       if (!selectedPatient) {
         // If the selected patient is not in the current options, fetch it and add it
         try {
-          const response = await api.get(`/patients/${newPatientId}`);
+          const response = await api.get(`/patients/${newPatientId}/`);
           patientsOptions.value.push(response.data);
         } catch (error) {
           console.error("Error fetching selected patient:", error);
@@ -514,7 +514,7 @@ onMounted(async () => {
     }
   }
   try {
-    const response = await api.get("/patients", { params: { limit: 4 } });
+    const response = await api.get("/patients/", { params: { limit: 4 } });
     patientsOptions.value = response.data.items;
   } catch (error) {
     console.error("Error fetching initial patients:", error);
@@ -550,7 +550,7 @@ const fetchPatientSnippet = async () => {
     return;
   }
   try {
-    const response = await api.get(`/patients/${appointment.value.patient_id}`);
+    const response = await api.get(`/patients/${appointment.value.patient_id}/`);
     patientSnippet.value = response.data;
   } catch (error) {
     console.error("Error fetching patient snippet:", error);
@@ -560,9 +560,9 @@ const fetchPatientSnippet = async () => {
 const saveAppointment = async () => {
   try {
     if (isNew.value) {
-      await api.post("/appointments", appointment.value);
+      await api.post("/appointments/", appointment.value);
     } else {
-      await api.put(`/appointments/${props.appointmentId}`, {
+      await api.put(`/appointments/${props.appointmentId}/`, {
         ...appointment.value,
         cost: appointment.value.cost,
       });

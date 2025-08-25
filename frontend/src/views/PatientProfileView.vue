@@ -660,7 +660,7 @@ const onReferredBySearch = async (search, loading) => {
     loading(true);
     referredBySearchLoading.value = true;
     try {
-      const response = await api.get("/patients", {
+      const response = await api.get("/patients/", {
         params: { query: search, limit: 10 },
       });
       referredByOptions.value = response.data.items;
@@ -680,7 +680,7 @@ const fetchReferredBySnippet = async () => {
   }
   try {
     const response = await api.get(
-      `/patients/${patient.value.referred_by_patient_id}`,
+      `/patients/${patient.value.referred_by_patient_id}/`,
     );
     referredBySnippet.value = response.data;
   } catch (error) {
@@ -698,7 +698,7 @@ watch(
       );
       if (!selectedPatient) {
         try {
-          const response = await api.get(`/patients/${newReferredById}`);
+          const response = await api.get(`/patients/${newReferredById}/`);
           referredByOptions.value.push(response.data);
         } catch (error) {
           console.error("Error fetching selected referred by patient:", error);
@@ -770,7 +770,7 @@ const fetchPatient = async () => {
     return;
   }
   try {
-    const response = await api.get(`/patients/${route.params.id}`);
+    const response = await api.get(`/patients/${route.params.id}/`);
     patient.value = response.data;
     // Format DOB for input if editing
     if (patient.value.dob) {
@@ -787,7 +787,9 @@ const fetchPatient = async () => {
 const fetchAppointments = async () => {
   if (isNew.value) return;
   try {
-    const response = await api.get(`/patients/${route.params.id}/appointments`);
+    const response = await api.get(
+      `/patients/${route.params.id}/appointments/`,
+    );
     appointments.value = response.data;
   } catch (err) {
     error.value = true;
@@ -798,7 +800,7 @@ const fetchAppointments = async () => {
 const fetchPayments = async () => {
   if (isNew.value) return;
   try {
-    const response = await api.get(`/patients/${route.params.id}/payments`);
+    const response = await api.get(`/patients/${route.params.id}/payments/`);
     payments.value = response.data;
   } catch (err) {
     error.value = true;
@@ -864,7 +866,7 @@ const savePatient = async () => {
       patientData = response.data;
     } else {
       const response = await api.put(
-        `/patients/${route.params.id}`,
+        `/patients/${route.params.id}/`,
         patient.value,
       );
       patientData = response.data;
@@ -873,7 +875,7 @@ const savePatient = async () => {
     // Delete emergency contacts
     for (const contactId of deletedEmergencyContactIds.value) {
       await api.delete(
-        `/patients/${patientData.id}/emergency_contacts/${contactId}`,
+        `/patients/${patientData.id}/emergency_contacts/${contactId}/`,
       );
     }
     deletedEmergencyContactIds.value = [];
@@ -887,13 +889,13 @@ const savePatient = async () => {
         delete newContact.id;
         delete newContact.isNew;
         const response = await api.post(
-          `/patients/${patientData.id}/emergency_contacts`,
+          `/patients/${patientData.id}/emergency_contacts/`,
           newContact,
         );
         savedContacts.push(response.data);
       } else if (contact.id) {
         const response = await api.put(
-          `/patients/${patientData.id}/emergency_contacts/${contact.id}`,
+          `/patients/${patientData.id}/emergency_contacts/${contact.id}/`,
           contact,
         );
         savedContacts.push(response.data);
@@ -907,7 +909,7 @@ const savePatient = async () => {
       router.push({ name: "view-patient", params: { id: patientData.id } });
     } else {
       // Re-fetch patient to get the latest financial summary and other data, but not emergency contacts
-      const response = await api.get(`/patients/${route.params.id}`);
+      const response = await api.get(`/patients/${route.params.id}/`);
       patient.value = response.data;
     }
   } catch (error) {
@@ -940,7 +942,7 @@ onMounted(async () => {
     }
 
     // Initial load for referred by v-select options
-    const response = await api.get("/patients", {
+    const response = await api.get("/patients/", {
       params: { limit: 10 },
     });
     referredByOptions.value = response.data.items;
@@ -954,7 +956,7 @@ onMounted(async () => {
       if (!selectedReferredBy) {
         try {
           const responseSelected = await api.get(
-            `/patients/${patient.value.referred_by_patient_id}`,
+            `/patients/${patient.value.referred_by_patient_id}/`,
           );
           referredByOptions.value.push(responseSelected.data);
           referredByPatientName.value = responseSelected.data.name;

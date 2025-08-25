@@ -8,7 +8,7 @@ export const useSpecialtyStore = defineStore("specialties", {
   actions: {
     async fetchSpecialties() {
       try {
-        const response = await api.get("/specialties");
+        const response = await api.get("/specialties/");
         this.specialties = response.data;
       } catch (error) {
         console.error("Error fetching specialties:", error);

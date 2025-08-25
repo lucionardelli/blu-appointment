@@ -196,7 +196,7 @@ const isNew = computed(() => !route.params.id);
 const fetchSpecialty = async () => {
   if (isNew.value) return;
   try {
-    const response = await api.get(`/specialties/${route.params.id}`);
+    const response = await api.get(`/specialties/${route.params.id}/`);
     specialty.value = response.data;
   } catch (error) {
     console.error("Error fetching specialty:", error);
@@ -206,7 +206,7 @@ const fetchSpecialty = async () => {
 const fetchPricingHistory = async () => {
   if (isNew.value) return;
   try {
-    const response = await api.get(`/specialties/${route.params.id}/prices`);
+    const response = await api.get(`/specialties/${route.params.id}/prices/`);
     pricingHistory.value = response.data;
   } catch (error) {
     console.error("Error fetching pricing history:", error);
@@ -221,10 +221,10 @@ onMounted(() => {
 const saveSpecialty = async () => {
   try {
     if (isNew.value) {
-      const response = await api.post("/specialties", specialty.value);
+      const response = await api.post("/specialties/", specialty.value);
       router.push(`/specialties/${response.data.id}`);
     } else {
-      await api.put(`/specialties/${route.params.id}`, specialty.value);
+      await api.put(`/specialties/${route.params.id}/`, specialty.value);
       // Re-fetch pricing history to show updated price if it changed
       fetchPricingHistory();
     }
