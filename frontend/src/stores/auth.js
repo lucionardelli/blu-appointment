@@ -32,7 +32,7 @@ export const useAuthStore = defineStore("auth", {
     async login(username, password) {
       try {
         const response = await api.post(
-          "/auth/token/",
+          "/auth/token",
           new URLSearchParams({
             username: username,
             password: password,
