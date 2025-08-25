@@ -369,7 +369,7 @@ def import_appointments_from_csv(file_path: str, db: Session) -> None:  # noqa: 
                         payment = Payment(**card_payment_data)
                         db.add(payment)
 
-                    if not cash_payment and not card_payment:
+                    if not cash_payment and not card_payment and cost > 0:
                         logger.warning(
                             "Row %s: No payment recorded for appointment with cost $%s",
                             row_num,
