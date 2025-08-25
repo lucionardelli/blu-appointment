@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.appointments.router import router as appointments_router
+from app.appointments.router import appointments_router, working_hours_router, metrics_router
 from app.db.base import Base, engine
 from app.patients.router import router as patients_router
 from app.specialties.router import router as specialties_router
@@ -50,5 +50,7 @@ app.include_router(users_router, prefix="/api/v1/users", tags=["users"])
 app.include_router(patients_router, prefix="/api/v1/patients", tags=["patients"])
 app.include_router(specialties_router, prefix="/api/v1/specialties", tags=["specialties"])
 app.include_router(appointments_router, prefix="/api/v1/appointments", tags=["appointments"])
+app.include_router(working_hours_router, prefix="/api/v1/working-hours", tags=["working_hours"])
+app.include_router(metrics_router, prefix="/api/v1/metrics", tags=["metrics"])
 app.include_router(payment_methods_router, prefix="/api/v1/payment_methods", tags=["payment_methods"])
 app.include_router(payments_router, prefix="/api/v1/payments", tags=["payments"])

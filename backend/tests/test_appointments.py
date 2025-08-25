@@ -320,7 +320,7 @@ def test_get_payments_for_appointment_not_found(authenticated_client: TestClient
 
 
 def test_get_working_hours(authenticated_client: TestClient):
-    response = authenticated_client.get("/api/v1/appointments/working-hours/")
+    response = authenticated_client.get("/api/v1/working-hours/")
     assert response.status_code == status.HTTP_200_OK
     assert isinstance(response.json(), list)
 
@@ -330,7 +330,7 @@ def test_set_working_hours(authenticated_client: TestClient):
         {"dayOfWeek": 0, "startTime": "09:00:00", "endTime": "17:00:00"},
         {"dayOfWeek": 1, "is_closed": True},
     ]
-    response = authenticated_client.post("/api/v1/appointments/working-hours/", json=working_hours_data)
+    response = authenticated_client.post("/api/v1/working-hours/", json=working_hours_data)
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
     assert len(data) == 2
@@ -342,12 +342,12 @@ def test_set_working_hours(authenticated_client: TestClient):
 def test_set_working_hours_invalid_data(authenticated_client: TestClient):
     # Invalid: is_closed is true but times are provided
     invalid_data = [{"dayOfWeek": 0, "startTime": "09:00:00", "endTime": "17:00:00", "is_closed": True}]
-    response = authenticated_client.post("/api/v1/appointments/working-hours/", json=invalid_data)
+    response = authenticated_client.post("/api/v1/working-hours/", json=invalid_data)
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
     # Invalid: start_time after end_time
     invalid_data = [{"dayOfWeek": 0, "startTime": "17:00:00", "endTime": "09:00:00"}]
-    response = authenticated_client.post("/api/v1/appointments/working-hours/", json=invalid_data)
+    response = authenticated_client.post("/api/v1/working-hours/", json=invalid_data)
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
 
@@ -439,7 +439,7 @@ def test_get_appointment_metrics(authenticated_client: TestClient, patient_in_db
     )
 
     response = authenticated_client.get(
-        f"/api/v1/appointments/metrics/?start_date={today.isoformat()}&end_date={tomorrow.isoformat()}"
+        f"/api/v1/metrics/?start_date={today.isoformat()}&end_date={tomorrow.isoformat()}"
     )
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
@@ -454,7 +454,7 @@ def test_get_appointment_metrics(authenticated_client: TestClient, patient_in_db
 def test_get_dashboard_metrics(authenticated_client: TestClient, patient_in_db, specialty_in_db, db_session: Session):
     # This test will be more complex as it depends on current date/time
     # For simplicity, we'll just check if the endpoint returns a 200 OK and the expected keys
-    response = authenticated_client.get("/api/v1/appointments/metrics/dashboard/")
+    response = authenticated_client.get("/api/v1/metrics/dashboard/")
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
     assert "appointments_today" in data

@@ -88,6 +88,8 @@ def get_appointments(
     db: Session,
     skip: int = 0,
     limit: int = 100,
+    start_time: datetime | None = None,
+    end_time: datetime | None = None,
     patient_id: int | None = None,
     status: list[models.AppointmentStatus] | None = None,
 ) -> list[models.Appointment]:
@@ -98,6 +100,10 @@ def get_appointments(
         base_query = base_query.filter(models.Appointment.patient_id == patient_id)
     if status is not None:
         base_query = base_query.filter(models.Appointment.status.in_(status))
+    if start_time is not None:
+        base_query = base_query.filter(models.Appointment.start_time >= start_time)
+    if end_time is not None:
+        base_query = base_query.filter(models.Appointment.end_time <= end_time)
 
     return base_query.order_by(models.Appointment.start_time).offset(skip).limit(limit).all()
 
