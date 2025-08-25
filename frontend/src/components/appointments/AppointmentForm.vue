@@ -438,6 +438,13 @@ const fetchAppointment = async () => {
       specialty_id: fetchedAppointment.specialty?.id,
     };
 
+    if (
+      fetchedAppointment.patient &&
+      !patientsOptions.value.some((p) => p.id === fetchedAppointment.patient.id)
+    ) {
+      patientsOptions.value.push(fetchedAppointment.patient);
+    }
+
     if (appointment.value.start_time) {
       appointment.value.start_time = new Date(appointment.value.start_time);
     }
