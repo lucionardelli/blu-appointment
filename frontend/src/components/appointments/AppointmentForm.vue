@@ -212,6 +212,7 @@
               <DatePicker
                 v-model="appointment.start_time"
                 :enable-time-picker="true"
+                time-picker
                 :minutes-increment="15"
                 text-input
                 auto-apply
@@ -231,6 +232,7 @@
               <DatePicker
                 v-model="appointment.end_time"
                 :enable-time-picker="true"
+                time-picker
                 :minutes-increment="15"
                 text-input
                 auto-apply
@@ -602,7 +604,7 @@ watch(
 
     appointment.value.cost = selectedSpecialty.current_price;
 
-    if (appointment.value.start_time && !appointment.value.end_time) {
+    if (isNew.value && appointment.value.start_time) {
       const startTime = new Date(appointment.value.start_time);
       const newEndTime = addMinutes(
         startTime,
