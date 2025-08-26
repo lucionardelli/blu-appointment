@@ -27,8 +27,9 @@ export function formatTime(dateString) {
 
 export function formatCurrency(amount) {
   const locale = i18n.global.locale.value;
-  return new Intl.NumberFormat(locale, {
-    style: "currency",
-    currency: "USD",
+  const formattedNumber = new Intl.NumberFormat(locale, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(amount);
+  return `$ ${formattedNumber}`;
 }
