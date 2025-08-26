@@ -492,20 +492,43 @@ const handlePaymentSave = () => {
 };
 
 const onPatientSearch = async (search, loading) => {
-  if (search.length) {
-    loading(true);
-    try {
+  loading(true);
+  try {
+    let newOptions;
+    if (search.length) {
       const response = await api.get("/patients/", {
         params: { query: search, limit: 10 },
       });
-      patientsOptions.value = response.data.items;
-    } catch (error) {
-      console.error("Error searching patients:", error);
-    } finally {
-      loading(false);
+      newOptions = response.data.items;
+    } else {
+      const response = await api.get("/patients/", { params: { limit: 4 } });
+      newOptions = response.data.items;
     }
-  } else {
-    patientsOptions.value = [];
+
+    if (appointment.value.patient_id) {
+      const isSelectedInNewOptions = newOptions.some(
+        (p) => p.id === appointment.value.patient_id,
+      );
+      if (!isSelectedInNewOptions) {
+        const existingPatient = patientsOptions.value.find(
+          (p) => p.id === appointment.value.patient_id,
+        );
+        if (existingPatient) {
+          newOptions.unshift(existingPatient);
+        } else {
+          // Fallback to fetch the patient if not in current options
+          const response = await api.get(
+            `/patients/${appointment.value.patient_id}/`,
+          );
+          newOptions.unshift(response.data);
+        }
+      }
+    }
+    patientsOptions.value = newOptions;
+  } catch (error) {
+    console.error("Error searching patients:", error);
+  } finally {
+    loading(false);
   }
 };
 
