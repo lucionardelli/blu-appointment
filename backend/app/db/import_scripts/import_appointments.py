@@ -136,7 +136,7 @@ def load_specialties(db: Session) -> dict[str, (int, int)]:
     # Look for bluroom and therapy specialties
     bluroom = db.query(Specialty).filter(Specialty.name.ilike("%bluroom%")).first()
 
-    therapy = db.query(Specialty).filter(or_(Specialty.name.ilike("%terapia%")), Specialty.name.ilike("%therapy%")).first()
+    therapy = db.query(Specialty).filter(or_(Specialty.name.ilike("%terapia%"), Specialty.name.ilike("%therapy%"))).first()
 
     if bluroom:
         specialties["bluroom"] = bluroom.id, bluroom.default_duration_minutes
