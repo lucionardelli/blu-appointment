@@ -142,7 +142,7 @@
               </p>
               <p class="text-sm text-gray-500">
                 {{ t("last_appointment") }}:
-                {{ formatDate(patientSnippet.last_appointment_date) || "N/A" }}
+                {{ formatDate(patientSnippet.last_appointment_date) || "-" }}
               </p>
               <p class="text-sm text-gray-500">
                 {{ t("total_due") }}:

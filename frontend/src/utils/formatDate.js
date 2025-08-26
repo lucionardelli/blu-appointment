@@ -1,7 +1,7 @@
 import i18n from "@/i18n";
 
 export function formatDate(dateString) {
-  if (!dateString) return "N/A";
+  if (!dateString) return "-";
   const date = new Date(dateString);
   const locale = i18n.global.locale.value;
   const options = {
@@ -14,7 +14,7 @@ export function formatDate(dateString) {
 }
 
 export function formatTime(dateString) {
-  if (!dateString) return "N/A";
+  if (!dateString) return "-";
   const date = new Date(dateString);
   const locale = i18n.global.locale.value;
   const options = {

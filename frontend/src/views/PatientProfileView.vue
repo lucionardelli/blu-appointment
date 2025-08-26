@@ -302,7 +302,7 @@
                         {{ t("last_appointment") }}:
                         {{
                           formatDate(referredBySnippet.last_appointment_date) ||
-                          "N/A"
+                          "-"
                         }}
                       </p>
                       <p class="text-sm text-gray-500">

@@ -78,12 +78,12 @@
               </td>
               <td class="hidden px-6 py-4 whitespace-nowrap md:table-cell">
                 <div class="text-sm text-gray-500">
-                  {{ formatDate(patient.last_appointment) || "N/A" }}
+                  {{ formatDate(patient.last_appointment) || "-" }}
                 </div>
               </td>
               <td class="hidden px-6 py-4 whitespace-nowrap md:table-cell">
                 <div class="text-sm text-gray-500">
-                  {{ formatDate(patient.next_appointment) || "N/A" }}
+                  {{ formatDate(patient.next_appointment) || "-" }}
                 </div>
               </td>
               <td
@@ -94,7 +94,6 @@
                   class="text-primary hover:text-primary-dark"
                   >{{ t("view") }}</router-link
                 >
-
               </td>
             </tr>
           </tbody>
@@ -255,8 +254,6 @@ const changePage = (page) => {
 onMounted(() => {
   fetchPatients();
 });
-
-
 
 const visiblePages = computed(() => {
   const pages = [];
