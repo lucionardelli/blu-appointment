@@ -1,7 +1,7 @@
-from datetime import date, datetime, time
+from datetime import UTC, date, datetime, time
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator, computed_field
+from pydantic import BaseModel, ConfigDict, Field, model_validator, computed_field, field_validator, field_serializer
 
 from app.payments.schemas import Payment
 from app.specialties.schemas import MinSpecialtyInfo
@@ -17,6 +17,17 @@ class AppointmentBase(BaseModel):
     start_time: datetime
     end_time: datetime
 
+    @field_validator('start_time', 'end_time', mode='before')
+    def ensure_utc(cls, v):
+        if isinstance(v, datetime) and v.tzinfo is None:
+            # Assume naive datetimes are UTC
+            return v.replace(tzinfo=UTC)
+        return v
+
+    @field_serializer('start_time', 'end_time')
+    def serialize_datetime(self, dt: datetime) -> str:
+        return dt.isoformat().replace('+00:00', 'Z')
+
     specialty: MinSpecialtyInfo
 
 
@@ -29,12 +40,35 @@ class AppointmentCreate(BaseModel):
     # Cost is optional; if not provided, it will be fetched from the specialty's current price
     cost: Decimal | None = Field(None, ge=0)
 
+    @field_validator('start_time', 'end_time', mode='before')
+    def ensure_utc(cls, v):
+        if isinstance(v, datetime) and v.tzinfo is None:
+            # Assume naive datetimes are UTC
+            return v.replace(tzinfo=UTC)
+        return v
+
+    @field_serializer('start_time', 'end_time')
+    def serialize_datetime(self, dt: datetime) -> str:
+        return dt.isoformat().replace('+00:00', 'Z')
+
 
 class AppointmentUpdate(BaseModel):
     start_time: datetime
     end_time: datetime
     cost: Decimal | None = Field(None, ge=0)
     status: AppointmentStatus | None = None
+
+    @field_validator('start_time', 'end_time', mode='before')
+    def ensure_utc(cls, v):
+        if isinstance(v, datetime) and v.tzinfo is None:
+            # Assume naive datetimes are UTC
+            return v.replace(tzinfo=UTC)
+        return v
+
+    @field_serializer('start_time', 'end_time')
+    def serialize_datetime(self, dt: datetime) -> str:
+        return dt.isoformat().replace('+00:00', 'Z')
+
 
 
 class MinPatientInfo(BaseModel):
