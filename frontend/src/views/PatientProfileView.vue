@@ -106,7 +106,6 @@
                       id="dob"
                       v-model="patient.dob"
                       type="date"
-                      required
                       class="block w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
                     />
                     <span v-else>{{ formatDate(patient.dob) }}</span>
@@ -626,12 +625,7 @@ import { useRoute, useRouter } from "vue-router";
 import api from "@/services/api";
 import MarkdownIt from "markdown-it";
 import DOMPurify from "dompurify";
-import {
-  formatDate,
-  formatCurrency,
-  formatTime,
-  formatDateForInput,
-} from "@/utils/formatDate";
+import { formatDate, formatCurrency, formatTime } from "@/utils/formatDate";
 import EmergencyContactForm from "@/components/patients/EmergencyContactForm.vue";
 import PaymentFormModal from "@/components/payments/PaymentFormModal.vue";
 import { useSpecialtyStore } from "@/stores/specialties";
@@ -772,10 +766,6 @@ const fetchPatient = async () => {
   try {
     const response = await api.get(`/patients/${route.params.id}/`);
     patient.value = response.data;
-    // Format DOB for input if editing
-    if (patient.value.dob) {
-      patient.value.dob = formatDateForInput(patient.value.dob);
-    }
     // Populate emergency contacts
     emergencyContacts.value = patient.value.emergency_contacts || [];
   } catch (err) {
@@ -845,12 +835,10 @@ const savePatient = async () => {
   if (!patient.value.name) {
     errors.value.name = "Name is required.";
   }
-  if (!patient.value.dob) {
-    errors.value.dob = "Date of Birth is required.";
-  }
+
   if (
     patient.value.email &&
-    !/^["\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(patient.value.email)
+    !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(patient.value.email)
   ) {
     errors.value.email = "Invalid email format.";
   }
