@@ -1,17 +1,16 @@
 import csv
 import logging
 import re
-import typing as t
 from datetime import date, datetime, time, timedelta
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.appointments.models import Appointment, AppointmentStatus
-from app.payments.models import Payment, PaymentMethod
-
 from app.patients.models import Patient
+from app.payments.models import Payment, PaymentMethod
 from app.specialties.models import Specialty
 
 # Configure logging
@@ -32,16 +31,17 @@ def normalize_patient_name(name: str) -> str:
         return ""
     return name.strip().title()
 
+
 def flip_first_name_last_name(name: str) -> str:
-    """ Patients in all caps are in "LASTNAME FIRSTNAME" format, flip them to "Firstname Lastname" """
+    """Patients in all caps are in 'LASTNAME FIRSTNAME' format, flip them to 'Firstname Lastname'"""
     if not name:
         return ""
     parts = name.strip().split()
-    if len(parts) >= 2:
+    if len(parts) >= 2:  # noqa: PLR2004
         last_name = parts[0]
         first_name = " ".join(parts[1:])
         return f"{first_name.title()} {last_name.title()}"
-    return name.title()
+    return normalize_patient_name(name)
 
 
 def is_all_caps(name: str) -> bool:
@@ -108,20 +108,21 @@ def parse_date_from_column_a(date_str: str | None) -> date | None:
     return None
 
 
-def find_or_create_patient(db: Session, patient_name: str, specialty_id: int) -> "Patient":
+def find_or_create_patient(db: Session, patient_name: str, original_patient_name: str, specialty_id: int) -> "Patient":
     """Find patient by name (case insensitive) or create new one"""
-
-    normalized_name = normalize_patient_name(patient_name)
-
-    patient = db.query(Patient).filter(Patient.name.ilike(normalized_name)).first()
+    patient = (
+        db.query(Patient)
+        .filter(or_(Patient.name.ilike(patient_name), Patient.name.ilike(original_patient_name)))
+        .first()
+    )
 
     if patient:
         if not patient.default_specialty_id:
             patient.default_specialty_id = specialty_id
             logger.debug("Set default specialty for existing patient: %s", patient.name)
         return patient
-    logger.debug("Creating new patient: %s", normalized_name)
-    patient_data = {"name": normalized_name, "default_specialty_id": specialty_id}
+    logger.debug("Creating new patient: %s", patient_name)
+    patient_data = {"name": patient_name, "default_specialty_id": specialty_id}
     patient = Patient(**patient_data)
     db.add(patient)
     db.flush()
@@ -130,15 +131,12 @@ def find_or_create_patient(db: Session, patient_name: str, specialty_id: int) ->
 
 def load_specialties(db: Session) -> dict[str, (int, int)]:
     """Load specialties from database"""
-
     specialties = {}
 
     # Look for bluroom and therapy specialties
     bluroom = db.query(Specialty).filter(Specialty.name.ilike("%bluroom%")).first()
 
-    therapy = (
-        db.query(Specialty).filter(Specialty.name.ilike("%therapy%")).first()
-    )
+    therapy = db.query(Specialty).filter(or_(Specialty.name.ilike("%terapia%")), Specialty.name.ilike("%therapy%")).first()
 
     if bluroom:
         specialties["bluroom"] = bluroom.id, bluroom.default_duration_minutes
@@ -159,7 +157,6 @@ def load_specialties(db: Session) -> dict[str, (int, int)]:
 
 def load_payment_methods(db: Session) -> dict[str, PaymentMethod]:
     """Load payment methods from database"""
-
     payment_methods = {}
 
     cash_method = db.query(PaymentMethod).filter(PaymentMethod.name.ilike("%cash%")).first()
@@ -181,6 +178,7 @@ def load_payment_methods(db: Session) -> dict[str, PaymentMethod]:
 
     return payment_methods
 
+
 def import_appointments_from_csv(file_path: str, db: Session) -> None:  # noqa: C901, PLR0912, PLR0915
     """Import appointments from CSV file into database.
 
@@ -198,7 +196,6 @@ def import_appointments_from_csv(file_path: str, db: Session) -> None:  # noqa: 
     13: TARJETA (card payment) - Column N
 
     """
-
     try:
         logger.info("Reading CSV file: %s", file_path)
 
@@ -226,10 +223,10 @@ def import_appointments_from_csv(file_path: str, db: Session) -> None:  # noqa: 
                         row.append("")
 
                     # Column F (index 5) - Patient name
-                    patient_name = clean_string(row[5])
+                    original_patient_name = clean_string(row[5])
 
                     # Skip rows with no patient name
-                    if not patient_name:
+                    if not original_patient_name:
                         logger.debug("Row %s: Skipping - no patient name in column F", row_num)
                         continue
 
@@ -261,22 +258,23 @@ def import_appointments_from_csv(file_path: str, db: Session) -> None:  # noqa: 
                     last_appointment_time = appointment_time
 
                     # Determine specialty based on patient name case
-                    if is_all_caps(patient_name):
-                        patient_name = flip_first_name_last_name(patient_name)
+                    if is_all_caps(original_patient_name):
+                        patient_name = flip_first_name_last_name(original_patient_name)
                         specialty_id, specialty_duration = specialties["bluroom"]
-                        logger.debug("Row %s: Bluroom appointment (name in caps: %s)", row_num, patient_name)
+                        logger.debug("Row %s: Bluroom appointment (name in caps: %s)", row_num, original_patient_name)
                     else:
-                        specialty_id, specialty_duration  = specialties["therapy"]
+                        patient_name = normalize_patient_name(original_patient_name)
+                        specialty_id, specialty_duration = specialties["therapy"]
                         logger.debug("Row %s: therapy appointment (name: %s)", row_num, patient_name)
 
                     # Find or create patient
-                    patient = find_or_create_patient(db, patient_name, specialty_id)
+                    patient = find_or_create_patient(db, patient_name, original_patient_name, specialty_id)
 
                     # Column G (index 6) - Session number
                     session_num_str = clean_string(row[6])
                     if session_num_str:
-                        # This is just a sanity check. We don't do anything with the session number
-                        # but we log it for potential future use. We need to figure out what was the purpose of this column.
+                        # This is just a sanity check. We don't do anything with the session number but we log it for
+                        # potential future use. We need to figure out what was the purpose of this column.
                         if session_num_str.lower() != "no":
                             try:
                                 session_num = int(session_num_str)
@@ -286,6 +284,8 @@ def import_appointments_from_csv(file_path: str, db: Session) -> None:  # noqa: 
                                     )
                             except (ValueError, TypeError):
                                 logger.warning("Row %s: Could not parse session number: %s", row_num, session_num_str)
+                        else:
+                            logger.debug("Row %s: Session number is 'No' - ignoring", row_num)
 
                     # Column L (index 11) - Appointment cost
                     cost_str = clean_string(row[11])
@@ -389,7 +389,12 @@ def import_appointments_from_csv(file_path: str, db: Session) -> None:  # noqa: 
                     db.rollback()
                     continue
 
-        logger.info("Import completed. Successful: %s, Existing appointments: %s, Failed: %s", successful_imports, already_exists, failed_imports)
+        logger.info(
+            "Import completed. Successful: %s, Existing appointments: %s, Failed: %s",
+            successful_imports,
+            already_exists,
+            failed_imports,
+        )
 
     except FileNotFoundError as e:
         logger.error("CSV file not found: %s", e)

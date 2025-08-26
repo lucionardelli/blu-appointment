@@ -3,7 +3,9 @@ import logging
 import re
 from datetime import date
 
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
+
 from app.specialties.models import Specialty
 
 # Configure logging
@@ -115,7 +117,7 @@ def parse_emergency_contact_data(row: list[str]) -> list[dict]:
     return emergency_contacts
 
 
-def clean_string(name: str | None, title:bool = True) -> str | None:
+def clean_string(name: str | None, title: bool = True) -> str | None:
     """Clean and format full name"""
     if not name or not str(name).strip():
         return None
@@ -132,6 +134,18 @@ def clean_string(name: str | None, title:bool = True) -> str | None:
     return cleaned_name
 
 
+def flip_first_name_last_name(name: str) -> str:
+    """Patients in all caps are in "LASTNAME FIRSTNAME" format, flip them to "Firstname Lastname" """
+    if not name:
+        return ""
+    parts = name.strip().split()
+    if len(parts) >= 2:
+        last_name = parts[0]
+        first_name = " ".join(parts[1:])
+        return f"{first_name.title()} {last_name.title()}"
+    return name.title()
+
+
 def clean_email(email: str | None) -> str | None:
     """Clean and validate email address"""
     if not email or not str(email).strip():
@@ -143,9 +157,9 @@ def clean_email(email: str | None) -> str | None:
     # Basic validation for email format
     if "@" in cleaned_email and "." in cleaned_email:
         return cleaned_email.lower()  # Normalize to lowercase
-    else:
-        logger.debug(f"Invalid email format: {cleaned_email}")
-        return None
+    logger.debug(f"Invalid email format: {cleaned_email}")
+    return None
+
 
 def get_blu_specialty_id(db: Session) -> int:
     # Look for bluroom specialty
@@ -200,7 +214,8 @@ def import_patients_from_csv(file_path: str, db: Session):
                         row.append("")
 
                     # Extract data from columns
-                    full_name = clean_string(row[0])
+                    original_full_name = clean_string(row[0])
+                    full_name = flip_first_name_last_name(original_full_name)
                     birth_year = row[1] if row[1] else None
                     # age = row[2] if row[2] else None
                     origin = clean_string(row[3])
@@ -244,7 +259,11 @@ def import_patients_from_csv(file_path: str, db: Session):
                     logger.debug(f"Row {row_num}: Creating patient - {full_name}")
                     logger.debug(f"Patient data: {patient_data}")
 
-                    patient = db.query(Patient).filter_by(name=full_name).first()
+                    patient = (
+                        db.query(Patient)
+                        .filter(or_(Patient.name == full_name, Patient.name == original_full_name))
+                        .first()
+                    )
                     if patient is not None:
                         logger.debug(f"  Patient {full_name} already exists. Updating record.")
                         try:
@@ -270,7 +289,7 @@ def import_patients_from_csv(file_path: str, db: Session):
                         logger.debug(f"  Adding emergency contact: {ec_data['full_name']}")
                         logger.debug(f"  Emergency contact data: {ec_data}")
 
-                        ec_data['patient_id'] = patient.id
+                        ec_data["patient_id"] = patient.id
                         try:
                             emergency_contact = EmergencyContact(**ec_data)
                             db.add(emergency_contact)
@@ -279,14 +298,15 @@ def import_patients_from_csv(file_path: str, db: Session):
                             logger.debug(f"Row {row_num}: Error creating emergency contact - {e!s}")
                             raise
 
-
                 except Exception as e:
                     logger.error(f"Row {row_num}: Failed to import patient - {e!s}")
                     failed_imports += 1
                     # db.rollback()  # Rollback the failed transaction
                     continue
 
-        logger.info(f"Import completed. Successful: {successful_imports}, Updated: {sucessful_updates}, Failed: {failed_imports}")
+        logger.info(
+            f"Import completed. Successful: {successful_imports}, Updated: {sucessful_updates}, Failed: {failed_imports}"
+        )
 
     except Exception as e:
         logger.error(f"Error reading CSV file: {e!s}")
@@ -294,8 +314,9 @@ def import_patients_from_csv(file_path: str, db: Session):
 
 
 if __name__ == "__main__":
-    from app.patients.models import Patient, EmergencyContact
     from app.db.base import get_db_context
+    from app.patients.models import EmergencyContact, Patient
+
     with get_db_context() as db:
         import_patients_from_csv("./patients.csv", db)
         db.commit()

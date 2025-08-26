@@ -1,7 +1,7 @@
 from datetime import date, datetime, time
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator, computed_field
 
 from app.payments.schemas import Payment
 from app.specialties.schemas import MinSpecialtyInfo
@@ -52,6 +52,11 @@ class Appointment(AppointmentBase):
     suggested_treatment_duration_minutes: int | None = None
 
     patient: MinPatientInfo
+
+    @computed_field
+    @property
+    def cancelled(self) -> bool:
+        return self.status == AppointmentStatus.CANCELLED
 
     model_config = ConfigDict(from_attributes=True)
 
