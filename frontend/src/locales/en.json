@@ -125,5 +125,15 @@
   "color": "Color",
   "status": "Status",
   "no_specific_appointment": "No specific appointment",
+  "confirm_delete_specialty": "Are you sure you want to delete this specialty?",
+  "confirm_delete_patient": "Are you sure you want to delete this patient? This will also delete all their appointments and payments.",
+  "confirm_delete_appointment": "Are you sure you want to delete this appointment?",
+  "delete": "Delete",
+  "cancel": "Cancel",
+  "confirm_cancel_appointment": "Are you sure you want to cancel this appointment?",
+  "cancel_appointment": "Cancel Appointment",
+  "confirm_restore_appointment": "Are you sure you want to restore this appointment?",
+  "restore_appointment": "Restore Appointment",
+  "no_patients_found": "No patients found",
   "placeholder_so_commas_dont_break_json": "Placeholder so commas don't break JSON"
 }

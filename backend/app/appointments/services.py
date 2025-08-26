@@ -2,11 +2,11 @@ from datetime import datetime, timedelta
 
 from sqlalchemy.orm import Session
 
+from app.payments import models as payment_models
+from app.payments import schemas as payment_schemas
 from app.specialties.services import get_current_price_for_specialty, get_specialty_by_id
 
 from . import models, schemas
-from app.payments import schemas as payment_schemas
-from app.payments import models as payment_models
 
 
 def create_appointment(
@@ -57,6 +57,37 @@ def cancel_appointment(db: Session, appointment_id: int) -> models.Appointment |
     return db_appointment
 
 
+def restore_appointment(db: Session, appointment_id: int) -> models.Appointment | None:
+    db_appointment = db.query(models.Appointment).filter(models.Appointment.id == appointment_id).first()
+    if not db_appointment:
+        return None
+
+    if db_appointment.status != models.AppointmentStatus.CANCELLED:
+        msg = "Only cancelled appointments can be deleted."
+        raise ValueError(msg)
+
+    if db_appointment.start_time < datetime.now(tz=db_appointment.start_time.tzinfo):
+        db_appointment.status = models.AppointmentStatus.COMPLETED
+    else:
+        db_appointment.status = models.AppointmentStatus.SCHEDULED
+    db.commit()
+    db.refresh(db_appointment)
+    return db_appointment
+
+
+def delete_appointment(db: Session, appointment_id: int) -> models.Appointment | None:
+    db_appointment = db.query(models.Appointment).filter(models.Appointment.id == appointment_id).first()
+    if not db_appointment:
+        return None
+    if db_appointment.status != models.AppointmentStatus.CANCELLED:
+        msg = "Only cancelled appointments can be deleted."
+        raise ValueError(msg)
+
+    db.delete(db_appointment)
+    db.commit()
+    return db_appointment
+
+
 def reschedule_appointment(
     db: Session,
     appointment_id: int,
@@ -84,7 +115,7 @@ def reschedule_appointment(
     return new_appointment
 
 
-def get_appointments(
+def get_appointments(  # noqa: PLR0913
     db: Session,
     skip: int = 0,
     limit: int = 100,

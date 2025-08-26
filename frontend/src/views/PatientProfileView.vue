@@ -35,20 +35,30 @@
                 <span v-else>{{ t("patient_profile") }}</span>
               </h3>
             </div>
-            <button
-              v-if="!isEditing && !isNew"
-              class="px-4 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-              @click="startEdit"
-            >
-              {{ t("edit") }}
-            </button>
-            <button
-              v-else
-              class="px-4 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-              @click="savePatient"
-            >
-              {{ t("save") }}
-            </button>
+            <div class="flex items-center space-x-2">
+              <button
+                v-if="!isEditing && !isNew"
+                type="button"
+                class="px-4 py-2 text-sm font-medium text-red-700 bg-white border border-red-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                @click="deletePatient"
+              >
+                {{ t("delete") }}
+              </button>
+              <button
+                v-if="!isEditing && !isNew"
+                class="px-4 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                @click="startEdit"
+              >
+                {{ t("edit") }}
+              </button>
+              <button
+                v-if="isEditing || isNew"
+                class="px-4 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                @click="savePatient"
+              >
+                {{ t("save") }}
+              </button>
+            </div>
           </div>
           <div class="border-t border-gray-200">
             <form @submit.prevent="savePatient">
@@ -916,6 +926,17 @@ const cancelEdit = () => {
   } else {
     isEditing.value = false; // Exit edit mode
     fetchPatient(); // Re-fetch patient to revert changes
+  }
+};
+
+const deletePatient = async () => {
+  if (window.confirm(t("confirm_delete_patient"))) {
+    try {
+      await api.delete(`/patients/${route.params.id}/`);
+      router.push("/patients");
+    } catch (error) {
+      console.error("Error deleting patient:", error);
+    }
   }
 };
 

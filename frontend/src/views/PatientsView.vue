@@ -94,6 +94,7 @@
                   class="text-primary hover:text-primary-dark"
                   >{{ t("view") }}</router-link
                 >
+
               </td>
             </tr>
           </tbody>
@@ -122,10 +123,12 @@
           class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between"
         >
           <div>
-            <p class="text-sm text-gray-700">
+            <p v-if="totalPatientsCount > 0" class="text-sm text-gray-700">
               {{ t("showing") }}
               <span class="font-medium">{{
-                (currentPage - 1) * itemsPerPage + 1
+                totalPatientsCount > 0
+                  ? (currentPage - 1) * itemsPerPage + 1
+                  : 0
               }}</span>
               {{ t("to") }}
               <span class="font-medium">{{
@@ -134,6 +137,9 @@
               {{ t("of") }}
               <span class="font-medium">{{ totalPatientsCount }}</span>
               {{ t("results") }}
+            </p>
+            <p v-else class="text-sm text-gray-700">
+              {{ t("no_patients_found") }}
             </p>
           </div>
           <div>
@@ -249,6 +255,8 @@ const changePage = (page) => {
 onMounted(() => {
   fetchPatients();
 });
+
+
 
 const visiblePages = computed(() => {
   const pages = [];

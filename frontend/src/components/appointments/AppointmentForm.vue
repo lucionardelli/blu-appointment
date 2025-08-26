@@ -1,8 +1,44 @@
 <template>
   <div>
-    <h1 class="text-2xl font-semibold text-gray-900">
-      {{ isNew ? t("new_appointment") : t("edit_appointment") }}
-    </h1>
+    <div class="flex justify-between items-center mt-4">
+      <h1 class="text-2xl font-semibold text-gray-900">
+        {{ isNew ? t("new_appointment") : t("edit_appointment") }}
+      </h1>
+      <div class="flex items-center space-x-2">
+        <button
+          v-if="!isNew && !appointment.cancelled"
+          type="button"
+          class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+          @click="cancelAppointment"
+        >
+          {{ t("cancel_appointment") }}
+        </button>
+        <button
+          v-if="!isNew && appointment.cancelled"
+          type="button"
+          class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+          @click="restoreAppointment"
+        >
+          {{ t("restore_appointment") }}
+        </button>
+        <button
+          v-if="!isNew && appointment.cancelled"
+          type="button"
+          class="px-4 py-2 text-sm font-medium text-red-700 bg-white border border-red-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+          @click="deleteAppointment"
+        >
+          {{ t("delete") }}
+        </button>
+        <button
+          v-if="!appointment.cancelled"
+          type="submit"
+          class="px-4 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+          @click="saveAppointment"
+        >
+          {{ t("save") }}
+        </button>
+      </div>
+    </div>
 
     <div v-if="!isNew" class="mt-4 border-b border-gray-200">
       <nav class="-mb-px flex space-x-8" aria-label="Tabs">
@@ -31,7 +67,11 @@
       </nav>
     </div>
 
-    <div v-show="activeTab === 'details'" class="mt-6">
+    <div
+      v-show="activeTab === 'details'"
+      class="mt-6"
+      :class="{ 'text-gray-500': appointment.cancelled }"
+    >
       <form @submit.prevent="saveAppointment">
         <div class="space-y-6">
           <div>
@@ -48,8 +88,9 @@
               :reduce="(patient) => patient.id"
               :searchable="true"
               :loading="patientSearchLoading"
+              :disabled="appointment.cancelled"
               class="block w-full mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-              @search="onPatientSearch"
+              @search="debouncedOnPatientSearch"
               @change="fetchPatientSnippet"
             >
               <template #no-options="{ searching, loading }">
@@ -132,6 +173,7 @@
                 id="specialty"
                 v-model="appointment.specialty_id"
                 required
+                :disabled="appointment.cancelled"
                 class="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
               >
                 <option
@@ -155,6 +197,7 @@
                 type="number"
                 step="100"
                 required
+                :readonly="appointment.cancelled"
                 class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
               />
             </div>
@@ -174,6 +217,7 @@
                 auto-apply
                 :locale="locale"
                 :format="formatForPicker"
+                :disabled="appointment.cancelled"
                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
               />
             </div>
@@ -191,26 +235,11 @@
                 auto-apply
                 :locale="locale"
                 :format="formatForPicker"
+                :disabled="appointment.cancelled"
                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
               />
             </div>
           </div>
-        </div>
-        <div class="flex justify-end mt-6">
-          <button
-            v-if="!props.inModal"
-            type="button"
-            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-            @click="router.push('/appointments')"
-          >
-            {{ t("cancel") }}
-          </button>
-          <button
-            type="submit"
-            class="px-4 py-2 ml-3 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-          >
-            {{ t("save") }}
-          </button>
         </div>
       </form>
     </div>
@@ -233,7 +262,7 @@
           </h2>
         </div>
         <button
-          v-if="!showPaymentForm"
+          v-if="!showPaymentForm && !appointment.cancelled"
           class="px-4 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
           @click="showPaymentForm = true"
         >
@@ -334,6 +363,7 @@ import "@vuepic/vue-datepicker/dist/main.css";
 import { formatDate, formatTime, formatCurrency } from "@/utils/formatDate";
 import PaymentForm from "./PaymentForm.vue";
 import { useSpecialtyStore } from "@/stores/specialties";
+import debounce from "lodash/debounce";
 
 import vSelect from "vue-select";
 import "vue-select/dist/vue-select.css";
@@ -479,6 +509,8 @@ const onPatientSearch = async (search, loading) => {
   }
 };
 
+const debouncedOnPatientSearch = debounce(onPatientSearch, 300);
+
 watch(
   () => appointment.value.patient_id,
   async (newPatientId) => {
@@ -513,21 +545,23 @@ onMounted(async () => {
     if (appointment.value.patient_id) {
       await fetchPatientSnippet();
     }
-  } else if (props.initialDate) {
-    const startDate = new Date(props.initialDate);
-    appointment.value.start_time = startDate;
-    if (props.initialEndDate) {
-      const endDate = new Date(props.initialEndDate);
-      appointment.value.end_time = endDate;
-    } else {
-      appointment.value.end_time = "";
+  } else {
+    try {
+      const response = await api.get("/patients/", { params: { limit: 4 } });
+      patientsOptions.value = response.data.items;
+    } catch (error) {
+      console.error("Error fetching initial patients:", error);
     }
-  }
-  try {
-    const response = await api.get("/patients/", { params: { limit: 4 } });
-    patientsOptions.value = response.data.items;
-  } catch (error) {
-    console.error("Error fetching initial patients:", error);
+    if (props.initialDate) {
+      const startDate = new Date(props.initialDate);
+      appointment.value.start_time = startDate;
+      if (props.initialEndDate) {
+        const endDate = new Date(props.initialEndDate);
+        appointment.value.end_time = endDate;
+      } else {
+        appointment.value.end_time = "";
+      }
+    }
   }
 });
 
@@ -586,6 +620,49 @@ const saveAppointment = async () => {
     }
   } catch (error) {
     console.error("Error saving appointment:", error);
+  }
+};
+
+const cancelAppointment = async () => {
+  if (window.confirm(t("confirm_cancel_appointment"))) {
+    try {
+      await api.patch(`/appointments/${props.appointmentId}/cancel`);
+      if (props.inModal) {
+        emit("save");
+      } else {
+        router.push("/appointments");
+      }
+    } catch (error) {
+      console.error("Error cancelling appointment:", error);
+    }
+  }
+};
+
+const restoreAppointment = async () => {
+  try {
+    await api.patch(`/appointments/${props.appointmentId}/restore`);
+    if (props.inModal) {
+      emit("save");
+    } else {
+      router.push("/appointments");
+    }
+  } catch (error) {
+    console.error("Error restoring appointment:", error);
+  }
+};
+
+const deleteAppointment = async () => {
+  if (window.confirm(t("confirm_delete_appointment"))) {
+    try {
+      await api.delete(`/appointments/${props.appointmentId}/`);
+      if (props.inModal) {
+        emit("save");
+      } else {
+        router.push("/appointments");
+      }
+    } catch (error) {
+      console.error("Error deleting appointment:", error);
+    }
   }
 };
 </script>

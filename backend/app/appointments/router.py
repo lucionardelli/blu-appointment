@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from typing import Annotated, Never
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, status, Response
 from sqlalchemy.orm import Session
 
 from app.users.logged import get_current_user
@@ -104,6 +104,30 @@ def cancel_appointment(
     if db_appointment is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Appointment not found")
     return db_appointment
+
+
+@appointments_router.patch("/{appointment_id}/restore/", response_model=schemas.Appointment)
+def cancel_appointment(
+    appointment_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    _current_user: Annotated[User, Depends(get_current_user)],
+) -> schemas.Appointment:
+    db_appointment = services.restore_appointment(db, appointment_id=appointment_id)
+    if db_appointment is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Appointment not found")
+    return db_appointment
+
+
+@appointments_router.delete("/{appointment_id}/", status_code=status.HTTP_204_NO_CONTENT)
+def delete_appointment(
+    appointment_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    _current_user: Annotated[User, Depends(get_current_user)],
+) -> Response:
+    db_appointment = services.delete_appointment(db, appointment_id=appointment_id)
+    if db_appointment is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Appointment not found")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @appointments_router.patch("/{appointment_id}/reschedule/", response_model=schemas.Appointment)

@@ -124,5 +124,15 @@
   "color": "Color",
   "status": "Estado",
   "no_specific_appointment": "Niguna sesión específica",
+  "confirm_delete_specialty": "¿Estás seguro de que quieres eliminar esta especialidad?",
+  "confirm_delete_patient": "¿Estás seguro de que quieres eliminar este paciente? Esto también eliminará todas sus citas y pagos.",
+  "confirm_delete_appointment": "¿Estás seguro de que quieres eliminar esta sesión?",
+  "delete": "Eliminar",
+  "cancel": "Cancelar",
+  "confirm_cancel_appointment": "¿Estás seguro de que quieres cancelar esta sesión?",
+  "cancel_appointment": "Cancelar Sesión",
+  "confirm_restore_appointment": "¿Estás seguro de que quieres restaurar esta sesión?",
+  "restore_appointment": "Restaurar Sesión",
+  "no_patients_found": "No se encontraron pacientes",
   "placeholder_so_commas_dont_break_json": "Placeholder so commas don't break JSON"
 }

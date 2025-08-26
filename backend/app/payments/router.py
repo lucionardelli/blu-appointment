@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session
 
 from app.db import get_db
@@ -65,16 +65,16 @@ def update_payment_method(
     return db_payment_method
 
 
-@payment_methods_router.delete("/{payment_method_id}/", response_model=schemas.PaymentMethod)
+@payment_methods_router.delete("/{payment_method_id}/", status_code=status.HTTP_204_NO_CONTENT)
 def delete_payment_method(
     payment_method_id: int,
     db: Annotated[Session, Depends(get_db)],
     _current_user: Annotated[User, Depends(get_current_user)],
-) -> schemas.PaymentMethod:
+) -> Response:
     db_payment_method = services.delete_payment_method(db, payment_method_id=payment_method_id)
     if db_payment_method is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Payment method not found")
-    return db_payment_method
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @payments_router.post("/", response_model=schemas.Payment)
@@ -117,12 +117,12 @@ def update_payment(
     return db_payment
 
 
-@payments_router.delete("/{payment_id}/", response_model=schemas.Payment)
+@payments_router.delete("/{payment_id}/", status_code=status.HTTP_204_NO_CONTENT)
 def delete_payment(
     payment_id: int,
     db: Annotated[Session, Depends(get_db)],
-) -> schemas.Payment:
+) -> Response:
     db_payment = services.delete_payment(db, payment_id=payment_id)
     if db_payment is None:
         raise HTTPException(status_code=404, detail="Payment not found")
-    return db_payment
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

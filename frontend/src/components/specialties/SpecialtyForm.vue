@@ -13,13 +13,23 @@
             {{ isNew ? t("new_specialty") : t("edit_specialty") }}
           </h3>
         </div>
-        <button
-          type="submit"
-          class="px-4 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-          @click="saveSpecialty"
-        >
-          {{ t("save") }}
-        </button>
+        <div class="flex items-center space-x-2">
+          <button
+            v-if="!isNew"
+            type="button"
+            class="px-4 py-2 text-sm font-medium text-red-700 bg-white border border-red-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+            @click="deleteSpecialty"
+          >
+            {{ t("delete") }}
+          </button>
+          <button
+            type="submit"
+            class="px-4 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+            @click="saveSpecialty"
+          >
+            {{ t("save") }}
+          </button>
+        </div>
       </div>
       <div class="border-t border-gray-200">
         <form @submit.prevent="saveSpecialty">
@@ -191,7 +201,7 @@ const updateColor = (newColor) => {
 
 const pricingHistory = ref([]);
 
-const isNew = computed(() => !route.params.id);
+const isNew = computed(() => route.params.id === "new");
 
 const fetchSpecialty = async () => {
   if (isNew.value) return;
@@ -235,5 +245,16 @@ const saveSpecialty = async () => {
 
 const goBack = () => {
   router.push("/specialties");
+};
+
+const deleteSpecialty = async () => {
+  if (window.confirm(t("confirm_delete_specialty"))) {
+    try {
+      await api.delete(`/specialties/${route.params.id}/`);
+      router.push("/specialties");
+    } catch (error) {
+      console.error("Error deleting specialty:", error);
+    }
+  }
 };
 </script>

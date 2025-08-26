@@ -7,7 +7,7 @@
       class="relative top-20 mx-auto p-5 border w-full max-w-4xl shadow-lg rounded-md bg-white"
     >
       <button
-        class="absolute top-0 right-0 mt-4 mr-4 text-gray-400 hover:text-gray-600"
+        class="absolute top-0 right-0 mt-2 mr-4 text-gray-400 hover:text-gray-600"
         @click="$emit('close')"
       >
         <i-heroicons-x-mark-20-solid class="w-6 h-6" />

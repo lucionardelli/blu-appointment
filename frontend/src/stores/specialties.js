@@ -25,8 +25,14 @@ export const useSpecialtyStore = defineStore("specialties", {
         this.specialties[index] = updatedSpecialty;
       }
     },
-    deleteSpecialty(specialtyId) {
-      this.specialties = this.specialties.filter((s) => s.id !== specialtyId);
+    async deleteSpecialty(specialtyId) {
+      try {
+        await api.delete(`/specialties/${specialtyId}`);
+        this.specialties = this.specialties.filter((s) => s.id !== specialtyId);
+      } catch (error) {
+        console.error("Error deleting specialty:", error);
+        throw error;
+      }
     },
     reset() {
       this.specialties = [];

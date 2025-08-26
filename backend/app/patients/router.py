@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session
 
 from app.appointments import schemas as appt_schemas
@@ -93,14 +93,14 @@ def read_patient_payments(
     return db_payments
 
 
-@router.delete("/{patient_id}/", response_model=schemas.Patient)
+@router.delete("/{patient_id}/", status_code=status.HTTP_204_NO_CONTENT)
 def delete_patient(
     patient_id: int, db: Annotated[Session, Depends(get_db)], _current_user: Annotated[User, Depends(get_current_user)]
-) -> schemas.Patient:
+) -> Response:
     db_patient = services.delete_patient(db, patient_id=patient_id)
     if db_patient is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Patient not found")
-    return db_patient
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.post(
@@ -165,17 +165,15 @@ def update_emergency_contact(
     return services.update_emergency_contact(db=db, contact_id=contact_id, contact_update=contact)
 
 
-@router.delete(
-    "/{patient_id}/emergency_contacts/{contact_id}/",
-    response_model=schemas.EmergencyContact,
-)
+@router.delete("/{patient_id}/emergency_contacts/{contact_id}/", status_code=status.HTTP_204_NO_CONTENT)
 def delete_emergency_contact(
     patient_id: int,
     contact_id: int,
     db: Annotated[Session, Depends(get_db)],
     _current_user: Annotated[User, Depends(get_current_user)],
-) -> schemas.EmergencyContact:
+) -> Response:
     db_contact = services.get_emergency_contact(db, contact_id=contact_id)
     if db_contact is None or db_contact.patient_id != patient_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Emergency contact not found")
-    return services.delete_emergency_contact(db=db, contact_id=contact_id)
+    services.delete_emergency_contact(db=db, contact_id=contact_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

@@ -102,6 +102,7 @@ const calendarOptions = computed(() => ({
     fetchAppointments(info, successCallback, failureCallback);
   },
   selectable: true,
+  nowIndicator: true,
   select: (arg) => {
     selectedAppointmentId.value = null; // New appointment
     selectedDate.value = arg.startStr;
@@ -239,7 +240,7 @@ const getEventColor = (appointment) => {
   }
   // If cancelled, apply specific opacity
   if (appointment.cancelled) {
-    a = 0.1; // Override opacity for cancelled appointments
+    a = 0.05; // Override opacity for cancelled appointments
   }
 
   return `rgba(${r}, ${g}, ${b}, ${a})`;
