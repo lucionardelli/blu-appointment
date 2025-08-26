@@ -215,6 +215,7 @@
                 :minutes-increment="15"
                 text-input
                 auto-apply
+                utc
                 :locale="locale"
                 :format="formatForPicker"
                 :disabled="appointment.cancelled"
@@ -233,6 +234,7 @@
                 :minutes-increment="15"
                 text-input
                 auto-apply
+                utc
                 :locale="locale"
                 :format="formatForPicker"
                 :disabled="appointment.cancelled"
