@@ -4,12 +4,20 @@
       <h1 class="text-2xl font-semibold text-gray-900">
         {{ t("appointments") }}
       </h1>
-      <button
-        class="px-4 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-        @click="openNewAppointmentModal"
-      >
-        {{ t("new_appointment") }}
-      </button>
+      <div class="flex items-center">
+        <button
+          class="ml-4 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+          @click="toggleShowSundays"
+        >
+          {{ showSundays ? t("hide_sundays") : t("show_sundays") }}
+        </button>
+        <button
+          class="ml-4 px-4 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+          @click="openNewAppointmentModal"
+        >
+          {{ t("new_appointment") }}
+        </button>
+      </div>
     </div>
     <FullCalendar ref="fullCalendarRef" :options="calendarOptions" />
     <AppointmentFormModal
@@ -48,6 +56,11 @@ const selectedDate = ref("");
 const selectedEndDate = ref("");
 const selectedAppointmentId = ref(null);
 const fullCalendarRef = ref(null);
+const showSundays = ref(false);
+
+const toggleShowSundays = () => {
+  showSundays.value = !showSundays.value;
+};
 const fetchAppointments = async (info, successCallback, failureCallback) => {
   try {
     const response = await api.get("/appointments/", {
@@ -93,6 +106,7 @@ const openNewAppointmentModal = () => {
 const calendarOptions = computed(() => ({
   plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin],
   initialView: "timeGridWeek",
+  hiddenDays: showSundays.value ? [] : [0],
   headerToolbar: {
     left: "prev,next today",
     center: "title",

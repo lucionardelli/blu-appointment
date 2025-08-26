@@ -134,5 +134,7 @@
   "confirm_restore_appointment": "¿Estás seguro de que quieres restaurar esta sesión?",
   "restore_appointment": "Restaurar Sesión",
   "no_patients_found": "No se encontraron pacientes",
+  "show_sundays": "Mostrar domingos",
+  "hide_sundays": "Ocultar domingos",
   "placeholder_so_commas_dont_break_json": "Placeholder so commas don't break JSON"
 }
