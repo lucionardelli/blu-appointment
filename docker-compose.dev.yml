@@ -6,13 +6,13 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./backend:/app
+      - ./backend:/home/appuser/app
       - db_data:/app/db
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     env_file:
       - .env
     environment:
-      - PYTHONPATH=/app
+      - PYTHONPATH=/home/appuser/app
     healthcheck:
       test: [ "CMD-SHELL", "curl -s --max-time 5 localhost:8000 && exit 0 || exit 1" ]
       interval: 15s
