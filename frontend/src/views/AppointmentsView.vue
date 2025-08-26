@@ -76,7 +76,7 @@ const fetchAppointments = async (info, successCallback, failureCallback) => {
       end: appointment.end_time,
       extendedProps: {
         appointment,
-        specialty: appointment.specialty.name,
+        specialty: appointment.specialty,
       },
       backgroundColor: getEventColor(appointment),
       borderColor: getEventColor(appointment),
@@ -170,6 +170,12 @@ const calendarOptions = computed(() => ({
     mainContent += `</div>`;
 
     let icons = "";
+    if (appointment.specialty && appointment.specialty.icon) {
+      icons += `<span class="${appointment.specialty.icon} text-lg"></span>`;
+    } else {
+      icons += `<span class="i-heroicons-academic-cap-20-solid text-lg"></span>`;
+    }
+
     let tooltipWarnings = [];
     if (isOutsideWorkingHours(appointment)) {
       if (isShort) {

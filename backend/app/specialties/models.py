@@ -20,6 +20,7 @@ class Specialty(Base):
     id = sa.Column(Integer, primary_key=True, index=True)
     name = sa.Column(String(255), nullable=False, unique=True)
     color = sa.Column(String(9), nullable=True)
+    icon = sa.Column(String(255), nullable=True)
     default_duration_minutes = sa.Column(Integer, nullable=False)
     treatment_duration_logic = sa.Column(String(255), nullable=True)
 
