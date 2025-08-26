@@ -89,4 +89,4 @@ logs-prod::
 # ==============================================================================
 
 db::
-	docker compose -f docker-compose.dev.yml exec -it backend sqlite3 /app/db/blu.sqlite3
+	docker compose -f docker-compose.dev.yml exec -it backend sqlite3 app/db/blu.sqlite3
