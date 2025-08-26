@@ -88,7 +88,9 @@
               :reduce="(patient) => patient.id"
               :searchable="true"
               :loading="patientSearchLoading"
+              :filter="(options, search) => options"
               :disabled="appointment.cancelled"
+              :class="{ 'cursor-not-allowed': patientSearchLoading }"
               class="block w-full mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
               @search="debouncedOnPatientSearch"
               @change="fetchPatientSnippet"
@@ -496,43 +498,39 @@ const handlePaymentSave = () => {
 };
 
 const onPatientSearch = async (search, loading) => {
-  loading(true);
-  try {
-    let newOptions;
-    if (search.length) {
+  if (search.length) {
+    loading(true);
+    try {
       const response = await api.get("/patients/", {
         params: { query: search, limit: 10 },
       });
-      newOptions = response.data.items;
-    } else {
-      const response = await api.get("/patients/", { params: { limit: 4 } });
-      newOptions = response.data.items;
-    }
+      const newOptions = response.data.items;
 
-    if (appointment.value.patient_id) {
-      const isSelectedInNewOptions = newOptions.some(
-        (p) => p.id === appointment.value.patient_id,
-      );
-      if (!isSelectedInNewOptions) {
-        const existingPatient = patientsOptions.value.find(
+      if (appointment.value.patient_id) {
+        const isSelectedInNewOptions = newOptions.some(
           (p) => p.id === appointment.value.patient_id,
         );
-        if (existingPatient) {
-          newOptions.unshift(existingPatient);
-        } else {
-          // Fallback to fetch the patient if not in current options
-          const response = await api.get(
-            `/patients/${appointment.value.patient_id}/`,
+        if (!isSelectedInNewOptions) {
+          const existingPatient = patientsOptions.value.find(
+            (p) => p.id === appointment.value.patient_id,
           );
-          newOptions.unshift(response.data);
+          if (existingPatient) {
+            newOptions.unshift(existingPatient);
+          } else {
+            // Fallback to fetch the patient if not in current options
+            const response = await api.get(
+              `/patients/${appointment.value.patient_id}/`,
+            );
+            newOptions.unshift(response.data);
+          }
         }
       }
+      patientsOptions.value = newOptions;
+    } catch (error) {
+      console.error("Error searching patients:", error);
+    } finally {
+      loading(false);
     }
-    patientsOptions.value = newOptions;
-  } catch (error) {
-    console.error("Error searching patients:", error);
-  } finally {
-    loading(false);
   }
 };
 
