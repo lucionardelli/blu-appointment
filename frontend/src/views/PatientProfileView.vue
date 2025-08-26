@@ -436,6 +436,9 @@
                 >
                   {{ t("status") }}
                 </th>
+                <th scope="col" class="relative px-6 py-3">
+                  <span class="sr-only">{{ t("view") }}</span>
+                </th>
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
@@ -457,6 +460,16 @@
                   <span :class="getPaymentStatus(appointment).color">
                     {{ getPaymentStatus(appointment).text }}
                   </span>
+                </td>
+                <td
+                  class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
+                >
+                  <button
+                    class="text-primary hover:text-primary-dark"
+                    @click="openAppointmentModal(appointment.id)"
+                  >
+                    {{ t("view") }}
+                  </button>
                 </td>
               </tr>
             </tbody>
@@ -625,6 +638,12 @@
       @close="showPaymentForm = false"
       @save="handlePaymentSave"
     />
+    <AppointmentFormModal
+      v-if="showAppointmentModal"
+      :appointment-id="selectedAppointmentId"
+      @close="showAppointmentModal = false"
+      @save="fetchAppointments"
+    />
   </div>
 </template>
 
@@ -638,6 +657,7 @@ import DOMPurify from "dompurify";
 import { formatDate, formatCurrency, formatTime } from "@/utils/formatDate";
 import EmergencyContactForm from "@/components/patients/EmergencyContactForm.vue";
 import PaymentFormModal from "@/components/payments/PaymentFormModal.vue";
+import AppointmentFormModal from "@/components/appointments/AppointmentFormModal.vue";
 import { useSpecialtyStore } from "@/stores/specialties";
 
 import vSelect from "vue-select";
@@ -658,6 +678,9 @@ const referredBySearchLoading = ref(false);
 const referredByPatientName = ref(null);
 const showPaymentForm = ref(false);
 const referredBySnippet = ref(null);
+
+const showAppointmentModal = ref(false);
+const selectedAppointmentId = ref(null);
 
 const onReferredBySearch = async (search, loading) => {
   if (search.length) {
@@ -726,6 +749,11 @@ const isEditing = ref(false);
 const activeTab = ref("appointments"); // Default to medical history for new patient, or appointments for existing
 const showCancelledAppointments = ref(false);
 const md = new MarkdownIt();
+
+const openAppointmentModal = (appointmentId) => {
+  selectedAppointmentId.value = appointmentId;
+  showAppointmentModal.value = true;
+};
 
 const renderedMedicalHistory = computed(() => {
   if (patient.value && patient.value.medical_history) {
