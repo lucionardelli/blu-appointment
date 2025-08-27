@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict
 
 class PaymentMethodBase(BaseModel):
     name: str
+    is_active: bool = True
 
 
 class PaymentMethodCreate(PaymentMethodBase): ...
@@ -13,6 +14,7 @@ class PaymentMethodCreate(PaymentMethodBase): ...
 
 class PaymentMethodUpdate(PaymentMethodBase):
     name: str | None = None
+    is_active: bool | None = None
 
 
 class PaymentMethod(PaymentMethodBase):

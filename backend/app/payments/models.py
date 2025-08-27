@@ -12,6 +12,9 @@ class PaymentMethod(Base):
 
     id = sa.Column(sa.Integer, primary_key=True, index=True)
     name = sa.Column(String(255), nullable=False, unique=True)
+    is_active = sa.Column(sa.Boolean, default=True, nullable=False)
+
+    payments = relationship("Payment", back_populates="payment_method")
 
 
 class Payment(Base):
@@ -21,7 +24,7 @@ class Payment(Base):
     amount = sa.Column(Numeric(10, 2), nullable=False)
     payment_date = sa.Column(DateTime, nullable=False, default=lambda: datetime.now(UTC))
     payment_method_id = sa.Column(Integer, sa.ForeignKey("payment_methods.id"), nullable=False)
-    payment_method = relationship("PaymentMethod")
+    payment_method = relationship("PaymentMethod", back_populates="payments")
 
     appointment_id = sa.Column(Integer, sa.ForeignKey("appointments.id"), nullable=True)
     appointment = relationship("Appointment", back_populates="payments")

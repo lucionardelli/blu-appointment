@@ -122,6 +122,23 @@
               <span class="mx-3">{{ t("specialties") }}</span>
             </div>
           </router-link>
+          <router-link
+            v-slot="{ isActive }"
+            to="/payment-methods"
+            class="flex items-center mt-2"
+          >
+            <div
+              :class="[
+                isActive
+                  ? 'bg-white text-primary'
+                  : 'text-gray-200 hover:bg-primary-dark hover:bg-opacity-25 hover:text-white',
+                'flex items-center w-full h-full rounded-md px-3 py-2',
+              ]"
+            >
+              <i-heroicons-credit-card-20-solid class="w-6 h-6" />
+              <span class="mx-3">{{ t("payment_methods") }}</span>
+            </div>
+          </router-link>
         </div>
       </div>
     </nav>

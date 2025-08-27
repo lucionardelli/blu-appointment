@@ -49,6 +49,12 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
+    path: "/payment-methods",
+    name: "payment-methods",
+    component: () => import("../views/PaymentMethodsView.vue"),
+    meta: { requiresAuth: true },
+  },
+  {
     path: "/specialties/:id",
     name: "edit-specialty",
     component: SpecialtyForm,
