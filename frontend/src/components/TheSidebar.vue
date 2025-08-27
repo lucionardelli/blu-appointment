@@ -87,24 +87,43 @@
           <span v-if="!isCollapsed" class="mx-3">{{ t("dashboard") }}</span>
         </div>
       </router-link>
-      <router-link
-        v-slot="{ isActive }"
-        to="/specialties"
-        :title="isCollapsed ? t('specialties') : ''"
-        class="flex items-center mt-4"
-      >
-        <div
-          :class="[
-            isActive
-              ? 'bg-white text-primary'
-              : 'text-gray-200 hover:bg-primary-dark hover:bg-opacity-25 hover:text-white',
-            'flex items-center w-full h-full rounded-md px-3 py-2',
-          ]"
+      <div class="mt-4">
+        <button
+          class="flex items-center justify-between w-full px-3 py-2 text-gray-200 hover:bg-primary-dark hover:bg-opacity-25 hover:text-white rounded-md focus:outline-none"
+          @click="configurationMenuOpen = !configurationMenuOpen"
         >
-          <i-heroicons-briefcase-20-solid class="w-6 h-6" />
-          <span v-if="!isCollapsed" class="mx-3">{{ t("specialties") }}</span>
+          <div class="flex items-center">
+            <i-heroicons-cog-8-tooth-20-solid class="w-6 h-6" />
+            <span v-if="!isCollapsed" class="mx-3">{{ t("configuration") }}</span>
+          </div>
+          <i-heroicons-chevron-down-20-solid
+            v-if="!isCollapsed"
+            :class="{
+              'transform rotate-180': configurationMenuOpen,
+            }"
+            class="w-5 h-5 transition-transform duration-200"
+          />
+        </button>
+        <div v-if="configurationMenuOpen && !isCollapsed" class="pl-8">
+          <router-link
+            v-slot="{ isActive }"
+            to="/specialties"
+            class="flex items-center mt-2"
+          >
+            <div
+              :class="[
+                isActive
+                  ? 'bg-white text-primary'
+                  : 'text-gray-200 hover:bg-primary-dark hover:bg-opacity-25 hover:text-white',
+                'flex items-center w-full h-full rounded-md px-3 py-2',
+              ]"
+            >
+              <i-heroicons-briefcase-20-solid class="w-6 h-6" />
+              <span class="mx-3">{{ t("specialties") }}</span>
+            </div>
+          </router-link>
         </div>
-      </router-link>
+      </div>
     </nav>
   </div>
 </template>
@@ -125,6 +144,7 @@ const { sidebarOpen } = defineProps({
 const emit = defineEmits(["toggle-sidebar"]);
 
 const isCollapsed = ref(false);
+const configurationMenuOpen = ref(false);
 
 const toggleCollapse = () => {
   isCollapsed.value = !isCollapsed.value;
