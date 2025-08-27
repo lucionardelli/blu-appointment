@@ -158,11 +158,6 @@ const calendarOptions = computed(() => ({
     const patientName =
       appointment.patient.nickname || appointment.patient.name;
 
-    const start = new Date(arg.event.start);
-    const end = new Date(arg.event.end);
-    const durationMinutes = (end - start) / (1000 * 60);
-    const isShort = durationMinutes < 30;
-
     let mainContent = `<div class="flex-grow overflow-hidden text-ellipsis whitespace-nowrap"><b>${patientName}</b>`;
     if (appointment.specialty) {
       mainContent += `<div class="text-sm text-gray-600"><i>${appointment.specialty.name}</i></div>`;
@@ -171,19 +166,8 @@ const calendarOptions = computed(() => ({
 
     let icons = "";
     if (appointment.specialty && appointment.specialty.icon) {
-      icons += `<span class="${appointment.specialty.icon} text-lg"></span>`;
-    } else {
-      icons += `<span class="i-heroicons-academic-cap-20-solid text-lg"></span>`;
-    }
-
-    let tooltipWarnings = [];
-    if (isOutsideWorkingHours(appointment)) {
-      if (isShort) {
-        tooltipWarnings.push("Outside working hours");
-      } else {
-        icons +=
-          '<span class="text-blue-500" title="Outside working hours">⏰</span>';
-      }
+      // Icon classes are not working due to a missing Tailwind plugin. Using an emoji instead.
+      icons += `<span title="${appointment.specialty.name}" class="text-lg">${appointment.specialty.icon}</span>`;
     }
 
     let content = `<div class="flex items-center justify-between w-full">${mainContent}`;
@@ -197,9 +181,6 @@ const calendarOptions = computed(() => ({
     }
 
     let fullContent = `${patientName} (${appointment.specialty.name})`;
-    if (tooltipWarnings.length > 0) {
-      fullContent += ` - ${tooltipWarnings.join(", ")}`;
-    }
     if (appointment.cancelled) {
       fullContent += " (Cancelled)";
     }
@@ -264,21 +245,5 @@ const getEventColor = (appointment) => {
   }
 
   return `rgba(${r}, ${g}, ${b}, ${a})`;
-};
-
-const isOutsideWorkingHours = (appointment) => {
-  const start = new Date(appointment.start_time);
-  const dayOfWeek = start.getDay(); // Sunday = 0, Monday = 1, ...
-  const hours = workingHoursRaw.value.find((h) => h.dayOfWeek === dayOfWeek);
-
-  if (!hours || hours.is_closed) {
-    return true; // Closed all day
-  }
-
-  const startTime = `${start.getHours().toString().padStart(2, "0")}:${start.getMinutes().toString().padStart(2, "0")}`;
-  return (
-    startTime < hours.startTime.slice(0, 5) ||
-    startTime >= hours.endTime.slice(0, 5)
-  );
 };
 </script>

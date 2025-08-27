@@ -24,11 +24,10 @@ from app.appointments.models import (
 from app.core.security import get_password_hash
 from app.db.base import engine
 from app.patients.models import Patient as Patient
+from app.payments.models import PaymentMethod
 from app.specialties.models import Specialty
 from app.specialties.models import SpecialtyPrice as SpecialtyPrice
 from app.users.models import User
-from app.payments.models import PaymentMethod
-
 
 
 def seed_specialties(file_path: Path) -> None:
@@ -42,6 +41,7 @@ def seed_specialties(file_path: Path) -> None:
                     default_duration_minutes=int(row["default_duration_minutes"]),
                     current_price=Decimal(row["current_price"]),
                     color=row["color"],
+                    icon=row["icon"],
                 )
                 session.add(specialty)
         session.commit()
@@ -76,7 +76,9 @@ def seed_working_hours(file_path: Path) -> None:
             except KeyError:
                 raise ValueError(f"Invalid day_of_week value: {row['day_of_week']}") from None
 
-            working_hours = session.execute(select(WorkingHours).where(WorkingHours.day_of_week == day_of_week)).scalars().first()
+            working_hours = (
+                session.execute(select(WorkingHours).where(WorkingHours.day_of_week == day_of_week)).scalars().first()
+            )
             if not working_hours:
                 working_hours = WorkingHours(day_of_week=day_of_week)
                 session.add(working_hours)
