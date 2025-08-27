@@ -37,7 +37,7 @@
             </div>
             <div class="flex items-center space-x-2">
               <button
-                v-if="!isEditing && !isNew"
+                v-if="isEditing && !isNew"
                 type="button"
                 class="px-4 py-2 text-sm font-medium text-red-700 bg-white border border-red-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                 @click="deletePatient"
@@ -476,13 +476,10 @@
           </table>
         </div>
         <div v-show="activeTab === 'payments'" class="border-t border-gray-200">
-          <div class="flex justify-between items-center mb-4 px-4 py-5 sm:px-6">
-            <h4 class="text-lg leading-6 font-medium text-gray-900">
-              {{ t("payments") }}
-            </h4>
+          <div class="flex justify-end items-center px-4 py-3 sm:px-6">
             <button
               type="button"
-              class="px-3 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+              class="px-3 py-2 text-sm font-small text-white bg-primary rounded-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
               @click="showPaymentForm = true"
             >
               {{ t("add_payment") }}
@@ -556,10 +553,7 @@
           class="border-t border-gray-200 px-4 py-5 sm:p-0"
         >
           <div class="px-4 py-5 sm:px-6">
-            <div class="flex justify-between items-center mb-4">
-              <h4 class="text-lg leading-6 font-medium text-gray-900">
-                {{ t("emergency_contacts") }}
-              </h4>
+            <div class="flex justify-end items-center mb-4">
               <button
                 v-if="isEditing"
                 type="button"
