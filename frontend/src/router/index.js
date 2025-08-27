@@ -55,6 +55,12 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
+    path: "/working-hours",
+    name: "working-hours",
+    component: () => import("../views/WorkingHoursView.vue"),
+    meta: { requiresAuth: true },
+  },
+  {
     path: "/specialties/:id",
     name: "edit-specialty",
     component: SpecialtyForm,
