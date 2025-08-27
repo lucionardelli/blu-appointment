@@ -67,7 +67,8 @@ def get_patients(db: Session, query: str = "", skip: int = 0, limit: int = 100) 
     if query:
         query_lower = f"%{query.lower()}%"
         patients_query = db.query(models.Patient).filter(
-            (func.lower(models.Patient.name).like(query_lower)) | (func.lower(models.Patient.nickname).like(query_lower))
+            (func.lower(models.Patient.name).like(query_lower))
+            | (func.lower(models.Patient.nickname).like(query_lower))
         )
     else:
         patients_query = db.query(models.Patient)
@@ -89,7 +90,14 @@ def get_patient_appointments(db: Session, patient_id: int, skip: int = 0, limit:
     if not db_patient:
         return []
 
-    return db.query(Appointment).filter(Appointment.patient_id == patient_id).offset(skip).limit(limit).all()
+    return (
+        db.query(Appointment)
+        .filter(Appointment.patient_id == patient_id)
+        .order_by(Appointment.start_time.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
 
 
 def get_patient_payments(db: Session, patient_id: int) -> list[Payment]:
