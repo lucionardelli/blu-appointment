@@ -171,10 +171,13 @@ import { useRoute, useRouter } from "vue-router";
 import api from "@/services/api";
 import { formatDate, formatCurrency } from "@/utils/formatDate";
 import { useI18n } from "vue-i18n";
+import { useSpecialtyStore } from "@/stores/specialties";
 
 const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
+
+const specialtyStore = useSpecialtyStore();
 
 const specialty = ref({
   name: "",
@@ -248,12 +251,15 @@ const saveSpecialty = async () => {
   try {
     if (isNew.value) {
       const response = await api.post("/specialties/", specialty.value);
+      specialtyStore.addSpecialty(response.data); // Add to store
       router.push(`/specialties/${response.data.id}`);
     } else {
       await api.put(`/specialties/${route.params.id}/`, specialty.value);
+      specialtyStore.updateSpecialty(specialty.value); // Update in store
       // Re-fetch pricing history to show updated price if it changed
       fetchPricingHistory();
     }
+    goBack();
   } catch (error) {
     console.error("Error saving specialty:", error);
   }
