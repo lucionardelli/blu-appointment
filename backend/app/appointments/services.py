@@ -1,7 +1,9 @@
 from datetime import datetime, timedelta
 
+from sqlalchemy import case
 from sqlalchemy.orm import Session
 
+from app.appointments.models import DayOfWeek
 from app.payments import models as payment_models
 from app.payments import schemas as payment_schemas
 from app.specialties.services import get_current_price_for_specialty, get_specialty_by_id
@@ -206,7 +208,18 @@ def get_payments_for_appointment(db: Session, appointment_id: int) -> list[payme
 
 
 def get_working_hours(db: Session) -> list[models.WorkingHours]:
-    return db.query(models.WorkingHours).order_by(models.WorkingHours.day_of_week).all()
+    day_order = case(
+        (models.WorkingHours.day_of_week == DayOfWeek.MONDAY, 1),
+        (models.WorkingHours.day_of_week == DayOfWeek.TUESDAY, 2),
+        (models.WorkingHours.day_of_week == DayOfWeek.WEDNESDAY, 3),
+        (models.WorkingHours.day_of_week == DayOfWeek.THURSDAY, 4),
+        (models.WorkingHours.day_of_week == DayOfWeek.FRIDAY, 5),
+        (models.WorkingHours.day_of_week == DayOfWeek.SATURDAY, 6),
+        (models.WorkingHours.day_of_week == DayOfWeek.SUNDAY, 7),
+        else_=0 # Default value if none of the conditions match
+    )
+
+    return db.query(models.WorkingHours).order_by(day_order).all()
 
 
 def set_working_hours(
