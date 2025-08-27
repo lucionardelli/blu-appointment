@@ -9,22 +9,25 @@
         {{ t("new_patient") }}
       </router-link>
     </div>
-    <div v-if="loading" class="text-center">
+    <div class="mb-4">
+      <input
+        v-model="searchQuery"
+        type="text"
+        :placeholder="t('search_patients')"
+        class="block w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+      />
+    </div>
+    <div v-if="loading && !patients.length" class="text-center">
       <p>{{ t("loading_patients") }}</p>
     </div>
     <div v-else-if="error" class="text-center text-red-500">
       <p>{{ t("error_loading_patients") }}</p>
     </div>
     <div v-else>
-      <div class="mb-4">
-        <input
-          v-model="searchQuery"
-          type="text"
-          :placeholder="t('search_patients')"
-          class="block w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-        />
-      </div>
-      <div class="overflow-x-auto bg-white rounded-lg shadow">
+      <div
+        class="overflow-x-auto bg-white rounded-lg shadow"
+        :class="{ 'opacity-50': loading }"
+      >
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
