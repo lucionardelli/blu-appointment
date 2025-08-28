@@ -40,6 +40,7 @@ def seed_specialties(file_path: Path) -> None:
                     name=row["name"],
                     default_duration_minutes=int(row["default_duration_minutes"]),
                     current_price=Decimal(row["current_price"]),
+                    treatment_duration_logic=row.get("treatment_duration_logic") or None,
                     color=row["color"],
                     icon=row["icon"],
                 )
