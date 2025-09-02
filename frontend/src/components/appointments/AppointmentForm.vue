@@ -214,7 +214,6 @@
               <DatePicker
                 v-model="appointment.start_time"
                 :enable-time-picker="true"
-                time-picker
                 :minutes-increment="15"
                 text-input
                 auto-apply
@@ -234,7 +233,6 @@
               <DatePicker
                 v-model="appointment.end_time"
                 :enable-time-picker="true"
-                time-picker
                 :minutes-increment="15"
                 text-input
                 auto-apply
