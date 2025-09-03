@@ -1,4 +1,3 @@
-from datetime import date
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -11,24 +10,19 @@ ADULT_FOLLOWING_SESSIONS_DURATION = 9  # After six sessions for adults
 
 
 def calculate_age_and_session_based_duration(patient: "Patient", session_count: int) -> int:
-    """
-    Calculates treatment duration based on patient's age and session count.
+    """Calculates treatment duration based on patient's age and session count.
     - Underage: 3 mins
     - Adults: First 3 sessions, 3 minutes. Next three sesisones, 6 minutes. Then on, 9 minutes
     """
-    age = patient.age
-    if not age:
-        return 0
-
     # The session_count is the number of *past* appointments.
     # The current appointment is the next session.
     current_session_number = session_count + 1
 
-    if patient.is_underage:
+    if patient.is_underage:  # We are assuming that all patients without a DOB are adults.
         return 3
-    if current_session_number <= 3:
+    if current_session_number <= 3:  # noqa: PLR2004
         return ADULT_FIRST_3_SESSIONS_DURATION
-    elif current_session_number <= 6:
+    if current_session_number <= 6:  # noqa: PLR2004
         return ADULT_NEXT_3_SESSIONS_DURATION
     return ADULT_FOLLOWING_SESSIONS_DURATION
 
@@ -39,9 +33,7 @@ LOGIC_REGISTRY = {
 
 
 def get_treatment_duration(logic_key: str | None, patient: "Patient", session_count: int) -> int | None:
-    """
-    Looks up the logic key in the registry and returns the calculated duration.
-    """
+    """Looks up the logic key in the registry and returns the calculated duration."""
     if not logic_key or logic_key not in LOGIC_REGISTRY:
         return None
 

@@ -1,16 +1,18 @@
 from datetime import date, datetime
 from typing import Annotated, Never
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query, status, Response
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
 
-from app.users.logged import get_current_user
 from app.db.base import get_db
-from app.users.models import User
-from app.specialties.rules import get_treatment_duration
-
-from . import services, metrics, models, schemas
 from app.payments import schemas as payment_schemas
+from app.patients import services as patient_services
+from app.specialties import services as specialty_services
+from app.specialties.rules import get_treatment_duration
+from app.users.logged import get_current_user
+from app.users.models import User
+
+from . import metrics, models, schemas, services
 
 appointments_router = APIRouter()
 working_hours_router = APIRouter()
@@ -32,6 +34,7 @@ def create_appointment(
 @appointments_router.get("/", response_model=list[schemas.Appointment], status_code=status.HTTP_200_OK)
 def get_appointments(
     db: Annotated[Session, Depends(get_db)],
+    _current_user: Annotated[User, Depends(get_current_user)],
     skip: int = 0,
     limit: int = 100,
     start_time: datetime | None = None,
@@ -41,10 +44,45 @@ def get_appointments(
         list[schemas.AppointmentStatus] | None,
         Query(description="Filter by appointment status. Can be specified multiple times."),
     ] = None,
-    _current_user: Annotated[User, Depends(get_current_user)] = None,
 ) -> list[schemas.Appointment]:
-    return services.get_appointments(db=db, skip=skip, limit=limit, start_time=start_time, end_time=end_time,
-                                     patient_id=patient_id, status=status,)
+    return services.get_appointments(
+        db=db,
+        skip=skip,
+        limit=limit,
+        start_time=start_time,
+        end_time=end_time,
+        patient_id=patient_id,
+        status=status,
+    )
+
+
+@appointments_router.get("/suggested-duration/")
+def get_suggested_treatment_duration(
+    patient_id: Annotated[int, Query(..., description="ID of the patient")],
+    specialty_id: Annotated[int, Query(..., description="ID of the specialty")],
+    before_time: Annotated[datetime, Query(default_factory=datetime.now, description="Consider appointments before this time")],
+    db: Annotated[Session, Depends(get_db)],
+    _current_user: Annotated[User, Depends(get_current_user)],
+) -> int:
+    db_specialty = specialty_services.get_specialty_by_id(db, specialty_id=specialty_id)
+    if not db_specialty:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Specialty not found")
+    logic_key = db_specialty.treatment_duration_logic
+    if not logic_key:
+        return Response(status_code=204)
+
+    db_patient = patient_services.get_patient(db, patient_id=patient_id)
+    if not db_patient:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Patient not found")
+
+    session_count = services.count_past_appointments_for_specialty(
+        db,
+        patient_id=patient_id,
+        specialty_id=specialty_id,
+        before_time=before_time,
+    )
+    return get_treatment_duration(logic_key, db_patient, session_count)
+
 
 @appointments_router.post("/recurring/", status_code=status.HTTP_501_NOT_IMPLEMENTED, response_model=None)
 def create_recurring_appointments(
@@ -56,6 +94,7 @@ def create_recurring_appointments(
         status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="Recurring appointments creation is not yet implemented."
     )
 
+
 @appointments_router.get("/{appointment_id}/", response_model=schemas.Appointment)
 def get_appointment(
     appointment_id: int,
@@ -65,19 +104,6 @@ def get_appointment(
     db_appointment = services.get_appointment(db, appointment_id=appointment_id)
     if db_appointment is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Appointment not found")
-
-    logic_key = db_appointment.specialty.treatment_duration_logic
-    if logic_key:
-        session_count = services.count_past_appointments_for_specialty(
-            db,
-            patient_id=db_appointment.patient_id,
-            specialty_id=db_appointment.specialty_id,
-            before_time=db_appointment.start_time,
-        )
-        duration = get_treatment_duration(logic_key, db_appointment.patient, session_count)
-        # This dynamically added attribute will be picked up by the Pydantic model
-        db_appointment.suggested_treatment_duration_minutes = duration
-
     return db_appointment
 
 
@@ -88,7 +114,9 @@ def update_appointment(
     db: Annotated[Session, Depends(get_db)],
     _current_user: Annotated[User, Depends(get_current_user)],
 ) -> schemas.Appointment:
-    db_appointment = services.update_appointment(db, appointment_id=appointment_id, appointment_update=appointment_update)
+    db_appointment = services.update_appointment(
+        db, appointment_id=appointment_id, appointment_update=appointment_update
+    )
     if db_appointment is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Appointment not found")
     return db_appointment
@@ -107,7 +135,7 @@ def cancel_appointment(
 
 
 @appointments_router.patch("/{appointment_id}/restore/", response_model=schemas.Appointment)
-def cancel_appointment(
+def restore_appointment(
     appointment_id: int,
     db: Annotated[Session, Depends(get_db)],
     _current_user: Annotated[User, Depends(get_current_user)],
