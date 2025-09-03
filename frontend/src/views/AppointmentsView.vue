@@ -134,8 +134,23 @@ const calendarOptions = computed(() => ({
   editable: true,
   eventDrop: (info) => {
     const appointment = info.event.extendedProps.appointment;
-    const newStartTime = info.event.startStr;
-    const newEndTime = info.event.endStr;
+    const newStartTime = info.event.start.toISOString();
+    const newEndTime = info.event.end.toISOString();
+
+    api
+      .put(`/appointments/${appointment.id}`, {
+        start_time: newStartTime,
+        end_time: newEndTime,
+      })
+      .catch((error) => {
+        console.error("Error updating appointment:", error);
+        info.revert();
+      });
+  },
+  eventResize: (info) => {
+    const appointment = info.event.extendedProps.appointment;
+    const newStartTime = info.event.start.toISOString();
+    const newEndTime = info.event.end.toISOString();
 
     api
       .put(`/appointments/${appointment.id}`, {
@@ -158,11 +173,7 @@ const calendarOptions = computed(() => ({
     const patientName =
       appointment.patient.nickname || appointment.patient.name;
 
-    let mainContent = `<div class="flex-grow overflow-hidden text-ellipsis whitespace-nowrap"><b>${patientName}</b>`;
-    if (appointment.specialty) {
-      mainContent += `<div class="text-sm text-gray-600"><i>${appointment.specialty.name}</i></div>`;
-    }
-    mainContent += `</div>`;
+    let mainContent = `<div class="flex-grow overflow-hidden text-ellipsis whitespace-nowrap"><b>${patientName}</b></div>`;
 
     let icons = "";
     if (appointment.specialty && appointment.specialty.icon) {
