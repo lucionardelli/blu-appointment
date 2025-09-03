@@ -106,6 +106,7 @@ const openNewAppointmentModal = () => {
 const calendarOptions = computed(() => ({
   plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin],
   initialView: "timeGridWeek",
+  eventMinHeight: 40, // So the text+icon is always visible
   hiddenDays: showSundays.value ? [] : [0],
   headerToolbar: {
     left: "prev,next today",
