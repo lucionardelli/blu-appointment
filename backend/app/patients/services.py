@@ -105,7 +105,7 @@ def get_patient_payments(db: Session, patient_id: int) -> list[Payment]:
     if not db_patient:
         return []
 
-    return db.query(Payment).filter(Payment.patient_id == patient_id).all()
+    return db.query(Payment).filter(Payment.patient_id == patient_id).order_by(Payment.payment_date.desc()).all()
 
 
 def create_patient(db: Session, patient: schemas.PatientCreate) -> models.Patient:

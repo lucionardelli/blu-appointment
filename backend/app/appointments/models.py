@@ -55,7 +55,7 @@ class Appointment(Base):
     recurring_series_id = sa.Column(Integer, sa.ForeignKey("recurring_series.id"), nullable=True)
     recurring_series = relationship("RecurringSeries", back_populates="appointments")
 
-    payments = relationship("Payment", back_populates="appointment")
+    payments = relationship("Payment", back_populates="appointment", order_by="desc(Payment.payment_date)")
 
     total_paid = column_property(
         select(func.coalesce(func.sum(Payment.amount), 0.0)).where(Payment.appointment_id == id).scalar_subquery()

@@ -204,7 +204,12 @@ def add_payment(
 
 
 def get_payments_for_appointment(db: Session, appointment_id: int) -> list[payment_models.Payment]:
-    return db.query(payment_models.Payment).filter(payment_models.Payment.appointment_id == appointment_id).all()
+    return (
+        db.query(payment_models.Payment)
+        .filter(payment_models.Payment.appointment_id == appointment_id)
+        .order_by(payment_models.Payment.payment_date.desc())
+        .all()
+    )
 
 
 def get_working_hours(db: Session) -> list[models.WorkingHours]:
@@ -216,7 +221,7 @@ def get_working_hours(db: Session) -> list[models.WorkingHours]:
         (models.WorkingHours.day_of_week == DayOfWeek.FRIDAY, 5),
         (models.WorkingHours.day_of_week == DayOfWeek.SATURDAY, 6),
         (models.WorkingHours.day_of_week == DayOfWeek.SUNDAY, 7),
-        else_=0 # Default value if none of the conditions match
+        else_=0,  # Default value if none of the conditions match
     )
 
     return db.query(models.WorkingHours).order_by(day_order).all()
