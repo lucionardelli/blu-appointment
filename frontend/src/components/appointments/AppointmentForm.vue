@@ -153,13 +153,13 @@
             </div>
           </div>
           <div
-            v-if="appointment.suggested_treatment_duration_minutes"
+            v-if="suggestedTreatmentDuration"
             class="mt-2 p-3 bg-blue-100 border-l-4 border-blue-500 rounded-md"
           >
             <p class="text-sm text-blue-700">
               {{ t("suggested_treatment_duration") }}:
               <span class="font-semibold">
-                {{ appointment.suggested_treatment_duration_minutes }}
+                {{ suggestedTreatmentDuration }}
                 {{ t("minutes") }}
               </span>
             </p>
@@ -408,9 +408,10 @@ const appointment = ref({
   end_time: "",
   cost: 0,
   total_paid: 0,
-  suggested_treatment_duration_minutes: null,
   payments: [],
 });
+
+const suggestedTreatmentDuration = ref(null);
 
 const specialtyStore = useSpecialtyStore();
 
@@ -533,6 +534,34 @@ const onPatientSearch = async (search, loading) => {
 };
 
 const debouncedOnPatientSearch = debounce(onPatientSearch, 300);
+
+watch(
+  [
+    () => appointment.value.patient_id,
+    () => appointment.value.specialty_id,
+    () => appointment.value.start_time,
+  ],
+  async ([patientId, specialtyId, startTime]) => {
+    if (patientId && specialtyId && startTime) {
+      try {
+        const response = await api.get("/appointments/suggested-duration/", {
+          params: {
+            patient_id: patientId,
+            specialty_id: specialtyId,
+            before_time: startTime.toISOString(),
+          },
+        });
+        suggestedTreatmentDuration.value = response.data;
+      } catch (error) {
+        console.error("Error fetching suggested duration:", error);
+        suggestedTreatmentDuration.value = null;
+      }
+    } else {
+      suggestedTreatmentDuration.value = null;
+    }
+  },
+  { deep: true },
+);
 
 watch(
   () => appointment.value.patient_id,
