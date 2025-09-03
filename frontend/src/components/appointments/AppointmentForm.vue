@@ -590,21 +590,22 @@ onMounted(async () => {
 
 watch(
   () => appointment.value.specialty_id,
-  (newVal) => {
-    if (!newVal) return;
+  (newVal, oldVal) => {
+    if (!newVal) return;  // We are actually 'clearing' the specialty
 
+    if (!isNew.value && oldVal === null) return; // Initial load for existing appointment
     const selectedSpecialty = specialtyStore.specialties.find(
       (s) => s.id === newVal,
     );
-    if (!selectedSpecialty) return;
+    if (!selectedSpecialty) return; // Invalid specialty selected
 
-    appointment.value.cost = selectedSpecialty.current_price;
+    if (newVal !== oldVal) {
+      appointment.value.cost = selectedSpecialty.current_price;
 
-    if (isNew.value && appointment.value.start_time) {
       const startTime = new Date(appointment.value.start_time);
       const newEndTime = addMinutes(
         startTime,
-        selectedSpecialty.default_duration,
+        selectedSpecialty.default_duration_minutes,
       );
       appointment.value.end_time = newEndTime;
     }
