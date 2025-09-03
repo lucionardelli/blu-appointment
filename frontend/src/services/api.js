@@ -12,6 +12,22 @@ instance.interceptors.request.use(
     if (authStore.token) {
       config.headers.Authorization = `Bearer ${authStore.token}`;
     }
+
+    if (config.url) {
+      const q_index = config.url.indexOf("?");
+      if (q_index === -1) {
+        if (!config.url.endsWith("/")) {
+          config.url += "/";
+        }
+      } else {
+        const path = config.url.substring(0, q_index);
+        if (!path.endsWith("/")) {
+          const query = config.url.substring(q_index);
+          config.url = path + "/" + query;
+        }
+      }
+    }
+
     return config;
   },
   (error) => {
