@@ -111,11 +111,14 @@
                     {{ t("date_of_birth") }}
                   </dt>
                   <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                    <input
+                    <DatePicker
                       v-if="isEditing"
                       id="dob"
                       v-model="patient.dob"
-                      type="date"
+                      :enable-time-picker="false"
+                      text-input
+                      auto-apply
+                      utc
                       class="block w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
                     />
                     <span v-else>{{ formatDate(patient.dob) }}</span>
@@ -653,6 +656,8 @@ import EmergencyContactForm from "@/components/patients/EmergencyContactForm.vue
 import PaymentFormModal from "@/components/payments/PaymentFormModal.vue";
 import AppointmentFormModal from "@/components/appointments/AppointmentFormModal.vue";
 import { useSpecialtyStore } from "@/stores/specialties";
+import DatePicker from "@vuepic/vue-datepicker";
+import "@vuepic/vue-datepicker/dist/main.css";
 
 import vSelect from "vue-select";
 import "vue-select/dist/vue-select.css";
