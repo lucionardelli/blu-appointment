@@ -30,11 +30,24 @@ from app.specialties.models import SpecialtyPrice as SpecialtyPrice
 from app.users.models import User
 
 
+# Consider names in spanish also:
+translations = {
+    "Therapy": "Terapia",
+    "Cash": "Efectivo",
+    "Credit Card": "Tarjeta",
+    "Wire": "Transferencia",
+    "Patient Credit": "Nota de Crédito",
+}
+
+
 def seed_specialties(file_path: Path) -> None:
     with Session(engine) as session, file_path.open() as f:
         reader = csv.DictReader(f)
         for row in reader:
             exists = session.execute(select(Specialty).where(Specialty.name == row["name"])).first()
+            if not exists and row["name"] in translations:
+                # check if the translated name exists
+                exists = session.execute(select(Specialty).where(Specialty.name == translations[row["name"]])).first()
             if not exists:
                 specialty = Specialty(
                     name=row["name"],
@@ -97,6 +110,9 @@ def seed_payment_methods(file_path: Path) -> None:
         reader = csv.DictReader(f)
         for row in reader:
             exists = session.execute(select(PaymentMethod).where(PaymentMethod.name == row["name"])).first()
+            if not exists and row["name"] in translations:
+                # check if the translated name exists
+                exists = session.execute(select(PaymentMethod).where(PaymentMethod.name == translations[row["name"]])).first()
             if not exists:
                 payment_method = PaymentMethod(
                     name=row["name"],
