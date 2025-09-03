@@ -151,6 +151,19 @@ const payment = ref({
 });
 
 watch(
+  () => props.appointment,
+  (newAppointment) => {
+    if (newAppointment && newAppointment.cost) {
+      const due = (newAppointment.cost || 0) - (newAppointment.total_paid || 0);
+      if (due > 0 && payment.value.amount === 0) {
+        payment.value.amount = due;
+      }
+    }
+  },
+  { immediate: true, deep: true },
+);
+
+watch(
   () => payment.value.appointment_id,
   () => {
     if (selectedAppointment.value) {

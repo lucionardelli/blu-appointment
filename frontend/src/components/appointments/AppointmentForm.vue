@@ -119,7 +119,7 @@
                   :class="{
                     'text-red-500 font-semibold': patientSnippet.is_underage,
                   }"
-                  >{{ patientSnippet.age || '>18*'}}</span
+                  >{{ patientSnippet.age || ">18*" }}</span
                 >
               </p>
               <p
@@ -245,45 +245,11 @@
     </div>
 
     <div v-if="!isNew && activeTab === 'payments'" class="mt-6">
-      <div class="flex justify-between items-center mb-4">
-        <div class="flex items-center">
-          <button
-            v-if="showPaymentForm"
-            class="mr-2 p-1 rounded-full hover:bg-gray-200"
-            @click="showPaymentForm = false"
-          >
-            <i-heroicons-arrow-left-20-solid class="h-6 w-6 text-gray-500" />
-          </button>
-          <h2 class="text-xl font-semibold text-gray-800">
-            <span v-if="showPaymentForm">
-              {{ t("new_payment") }}
-            </span>
-            <span v-else>{{ t("payments") }}</span>
-          </h2>
-        </div>
-        <button
-          v-if="!showPaymentForm && !appointment.cancelled"
-          class="px-4 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-          @click="showPaymentForm = true"
-        >
-          {{ t("add_payment") }}
-        </button>
-      </div>
-
-      <PaymentForm
-        v-if="showPaymentForm"
-        :appointment-id="props.appointmentId"
-        :patient-id="appointment.patient_id"
-        :appointment="appointment"
-        @save="handlePaymentSave"
-        @cancel="showPaymentForm = false"
-      />
-
-      <div v-else>
-        <table
-          v-if="appointment.payments && appointment.payments.length"
-          class="min-w-full divide-y divide-gray-200"
-        >
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">
+        {{ t("payments") }}
+      </h2>
+      <div>
+        <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
               <th
@@ -304,9 +270,60 @@
               >
                 {{ t("amount") }}
               </th>
+              <th scope="col" class="relative px-6 py-3 w-1 whitespace-nowrap">
+                <span class="sr-only">Pay</span>
+              </th>
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
+            <tr
+              v-if="!appointment.cancelled && amountDue > 0"
+              class="bg-green-50"
+            >
+              <td
+                class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
+              >
+                {{ formatDate(new Date()) }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <select
+                  v-model="newPayment.payment_method_id"
+                  class="w-full p-1 bg-transparent border-0 border-b-2 border-transparent focus:border-primary focus:ring-0 sm:text-sm"
+                >
+                  <option
+                    v-for="pm in paymentMethods"
+                    :key="pm.id"
+                    :value="pm.id"
+                  >
+                    {{ pm.name }}
+                  </option>
+                </select>
+              </td>
+              <td
+                class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right"
+              >
+                <input
+                  v-model="newPayment.amount"
+                  type="number"
+                  step="100"
+                  class="w-full p-1 bg-transparent border-0 border-b-2 border-transparent focus:border-primary focus:ring-0 sm:text-sm text-right"
+                />
+              </td>
+              <td
+                class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
+              >
+                <button
+                  type="button"
+                  class="inline-flex items-center px-2.5 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                  @click="saveNewPayment"
+                >
+                  <i-heroicons-currency-dollar-20-solid
+                    class="-ml-0.5 mr-2 h-4 w-4"
+                  />
+                  {{ t("add_payment") }}
+                </button>
+              </td>
+            </tr>
             <tr v-for="payment in appointment.payments" :key="payment.id">
               <td
                 class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
@@ -321,12 +338,20 @@
               >
                 {{ formatCurrency(payment.amount) }}
               </td>
+              <td></td>
+            </tr>
+            <tr
+              v-if="!appointment.payments || appointment.payments.length === 0"
+            >
+              <td colspan="4" class="px-6 py-4 text-center text-gray-500">
+                {{ t("no_payments_found") }}
+              </td>
             </tr>
           </tbody>
           <tfoot class="bg-gray-50">
             <tr>
               <td
-                colspan="2"
+                colspan="3"
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 {{ t("total_paid") }}
@@ -344,9 +369,6 @@
             </tr>
           </tfoot>
         </table>
-        <p v-else class="text-center text-gray-500 py-4">
-          {{ t("no_payments_found") }}
-        </p>
       </div>
     </div>
   </div>
@@ -361,7 +383,6 @@ import { addMinutes } from "date-fns";
 import DatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 import { formatDate, formatTime, formatCurrency } from "@/utils/formatDate";
-import PaymentForm from "./PaymentForm.vue";
 import { useSpecialtyStore } from "@/stores/specialties";
 import debounce from "lodash/debounce";
 
@@ -417,7 +438,12 @@ const patientSearchLoading = ref(false);
 const specialties = computed(() => specialtyStore.specialties);
 const patientSnippet = ref(null);
 const activeTab = ref("details");
-const showPaymentForm = ref(false);
+
+const newPayment = ref({
+  amount: 0,
+  payment_method_id: null,
+});
+const paymentMethods = ref([]);
 
 const isNew = computed(() => !props.appointmentId);
 
@@ -438,6 +464,10 @@ const amountDue = computed(() => {
     return 0;
   }
   return appointment.value.cost - appointment.value.total_paid;
+});
+
+watch(amountDue, (newAmount) => {
+  newPayment.value.amount = newAmount > 0 ? newAmount : 0;
 });
 
 const paymentStatus = computed(() => {
@@ -487,9 +517,37 @@ const fetchAppointment = async () => {
   }
 };
 
-const handlePaymentSave = () => {
-  showPaymentForm.value = false;
-  fetchAppointment(); // Refetch appointment to update total_paid and payments
+const fetchPaymentMethods = async () => {
+  try {
+    const response = await api.get("/payment_methods/");
+    paymentMethods.value = response.data;
+    if (
+      paymentMethods.value.length > 0 &&
+      !newPayment.value.payment_method_id
+    ) {
+      newPayment.value.payment_method_id = paymentMethods.value[0].id;
+    }
+  } catch (error) {
+    console.error("Error fetching payment methods:", error);
+  }
+};
+
+const saveNewPayment = async () => {
+  if (!newPayment.value.amount || !newPayment.value.payment_method_id) {
+    console.error("Amount and payment method are required.");
+    return;
+  }
+  try {
+    const payload = {
+      ...newPayment.value,
+      patient_id: appointment.value.patient_id,
+      appointment_id: props.appointmentId,
+    };
+    await api.post("/payments/", payload);
+    await fetchAppointment();
+  } catch (error) {
+    console.error("Error saving payment:", error);
+  }
 };
 
 const onPatientSearch = async (search, loading) => {
@@ -588,6 +646,7 @@ onMounted(async () => {
   if (!specialtyStore.specialties.length) {
     await specialtyStore.fetchSpecialties();
   }
+  fetchPaymentMethods();
   if (props.appointmentId) {
     await fetchAppointment();
     if (appointment.value.patient_id) {
@@ -616,7 +675,7 @@ onMounted(async () => {
 watch(
   () => appointment.value.specialty_id,
   (newVal, oldVal) => {
-    if (!newVal) return;  // We are actually 'clearing' the specialty
+    if (!newVal) return; // We are actually 'clearing' the specialty
 
     if (!isNew.value && oldVal === null) return; // Initial load for existing appointment
     const selectedSpecialty = specialtyStore.specialties.find(

@@ -25,6 +25,7 @@ declare module 'vue' {
     IHeroiconsClock20Solid: typeof import('~icons/heroicons/clock20-solid')['default']
     IHeroiconsCog8Tooth20Solid: typeof import('~icons/heroicons/cog8-tooth20-solid')['default']
     IHeroiconsCreditCard20Solid: typeof import('~icons/heroicons/credit-card20-solid')['default']
+    IHeroiconsCurrencyDollar20Solid: typeof import('~icons/heroicons/currency-dollar20-solid')['default']
     IHeroiconsEye20Solid: typeof import('~icons/heroicons/eye20-solid')['default']
     IHeroiconsEyeSlash20Solid: typeof import('~icons/heroicons/eye-slash20-solid')['default']
     IHeroiconsGift20Solid: typeof import('~icons/heroicons/gift20-solid')['default']
