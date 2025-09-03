@@ -119,12 +119,8 @@
                   :class="{
                     'text-red-500 font-semibold': patientSnippet.is_underage,
                   }"
-                  >{{ patientSnippet.age }}</span
+                  >{{ patientSnippet.age || '>18*'}}</span
                 >
-              </p>
-              <p class="text-sm text-gray-500">
-                {{ t("past_appointments") }}:
-                {{ patientSnippet.appointment_summary.past_appointments }}
               </p>
               <p
                 v-if="
@@ -144,7 +140,7 @@
               </p>
               <p class="text-sm text-gray-500">
                 {{ t("last_appointment") }}:
-                {{ formatDate(patientSnippet.last_appointment_date) || "-" }}
+                {{ formatDate(patientSnippet.last_appointment) || "-" }}
               </p>
               <p class="text-sm text-gray-500">
                 {{ t("total_due") }}:
@@ -679,7 +675,7 @@ const saveAppointment = async () => {
 const cancelAppointment = async () => {
   if (window.confirm(t("confirm_cancel_appointment"))) {
     try {
-      await api.patch(`/appointments/${props.appointmentId}/cancel`);
+      await api.patch(`/appointments/${props.appointmentId}/cancel/`);
       if (props.inModal) {
         emit("save");
       } else {
