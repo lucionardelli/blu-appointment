@@ -52,7 +52,7 @@ export const useSettingsStore = defineStore("settings", {
     async updateWorkingHours(workingHours) {
       this.loading = true;
       try {
-        await api.put("/working-hours/", workingHours);
+        await api.post("/working-hours/", workingHours);
         await this.fetchWorkingHours();
       } catch (error) {
         console.error("Error updating working hours:", error);
