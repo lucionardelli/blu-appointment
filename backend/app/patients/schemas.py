@@ -102,7 +102,7 @@ class PaginatedPatientsResponse(BaseModel):
 class PatientSpecialtyPriceBase(BaseModel):
     patient_id: int
     specialty_id: int
-    price: Decimal = Field(..., gt=0)
+    price: Decimal = Field(..., ge=0)
 
 
 class PatientSpecialtyPriceCreate(PatientSpecialtyPriceBase): ...

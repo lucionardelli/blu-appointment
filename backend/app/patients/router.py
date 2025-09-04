@@ -178,7 +178,7 @@ def delete_emergency_contact(
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@router.post("/{patient_id}/special-prices", response_model=schemas.PatientSpecialtyPrice)
+@router.post("/{patient_id}/special-prices/", response_model=schemas.PatientSpecialtyPrice)
 def set_patient_special_price(
     patient_id: int,
     price_in: schemas.PatientSpecialtyPriceCreate,
@@ -190,7 +190,7 @@ def set_patient_special_price(
     return services.set_special_price(db, price_in=price_in)
 
 
-@router.get("/{patient_id}/special-prices", response_model=list[schemas.PatientSpecialtyPrice])
+@router.get("/{patient_id}/special-prices/", response_model=list[schemas.PatientSpecialtyPrice])
 def get_patient_special_prices(
     patient_id: int,
     db: Annotated[Session, Depends(get_db)],
@@ -199,7 +199,7 @@ def get_patient_special_prices(
     return services.get_special_prices_for_patient(db, patient_id=patient_id)
 
 
-@router.delete("/{patient_id}/special-prices/{specialty_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{patient_id}/special-prices/{specialty_id}/", status_code=status.HTTP_204_NO_CONTENT)
 def delete_patient_special_price(
     patient_id: int,
     specialty_id: int,
