@@ -9,3 +9,28 @@
 .fc .fc-non-business {
   background-color: hsl(0deg 1.27% 54.69% / 18%);
 }
+
+.fc-view-harness.fc-view-harness-active thead .fc-scroller {
+  overflow: hidden !important;
+}
+
+.fc-timegrid-now-indicator-arrow {
+  border-right-color: #0d265a75 !important;
+  border-left-color: #0d265a75 !important;
+}
+
+.fc-timegrid-now-indicator-line {
+  border-top-color: #0d265a75 !important;
+}
+
+tr.fc-day-today {
+    background-color: #ffdc2826;
+}
+
+.fc-list-day.fc-day-today .fc-list-day-cushion {
+    background-color: #ffdc2826;
+}
+
+.fc-event.fc-event-today.fc-list-event {
+    background-color: #ffdc2826;
+}
