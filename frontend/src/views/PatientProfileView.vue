@@ -530,7 +530,7 @@
                   {{ formatDate(payment.payment_date) }}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {{ payment.method }}
+                  {{ payment.payment_method.name }}
                 </td>
                 <td
                   class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right"
