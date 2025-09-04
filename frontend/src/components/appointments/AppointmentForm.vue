@@ -492,6 +492,10 @@ const fetchAppointment = async () => {
     const response = await api.get(`/appointments/${props.appointmentId}/`);
     const fetchedAppointment = response.data;
 
+    if (fetchedAppointment.patient) {
+      patientSnippet.value = fetchedAppointment.patient;
+    }
+
     // Flatten nested patient and specialty objects
     appointment.value = {
       ...fetchedAppointment,
@@ -621,7 +625,9 @@ watch(
   () => appointment.value.patient_id,
   async (newPatientId) => {
     if (newPatientId) {
-      await fetchPatientSnippet();
+      if (!patientSnippet.value || patientSnippet.value.id !== newPatientId) {
+        await fetchPatientSnippet();
+      }
       const selectedPatient = patientsOptions.value.find(
         (p) => p.id === newPatientId,
       );
@@ -649,9 +655,6 @@ onMounted(async () => {
   fetchPaymentMethods();
   if (props.appointmentId) {
     await fetchAppointment();
-    if (appointment.value.patient_id) {
-      await fetchPatientSnippet();
-    }
   } else {
     try {
       const response = await api.get("/patients/", { params: { limit: 4 } });
