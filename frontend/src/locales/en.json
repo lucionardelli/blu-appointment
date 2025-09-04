@@ -155,5 +155,8 @@
   "closed": "Closed",
   "start_time": "Start Time",
   "end_time": "End Time",
+  "special_prices": "Special Prices",
+  "no_special_prices": "No special prices found",
+  "add_special_price": "Add Special Price",
   "placeholder_so_commas_dont_break_json": "Placeholder so commas don't break JSON"
 }

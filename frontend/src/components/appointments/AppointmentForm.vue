@@ -674,7 +674,7 @@ onMounted(async () => {
 
 watch(
   () => appointment.value.specialty_id,
-  (newVal, oldVal) => {
+  async (newVal, oldVal) => {
     if (!newVal) return; // We are actually 'clearing' the specialty
 
     if (!isNew.value && oldVal === null) return; // Initial load for existing appointment
@@ -684,7 +684,27 @@ watch(
     if (!selectedSpecialty) return; // Invalid specialty selected
 
     if (newVal !== oldVal) {
-      appointment.value.cost = selectedSpecialty.current_price;
+      let newCost = selectedSpecialty.current_price;
+
+      // Check for patient-specific special price
+      if (appointment.value.patient_id) {
+        try {
+          const response = await api.get(
+            `/patients/${appointment.value.patient_id}/special-prices`,
+          );
+          const patientSpecialPrices = response.data;
+          const specialPriceEntry = patientSpecialPrices.find(
+            (p) => p.specialty_id === newVal,
+          );
+          if (specialPriceEntry) {
+            newCost = specialPriceEntry.price;
+          }
+        } catch (error) {
+          console.error("Error fetching patient special prices:", error);
+        }
+      }
+
+      appointment.value.cost = newCost;
 
       const startTime = new Date(appointment.value.start_time);
       const newEndTime = addMinutes(

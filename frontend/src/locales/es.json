@@ -152,5 +152,8 @@
   "Saturday": "Sábado",
   "Sunday": "Domingo",
   "closed": "Cerrado",
+  "special_prices": "Precio preferencial",
+  "no_special_prices": "No hay precios preferenciales",
+  "add_special_price": "Agregar precio preferencial",
   "placeholder_so_commas_dont_break_json": "Placeholder so commas don't break JSON"
 }

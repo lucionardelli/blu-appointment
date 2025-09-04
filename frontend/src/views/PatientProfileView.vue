@@ -411,6 +411,17 @@
             >
               {{ t("emergency_contacts") }}
             </button>
+            <button
+              :class="[
+                activeTab === 'special_prices'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
+                'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm',
+              ]"
+              @click="activeTab = 'special_prices'"
+            >
+              {{ t("special_prices") }}
+            </button>
           </nav>
         </div>
 
@@ -626,6 +637,129 @@
             </div>
           </div>
         </div>
+
+        <div
+          v-show="activeTab === 'special_prices'"
+          class="border-t border-gray-200 px-4 py-5 sm:p-0"
+        >
+          <div class="px-4 py-5 sm:px-6">
+            <div class="flex justify-end items-center mb-4">
+              <button
+                v-if="isEditing"
+                type="button"
+                class="px-3 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                @click="addSpecialPrice"
+              >
+                {{ t("add_special_price") }}
+              </button>
+            </div>
+            <div v-if="specialPrices && specialPrices.length > 0">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th
+                      scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      {{ t("specialty") }}
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      {{ t("price") }}
+                    </th>
+                    <th
+                      v-if="isEditing"
+                      scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      {{ t("actions") }}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  <tr v-for="priceEntry in specialPrices" :key="priceEntry.id">
+                    <td
+                      class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
+                    >
+                      <span v-if="editingSpecialPriceId !== priceEntry.id">
+                        {{
+                          specialtyStore.specialties.find(
+                            (s) => s.id === priceEntry.specialty_id,
+                          )?.name
+                        }}
+                      </span>
+                      <select
+                        v-else
+                        v-model="priceEntry.specialty_id"
+                        class="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                      >
+                        <option
+                          v-for="specialty in specialties"
+                          :key="specialty.id"
+                          :value="specialty.id"
+                        >
+                          {{ specialty.name }}
+                        </option>
+                      </select>
+                    </td>
+                    <td
+                      class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
+                    >
+                      <span v-if="editingSpecialPriceId !== priceEntry.id">
+                        {{ formatCurrency(priceEntry.price) }}
+                      </span>
+                      <input
+                        v-else
+                        v-model.number="priceEntry.price"
+                        type="number"
+                        step="0.01"
+                        class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                      />
+                    </td>
+                    <td
+                      v-if="isEditing"
+                      class="px-6 py-4 whitespace-nowrap text-left text-sm font-medium"
+                    >
+                      <button
+                        v-if="editingSpecialPriceId !== priceEntry.id"
+                        class="text-primary hover:text-primary-dark mr-3"
+                        @click="editSpecialPrice(priceEntry)"
+                      >
+                        {{ t("edit") }}
+                      </button>
+                      <button
+                        v-else
+                        class="text-green-600 hover:text-green-900 mr-3"
+                        @click="saveSpecialPrice(priceEntry)"
+                      >
+                        {{ t("save") }}
+                      </button>
+                      <button
+                        v-if="editingSpecialPriceId !== priceEntry.id"
+                        class="text-red-600 hover:text-red-900"
+                        @click="deleteSpecialPrice(priceEntry)"
+                      >
+                        {{ t("delete") }}
+                      </button>
+                      <button
+                        v-else
+                        class="text-gray-600 hover:text-gray-900"
+                        @click="cancelSpecialPriceEdit"
+                      >
+                        {{ t("cancel") }}
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div v-else class="text-sm text-gray-500">
+              {{ t("no_special_prices") }}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     <PaymentFormModal
@@ -680,6 +814,10 @@ const referredBySnippet = ref(null);
 
 const showAppointmentModal = ref(false);
 const selectedAppointmentId = ref(null);
+
+const specialPrices = ref([]);
+const editingSpecialPriceId = ref(null);
+const newSpecialPrice = ref(null);
 
 const onReferredBySearch = async (search, loading) => {
   if (search.length) {
@@ -866,6 +1004,101 @@ const deleteEmergencyContact = (contact) => {
   );
 };
 
+const fetchSpecialPrices = async () => {
+  if (isNew.value) return;
+  try {
+    const response = await api.get(
+      `/patients/${route.params.id}/special-prices/`,
+    );
+    specialPrices.value = response.data;
+  } catch (err) {
+    console.error("Error fetching special prices:", err);
+  }
+};
+
+const addSpecialPrice = () => {
+  newSpecialPrice.value = {
+    id: Date.now(), // Temporary ID
+    patient_id: patient.value.id,
+    specialty_id: null,
+    price: 0,
+    isNew: true,
+  };
+  specialPrices.value.push(newSpecialPrice.value);
+  editingSpecialPriceId.value = newSpecialPrice.value.id;
+};
+
+const editSpecialPrice = (priceEntry) => {
+  editingSpecialPriceId.value = priceEntry.id;
+};
+
+const saveSpecialPrice = async (priceEntry) => {
+  try {
+    const payload = {
+      patient_id: patient.value.id,
+      specialty_id: priceEntry.specialty_id,
+      price: priceEntry.price,
+    };
+
+    const response = await api.post(
+      `/patients/${patient.value.id}/special-prices/`,
+      payload,
+    );
+
+    if (priceEntry.isNew) {
+      // Find the temporary entry and replace it with the saved data
+      const index = specialPrices.value.findIndex(
+        (p) => p.id === priceEntry.id,
+      );
+      if (index !== -1) {
+        specialPrices.value[index] = { ...response.data };
+      }
+    } else {
+      // Update the existing entry
+      Object.assign(priceEntry, response.data);
+    }
+
+    editingSpecialPriceId.value = null;
+    newSpecialPrice.value = null;
+  } catch (error) {
+    console.error("Error saving special price:", error);
+    // If save fails for a new entry, remove it from the list
+    if (priceEntry.isNew) {
+      specialPrices.value = specialPrices.value.filter(
+        (p) => p.id !== priceEntry.id,
+      );
+    }
+  }
+};
+
+const cancelSpecialPriceEdit = () => {
+  if (
+    newSpecialPrice.value &&
+    editingSpecialPriceId.value === newSpecialPrice.value.id
+  ) {
+    specialPrices.value = specialPrices.value.filter(
+      (p) => p.id !== newSpecialPrice.value.id,
+    );
+  }
+  editingSpecialPriceId.value = null;
+  newSpecialPrice.value = null;
+};
+
+const deleteSpecialPrice = async (priceEntry) => {
+  if (window.confirm(t("confirm_delete_special_price"))) {
+    try {
+      await api.delete(
+        `/patients/${patient.value.id}/special-prices/${priceEntry.specialty_id}/`,
+      );
+      specialPrices.value = specialPrices.value.filter(
+        (p) => p.id !== priceEntry.id,
+      );
+    } catch (error) {
+      console.error("Error deleting special price:", error);
+    }
+  }
+};
+
 const savePatient = async () => {
   errors.value = {};
 
@@ -944,15 +1177,14 @@ const savePatient = async () => {
 
 const startEdit = () => {
   isEditing.value = true;
-  activeTab.value = "medical_history"; // Switch to medical history tab when editing
 };
 
 const cancelEdit = () => {
   if (isNew.value) {
-    router.push("/patients"); // Go back to patients list if creating new
+    router.push("/patients");
   } else {
-    isEditing.value = false; // Exit edit mode
-    fetchPatient(); // Re-fetch patient to revert changes
+    isEditing.value = false;
+    fetchPatient();
   }
 };
 
@@ -973,6 +1205,7 @@ onMounted(async () => {
     await fetchPatient();
     await fetchAppointments();
     await fetchPayments();
+    await fetchSpecialPrices(); // Fetch special prices
     if (!specialtyStore.specialties.length) {
       await specialtyStore.fetchSpecialties();
     }
