@@ -13,7 +13,7 @@ instance.interceptors.request.use(
       config.headers.Authorization = `Bearer ${authStore.token}`;
     }
 
-    if (config.url) {
+    if (config.url && config.url !== '/auth/token') {
       const q_index = config.url.indexOf("?");
       if (q_index === -1) {
         if (!config.url.endsWith("/")) {
