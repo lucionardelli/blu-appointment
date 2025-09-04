@@ -137,6 +137,8 @@
   "no_patients_found": "No se encontraron pacientes",
   "show_sundays": "Mostrar domingos",
   "hide_sundays": "Ocultar domingos",
+  "sundays": "Domingos",
+  "list_view": "Lista",
   "configuration": "Configuración",
   "payment_methods": "Métodos de pago",
   "new_payment_method": "Nuevo método de pago",

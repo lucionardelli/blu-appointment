@@ -40,7 +40,8 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
-
+    environment:
+      - VITE_ALLOWED_HOSTS=localhost,127.0.0.1,castalia.local
 
 volumes:
   db_data:

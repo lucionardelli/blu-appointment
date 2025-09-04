@@ -18,7 +18,7 @@
       />
       <span v-else>{{ contact.patient_relationship }}</span>
     </td>
-    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
       <input
         v-if="isEditing"
         v-model="editableContact.email"
@@ -27,7 +27,7 @@
       />
       <span v-else>{{ contact.email }}</span>
     </td>
-    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell">
       <input
         v-if="isEditing"
         v-model="editableContact.phone_number"

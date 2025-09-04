@@ -138,6 +138,8 @@
   "no_patients_found": "No patients found",
   "show_sundays": "Show Sundays",
   "hide_sundays": "Hide Sundays",
+  "sundays": "Sundays",
+  "list_view": "List",
   "configuration": "Configuration",
   "payment_methods": "Payment Methods",
   "new_payment_method": "New Payment Method",

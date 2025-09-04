@@ -1,21 +1,24 @@
 <template>
-  <div class="p-4 sm:p-6 lg:p-8">
+  <div class="p-2 sm:p-6 lg:p-8">
     <div class="flex items-center justify-between mb-6">
       <h1 class="text-2xl font-semibold text-gray-900">
         {{ t("appointments") }}
       </h1>
       <div class="flex items-center">
         <button
-          class="ml-4 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+          class="ml-4 px-3 py-2 text-sm font-medium rounded-md shadow-sm border focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+          :class="showSundays ? 'bg-primary text-white border-transparent' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'"
           @click="toggleShowSundays"
         >
-          {{ showSundays ? t("hide_sundays") : t("show_sundays") }}
+          {{ t("sundays") }}
         </button>
         <button
-          class="ml-4 px-4 py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+          class="ml-4 flex items-center justify-center h-10 w-10 sm:w-auto sm:h-auto sm:px-4 sm:py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+          :title="t('new_appointment')"
           @click="openNewAppointmentModal"
         >
-          {{ t("new_appointment") }}
+          <span class="hidden sm:inline">{{ t("new_appointment") }}</span>
+          <span class="sm:hidden text-xl font-semibold">+</span>
         </button>
       </div>
     </div>
@@ -32,7 +35,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, onUnmounted, computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { storeToRefs } from "pinia";
 import FullCalendar from "@fullcalendar/vue3";
@@ -57,6 +60,16 @@ const selectedEndDate = ref("");
 const selectedAppointmentId = ref(null);
 const fullCalendarRef = ref(null);
 const showSundays = ref(false);
+
+const isMobile = ref(window.innerWidth < 768);
+
+const handleResize = () => {
+  isMobile.value = window.innerWidth < 768;
+};
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize);
+});
 
 const toggleShowSundays = () => {
   showSundays.value = !showSundays.value;
@@ -89,6 +102,7 @@ const fetchAppointments = async (info, successCallback, failureCallback) => {
 };
 
 onMounted(async () => {
+  window.addEventListener('resize', handleResize);
   if (!workingHoursRaw.value.length) {
     await settingsStore.fetchWorkingHours();
   }
@@ -105,13 +119,19 @@ const openNewAppointmentModal = () => {
 
 const calendarOptions = computed(() => ({
   plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin],
-  initialView: "timeGridWeek",
+  initialView: isMobile.value ? "listWeek" : "timeGridWeek",
   eventMinHeight: 40, // So the text+icon is always visible
   hiddenDays: showSundays.value ? [] : [0],
   headerToolbar: {
     left: "prev,next today",
     center: "title",
-    right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek",
+    right: isMobile.value ? "timeGridDay,listWeek" : "dayGridMonth,timeGridWeek,timeGridDay,listWeek",
+  },
+  buttonText: {
+    day: t("day_view"),
+    list: t("list_view"),
+    week: t("week_view"),
+    month: t("month_view"),
   },
   events: (info, successCallback, failureCallback) => {
     fetchAppointments(info, successCallback, failureCallback);

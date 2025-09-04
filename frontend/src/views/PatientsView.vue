@@ -193,7 +193,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from "vue";
+import { ref, onMounted, onUnmounted, computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { formatDate } from "@/utils/formatDate";
 import { useSpecialtyStore } from "@/stores/specialties";
@@ -207,8 +207,19 @@ const searchQuery = ref("");
 const loading = ref(true);
 const error = ref(false);
 const currentPage = ref(1);
-const itemsPerPage = ref(10);
 const totalPatientsCount = ref(0);
+
+const isMobile = ref(window.innerWidth < 768);
+
+const handleResize = () => {
+  isMobile.value = window.innerWidth < 768;
+};
+
+onUnmounted(() => {
+  window.removeEventListener("resize", handleResize);
+});
+
+const itemsPerPage = computed(() => (isMobile.value ? 5 : 10));
 
 const specialtyStore = useSpecialtyStore();
 const specialties = computed(() => specialtyStore.specialties);
@@ -247,6 +258,11 @@ watch(searchQuery, () => {
   debouncedFetchPatients();
 });
 
+watch(itemsPerPage, () => {
+  currentPage.value = 1;
+  fetchPatients();
+});
+
 const changePage = (page) => {
   if (page >= 1 && page <= totalPages.value) {
     currentPage.value = page;
@@ -255,6 +271,7 @@ const changePage = (page) => {
 };
 
 onMounted(() => {
+  window.addEventListener("resize", handleResize);
   fetchPatients();
 });
 
