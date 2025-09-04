@@ -34,7 +34,9 @@
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
           <tr v-for="paymentMethod in paymentMethods" :key="paymentMethod.id">
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+            <td
+              class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
+            >
               {{ paymentMethod.name }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -48,7 +50,9 @@
                 {{ paymentMethod.is_active ? t("active") : t("inactive") }}
               </span>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+            <td
+              class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
+            >
               <button
                 class="text-primary hover:text-primary-dark"
                 @click="openPaymentMethodModal(paymentMethod)"
@@ -72,23 +76,16 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
-import api from "@/services/api";
+import { storeToRefs } from "pinia";
+import { usePaymentMethodStore } from "@/stores/paymentMethods";
 import PaymentMethodFormModal from "@/components/payments/PaymentMethodFormModal.vue";
 
 const { t } = useI18n();
 
-const paymentMethods = ref([]);
+const paymentMethodStore = usePaymentMethodStore();
+const { paymentMethods } = storeToRefs(paymentMethodStore);
 const showModal = ref(false);
 const selectedPaymentMethod = ref(null);
-
-const fetchPaymentMethods = async () => {
-  try {
-    const response = await api.get("/payment_methods/");
-    paymentMethods.value = response.data;
-  } catch (error) {
-    console.error("Error fetching payment methods:", error);
-  }
-};
 
 const openPaymentMethodModal = (paymentMethod) => {
   selectedPaymentMethod.value = paymentMethod;
@@ -97,10 +94,12 @@ const openPaymentMethodModal = (paymentMethod) => {
 
 const handleSave = () => {
   showModal.value = false;
-  fetchPaymentMethods();
 };
 
 onMounted(() => {
-  fetchPaymentMethods();
+  // Fetch only if the store is empty
+  if (!paymentMethods.value.length) {
+    paymentMethodStore.fetchPaymentMethods();
+  }
 });
 </script>

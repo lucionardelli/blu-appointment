@@ -63,8 +63,10 @@
 import { ref, onMounted, computed } from "vue";
 import { useI18n } from "vue-i18n";
 import api from "@/services/api";
+import { usePaymentMethodStore } from "@/stores/paymentMethods";
 
 const { t } = useI18n();
+const paymentMethodStore = usePaymentMethodStore();
 
 const props = defineProps({
   paymentMethod: {
@@ -95,6 +97,7 @@ const savePaymentMethod = async () => {
     } else {
       await api.put(`/payment_methods/${props.paymentMethod.id}/`, form.value);
     }
+    paymentMethodStore.fetchPaymentMethods();
     emit("save");
   } catch (error) {
     console.error("Error saving payment method:", error);
