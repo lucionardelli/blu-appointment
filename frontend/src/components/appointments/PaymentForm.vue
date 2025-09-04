@@ -35,7 +35,7 @@
               id="amount"
               v-model="payment.amount"
               type="number"
-              step="100"
+              step="1000"
               required
               class="block w-full pr-12 px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
             />

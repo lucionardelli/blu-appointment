@@ -714,7 +714,7 @@
                         v-else
                         v-model.number="priceEntry.price"
                         type="number"
-                        step="0.01"
+                        step="1000"
                         class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
                       />
                     </td>

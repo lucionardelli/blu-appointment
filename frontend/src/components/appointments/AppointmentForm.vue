@@ -193,7 +193,7 @@
                 id="price"
                 v-model="appointment.cost"
                 type="number"
-                step="100"
+                step="1000"
                 required
                 :readonly="appointment.cancelled"
                 class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
@@ -305,7 +305,7 @@
                 <input
                   v-model="newPayment.amount"
                   type="number"
-                  step="100"
+                  step="1000"
                   class="w-full p-1 bg-transparent border-0 border-b-2 border-transparent focus:border-primary focus:ring-0 sm:text-sm text-right"
                 />
               </td>
