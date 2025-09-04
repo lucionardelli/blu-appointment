@@ -91,8 +91,9 @@ const fetchAppointments = async (info, successCallback, failureCallback) => {
         appointment,
         specialty: appointment.specialty,
       },
-      backgroundColor: getEventColor(appointment),
-      borderColor: getEventColor(appointment),
+      backgroundColor: getEventColor(appointment, "bg"),
+      borderColor: getEventColor(appointment, "bg"),
+      textColor: getEventColor(appointment, "text"),
     }));
     successCallback(events);
   } catch (error) {
@@ -263,19 +264,29 @@ function hexToRgbaArray(hex) {
   return [r, g, b, a];
 }
 
-const getEventColor = (appointment) => {
+const getEventColor = (appointment, text_or_bg) => {
   const specialtyColor = appointment.specialty?.color;
   let [r, g, b, a] = hexToRgbaArray(specialtyColor || "#4F46E5FF"); // Default to a shade of indigo with full opacity
 
-  // If appointment is on the past, show it as greyed out
-  if (new Date(appointment.start_time) < new Date()) {
-    a = 0.2; // Override opacity for past appointments
+  let isPastAppointment = new Date(appointment.end_time) < new Date();
+
+  // If appointment is in the past, show it as greyed out
+  if (isPastAppointment) {
+    a = 0.5;
   }
   // If cancelled, apply specific opacity
   if (appointment.cancelled) {
-    a = 0.05; // Override opacity for cancelled appointments
+    a = 0.05;
   }
 
+  if (text_or_bg === "text") {
+    const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+    if (isPastAppointment) {
+      return luminance > 0.5 ? "text-neutral-900" : "text-neutral-300";
+    }
+
+    return luminance > 0.5 ? "text-gray-900" : "text-white";
+  }
   return `rgba(${r}, ${g}, ${b}, ${a})`;
 };
 </script>
