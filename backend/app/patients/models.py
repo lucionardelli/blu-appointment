@@ -8,7 +8,6 @@ from sqlalchemy.types import Date, String, Text
 from app.appointments.models import Appointment, Payment
 from app.db.base import Base
 from app.payments.models import Payment
-from app.specialties.models import Specialty
 
 UNDERAGE_LIMIT = 18  # Define the age limit for underage patients
 
@@ -69,6 +68,8 @@ class Patient(Base):
         .scalar_subquery()
     )
 
+    special_prices = relationship("PatientSpecialtyPrice", back_populates="patient")
+
     @property
     def age(self) -> int | None:
         if self.dob:
@@ -95,3 +96,16 @@ class EmergencyContact(Base):
     priority = sa.Column(sa.Integer, nullable=False, default=0)
 
     patient = relationship("Patient", back_populates="emergency_contacts")
+
+
+class PatientSpecialtyPrice(Base):
+    __tablename__ = "patient_specialty_prices"
+    __table_args__ = (sa.UniqueConstraint("patient_id", "specialty_id", name="uq_patient_specialty_price"),)
+
+    id = sa.Column(sa.Integer, primary_key=True, index=True)
+    patient_id = sa.Column(sa.Integer, ForeignKey("patients.id"), nullable=False)
+    specialty_id = sa.Column(sa.Integer, ForeignKey("specialties.id"), nullable=False)
+    price = sa.Column(sa.Numeric(10, 2), nullable=False)
+
+    patient = relationship("Patient", back_populates="special_prices")
+    specialty = relationship("Specialty")

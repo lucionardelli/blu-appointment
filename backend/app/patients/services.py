@@ -160,12 +160,13 @@ def update_patient(db: Session, patient_id: int, patient_update: schemas.Patient
     return db_patient
 
 
-def delete_patient(db: Session, patient_id: int) -> models.Patient | None:
+def delete_patient(db: Session, patient_id: int) -> bool:
     db_patient = db.query(models.Patient).filter(models.Patient.id == patient_id).first()
     if db_patient:
         db.delete(db_patient)
         db.commit()
-    return db_patient
+        return True
+    return False
 
 
 def create_emergency_contact(
@@ -228,3 +229,46 @@ def delete_emergency_contact(db: Session, contact_id: int) -> models.EmergencyCo
         db.delete(db_contact)
         db.commit()
     return db_contact
+
+
+def get_special_price(
+    db: Session, patient_id: int, specialty_id: int
+) -> models.PatientSpecialtyPrice | None:
+    return (
+        db.query(models.PatientSpecialtyPrice)
+        .filter(
+            models.PatientSpecialtyPrice.patient_id == patient_id,
+            models.PatientSpecialtyPrice.specialty_id == specialty_id,
+        )
+        .first()
+    )
+
+
+def set_special_price(
+    db: Session, price_in: schemas.PatientSpecialtyPriceCreate
+) -> models.PatientSpecialtyPrice:
+    # Check if a special price already exists for this patient and specialty
+    db_price = get_special_price(db, price_in.patient_id, price_in.specialty_id)
+
+    if db_price:
+        # Update the existing price
+        db_price.price = price_in.price
+    else:
+        # Create a new special price
+        db_price = models.PatientSpecialtyPrice(**price_in.model_dump())
+        db.add(db_price)
+
+    db.commit()
+    db.refresh(db_price)
+    return db_price
+
+
+def delete_special_price(db: Session, patient_id: int, specialty_id: int) -> None:
+    db_price = get_special_price(db, patient_id, specialty_id)
+    if db_price:
+        db.delete(db_price)
+        db.commit()
+
+
+def get_special_prices_for_patient(db: Session, patient_id: int) -> list[models.PatientSpecialtyPrice]:
+    return db.query(models.PatientSpecialtyPrice).filter(models.PatientSpecialtyPrice.patient_id == patient_id).all()

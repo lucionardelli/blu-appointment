@@ -89,6 +89,7 @@ class PatientDetails(Patient):
     default_specialty: Specialty | None = None
     referred_by: PatientSummary | None = None
     emergency_contacts: list[EmergencyContact] = []
+    special_prices: list["PatientSpecialtyPrice"] = []
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -96,3 +97,18 @@ class PatientDetails(Patient):
 class PaginatedPatientsResponse(BaseModel):
     total_count: int
     items: list[Patient]
+
+
+class PatientSpecialtyPriceBase(BaseModel):
+    patient_id: int
+    specialty_id: int
+    price: Decimal = Field(..., gt=0)
+
+
+class PatientSpecialtyPriceCreate(PatientSpecialtyPriceBase): ...
+
+
+class PatientSpecialtyPrice(PatientSpecialtyPriceBase):
+    id: int
+
+    model_config = ConfigDict(from_attributes=True)

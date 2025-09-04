@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status, Response
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
 from app.appointments import schemas as appt_schemas
@@ -8,7 +8,7 @@ from app.db import get_db
 from app.users.logged import get_current_user
 from app.users.models import User
 
-from . import services, schemas
+from . import schemas, services
 
 router = APIRouter()
 
@@ -97,10 +97,9 @@ def read_patient_payments(
 def delete_patient(
     patient_id: int, db: Annotated[Session, Depends(get_db)], _current_user: Annotated[User, Depends(get_current_user)]
 ) -> Response:
-    db_patient = services.delete_patient(db, patient_id=patient_id)
-    if db_patient is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Patient not found")
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
+    if services.delete_patient(db, patient_id=patient_id):
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Patient not found")
 
 
 @router.post(
@@ -176,4 +175,36 @@ def delete_emergency_contact(
     if db_contact is None or db_contact.patient_id != patient_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Emergency contact not found")
     services.delete_emergency_contact(db=db, contact_id=contact_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/{patient_id}/special-prices", response_model=schemas.PatientSpecialtyPrice)
+def set_patient_special_price(
+    patient_id: int,
+    price_in: schemas.PatientSpecialtyPriceCreate,
+    db: Annotated[Session, Depends(get_db)],
+    _current_user: Annotated[User, Depends(get_current_user)],
+) -> schemas.PatientSpecialtyPrice:
+    if patient_id != price_in.patient_id:
+        raise HTTPException(status_code=400, detail="Patient ID in URL does not match payload")
+    return services.set_special_price(db, price_in=price_in)
+
+
+@router.get("/{patient_id}/special-prices", response_model=list[schemas.PatientSpecialtyPrice])
+def get_patient_special_prices(
+    patient_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    _current_user: Annotated[User, Depends(get_current_user)],
+) -> list[schemas.PatientSpecialtyPrice]:
+    return services.get_special_prices_for_patient(db, patient_id=patient_id)
+
+
+@router.delete("/{patient_id}/special-prices/{specialty_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_patient_special_price(
+    patient_id: int,
+    specialty_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    _current_user: Annotated[User, Depends(get_current_user)],
+) -> Response:
+    services.delete_special_price(db, patient_id=patient_id, specialty_id=specialty_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

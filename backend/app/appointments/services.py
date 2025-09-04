@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.appointments.models import DayOfWeek
 from app.payments import models as payment_models
 from app.payments import schemas as payment_schemas
+from app.patients.services import get_special_price
 from app.specialties.services import get_current_price_for_specialty, get_specialty_by_id
 
 from . import models, schemas
@@ -22,13 +23,19 @@ def create_appointment(
 
     cost = appointment_in.cost
     if cost is None:
-        current_price = get_current_price_for_specialty(db, appointment_in.specialty_id)
-        if current_price is None:
-            msg = "Cannot create appointment: Specialty has no price defined."
-            raise ValueError(
-                msg,
-            )
-        cost = current_price
+        # Check for a patient-specific price for this specialty
+        special_price = get_special_price(db, appointment_in.patient_id, appointment_in.specialty_id)
+        if special_price:
+            cost = special_price.price
+        else:
+            # Fallback to the specialty's current price
+            current_price = get_current_price_for_specialty(db, appointment_in.specialty_id)
+            if current_price is None:
+                msg = "Cannot create appointment: Specialty has no price defined."
+                raise ValueError(
+                    msg,
+                )
+            cost = current_price
 
     end_time = appointment_in.end_time or appointment_in.start_time + timedelta(
         minutes=specialty.default_duration_minutes
