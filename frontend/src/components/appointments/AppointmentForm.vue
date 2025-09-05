@@ -125,6 +125,7 @@
               <p
                 v-if="
                   selectedSpecialtyName &&
+                  patientSnippet.appointment_summary &&
                   patientSnippet.appointment_summary.specialty_counts[
                     selectedSpecialtyId
                   ] !== undefined
@@ -203,41 +204,63 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <label
-                for="start_time"
+                for="start_time_date"
                 class="block text-sm font-medium text-gray-700"
                 >{{ t("start_time") }}</label
               >
-              <DatePicker
-                v-model="appointment.start_time"
-                :enable-time-picker="true"
-                :minutes-increment="15"
-                text-input
-                auto-apply
-                utc
-                :locale="locale"
-                :format="formatForPicker"
-                :disabled="appointment.cancelled"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
-              />
+              <div class="flex space-x-2 mt-1">
+                <DatePicker
+                  id="start_time_date"
+                  v-model="startTimeDate"
+                  :enable-time-picker="false"
+                  text-input
+                  auto-apply
+                  utc
+                  :locale="locale"
+                  :format="formatDate"
+                  :disabled="appointment.cancelled"
+                  class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                />
+                <DatePicker
+                  v-model="startTimeTime"
+                  time-picker
+                  :minutes-increment="15"
+                  text-input
+                  auto-apply
+                  :disabled="appointment.cancelled"
+                  class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                />
+              </div>
             </div>
             <div>
               <label
-                for="end_time"
+                for="end_time_date"
                 class="block text-sm font-medium text-gray-700"
                 >{{ t("end_time") }}</label
               >
-              <DatePicker
-                v-model="appointment.end_time"
-                :enable-time-picker="true"
-                :minutes-increment="15"
-                text-input
-                auto-apply
-                utc
-                :locale="locale"
-                :format="formatForPicker"
-                :disabled="appointment.cancelled"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
-              />
+              <div class="flex space-x-2 mt-1">
+                <DatePicker
+                  id="end_time_date"
+                  v-model="endTimeDate"
+                  :enable-time-picker="false"
+                  text-input
+                  auto-apply
+                  utc
+                  :locale="locale"
+                  :format="formatDate"
+                  :disabled="appointment.cancelled"
+                  class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                />
+                <DatePicker
+                  v-model="endTimeTime"
+                  time-picker
+                  :minutes-increment="15"
+                  text-input
+                  auto-apply
+                  :disabled="appointment.cancelled"
+                  class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -391,11 +414,6 @@ import "vue-select/dist/vue-select.css";
 
 const { t, locale } = useI18n();
 
-const formatForPicker = (date) => {
-  if (!date) return "";
-  return `${formatDate(date)} ${formatTime(date)}`;
-};
-
 const props = defineProps({
   inModal: {
     type: Boolean,
@@ -426,6 +444,88 @@ const appointment = ref({
   cost: 0,
   total_paid: 0,
   payments: [],
+});
+
+const startTimeDate = ref(null);
+const startTimeTime = ref(null);
+const endTimeDate = ref(null);
+const endTimeTime = ref(null);
+
+watch(
+  () => appointment.value.start_time,
+  (newVal) => {
+    if (newVal && new Date(newVal).toString() !== "Invalid Date") {
+      const d = new Date(newVal);
+      startTimeDate.value = d;
+      startTimeTime.value = {
+        hours: d.getUTCHours(),
+        minutes: d.getUTCMinutes(),
+      };
+    } else {
+      startTimeDate.value = null;
+      startTimeTime.value = null;
+    }
+  },
+  { immediate: true },
+);
+
+watch(
+  () => appointment.value.end_time,
+  (newVal) => {
+    if (newVal && new Date(newVal).toString() !== "Invalid Date") {
+      const d = new Date(newVal);
+      endTimeDate.value = d;
+      endTimeTime.value = {
+        hours: d.getUTCHours(),
+        minutes: d.getUTCMinutes(),
+      };
+    } else {
+      endTimeDate.value = null;
+      endTimeTime.value = null;
+    }
+  },
+  { immediate: true },
+);
+
+watch([startTimeDate, startTimeTime], ([newDate, newTime]) => {
+  if (newDate && newTime) {
+    const d = new Date(newDate);
+    const newDateTime = new Date(
+      Date.UTC(
+        d.getUTCFullYear(),
+        d.getUTCMonth(),
+        d.getUTCDate(),
+        newTime.hours,
+        newTime.minutes,
+        0,
+        0,
+      ),
+    );
+
+    if (appointment.value.start_time?.getTime() !== newDateTime.getTime()) {
+      appointment.value.start_time = newDateTime;
+    }
+  }
+});
+
+watch([endTimeDate, endTimeTime], ([newDate, newTime]) => {
+  if (newDate && newTime) {
+    const d = new Date(newDate);
+    const newDateTime = new Date(
+      Date.UTC(
+        d.getUTCFullYear(),
+        d.getUTCMonth(),
+        d.getUTCDate(),
+        newTime.hours,
+        newTime.minutes,
+        0,
+        0,
+      ),
+    );
+    if (appointment.value.end_time?.getTime() !== newDateTime.getTime()) {
+      appointment.value.end_time = newDateTime;
+    }
+  }
 });
 
 const suggestedTreatmentDuration = ref(null);
@@ -511,10 +611,14 @@ const fetchAppointment = async () => {
     }
 
     if (appointment.value.start_time) {
-      appointment.value.start_time = new Date(appointment.value.start_time);
+      const d = new Date(appointment.value.start_time);
+      d.setUTCSeconds(0, 0);
+      appointment.value.start_time = d;
     }
     if (appointment.value.end_time) {
-      appointment.value.end_time = new Date(appointment.value.end_time);
+      const d = new Date(appointment.value.end_time);
+      d.setUTCSeconds(0, 0);
+      appointment.value.end_time = d;
     }
   } catch (error) {
     console.error("Error fetching appointment:", error);
