@@ -24,6 +24,8 @@ services:
       context: ./backend
       dockerfile: Dockerfile.test
     command: python -m pytest tests
+    env_file:
+      - .env.tests
     volumes:
       - ./backend:/app:cached
     depends_on:

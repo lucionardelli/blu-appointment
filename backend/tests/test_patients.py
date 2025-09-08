@@ -31,8 +31,8 @@ def test_read_patients(authenticated_client: TestClient, db_session: Session):
     response = authenticated_client.get("/api/v1/patients/")
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
-    assert len(data) > 0
-    assert data[0]["name"] == "Jane Doe"
+    assert len(data["items"]) > 0
+    assert data["items"][0]["name"] == "Jane Doe"
 
 
 def test_read_patient(authenticated_client: TestClient, db_session: Session):
@@ -65,7 +65,7 @@ def test_delete_patient(authenticated_client: TestClient, db_session: Session):
     patient = patient_services.create_patient(db_session, patient_data)
 
     response = authenticated_client.delete(f"/api/v1/patients/{patient.id}")
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == status.HTTP_204_NO_CONTENT
 
     response = authenticated_client.get(f"/api/v1/patients/{patient.id}")
     assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -232,7 +232,7 @@ def test_delete_emergency_contact(authenticated_client: TestClient, db_session: 
     contact_id = response.json()["id"]
 
     response = authenticated_client.delete(f"/api/v1/patients/{patient.id}/emergency_contacts/{contact_id}")
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == status.HTTP_204_NO_CONTENT
 
     response = authenticated_client.get(f"/api/v1/patients/{patient.id}/emergency_contacts/{contact_id}")
     assert response.status_code == status.HTTP_404_NOT_FOUND

@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import case
 from sqlalchemy.orm import Session
@@ -106,22 +106,18 @@ def reschedule_appointment(
     if not original_appointment:
         return None
 
-    # Create the new appointment based on the original
-    new_appointment_data = schemas.AppointmentCreate(
-        patient_id=original_appointment.patient_id,
-        specialty_id=original_appointment.specialty_id,
-        start_time=new_start_time,
-        # Cost will be the current default
-    )
-    new_appointment = create_appointment(db, new_appointment_data)
+    # Calculate the original duration before updating start_time
+    original_duration = original_appointment.end_time - original_appointment.start_time
 
-    # Update the original appointment
+    original_appointment.start_time = new_start_time
+    original_appointment.end_time = new_start_time + original_duration
     original_appointment.status = models.AppointmentStatus.RESCHEDULED
-    original_appointment.rescheduled_to_appointment_id = new_appointment.id
-    db.commit()
-    db.refresh(new_appointment)
 
-    return new_appointment
+    db.add(original_appointment)
+    db.commit()
+    db.refresh(original_appointment)
+
+    return original_appointment
 
 
 def get_appointments(  # noqa: PLR0913
@@ -201,7 +197,8 @@ def add_payment(
     db_payment = payment_models.Payment(
         appointment_id=appointment_id,
         amount=payment_in.amount,
-        method=payment_in.method,
+        payment_method_id=payment_in.payment_method_id,
+        patient_id=db_appointment.patient_id,
     )
     db.add(db_payment)
 

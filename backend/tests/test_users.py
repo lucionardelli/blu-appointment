@@ -47,8 +47,9 @@ def test_update_username_is_not_allowed(test_user: User, authenticated_client: T
 
 def test_update_user_password_success(test_user: User, authenticated_client: TestClient, db_session: Session):
     # Update the user's password
+            # Update the user's password
     response = authenticated_client.put(
-        "/api/v1/users/password", json={"old_password": TEST_USER_RAW_PASS, "new_password": "newpassword456"}
+        "/api/v1/users/me/password/", json={"old_password": TEST_USER_RAW_PASS, "new_password": "newpassword456"}
     )
     assert response.status_code == status.HTTP_200_OK
 

@@ -64,6 +64,16 @@ def test_user(db_session: TestingSessionLocal):
 
 
 @pytest.fixture
+def payment_method_in_db(db_session: TestingSessionLocal):
+    from app.payments.models import PaymentMethod
+    payment_method = PaymentMethod(name="Cash")
+    db_session.add(payment_method)
+    db_session.commit()
+    db_session.refresh(payment_method)
+    return payment_method
+
+
+@pytest.fixture
 def authenticated_client(client: TestClient, test_user: User):
     from app.core.security import create_access_token
 
