@@ -729,9 +729,7 @@ watch(
   () => appointment.value.patient_id,
   async (newPatientId) => {
     if (newPatientId) {
-      if (!patientSnippet.value || patientSnippet.value.id !== newPatientId) {
-        await fetchPatientSnippet();
-      }
+      await fetchPatientSnippet();
       const selectedPatient = patientsOptions.value.find(
         (p) => p.id === newPatientId,
       );
