@@ -128,6 +128,7 @@ def get_appointments(  # noqa: PLR0913
     end_time: datetime | None = None,
     patient_id: int | None = None,
     status: list[models.AppointmentStatus] | None = None,
+    show_canceled: bool = False,
 ) -> list[models.Appointment]:
     """Get appointments with patient and specialty data for calendar display"""
     base_query = db.query(models.Appointment)
@@ -136,6 +137,8 @@ def get_appointments(  # noqa: PLR0913
         base_query = base_query.filter(models.Appointment.patient_id == patient_id)
     if status is not None:
         base_query = base_query.filter(models.Appointment.status.in_(status))
+    if not show_canceled:
+        base_query = base_query.filter(models.Appointment.status != models.AppointmentStatus.CANCELLED)
     if start_time is not None:
         base_query = base_query.filter(models.Appointment.start_time >= start_time)
     if end_time is not None:

@@ -44,6 +44,7 @@ def get_appointments(
         list[schemas.AppointmentStatus] | None,
         Query(description="Filter by appointment status. Can be specified multiple times."),
     ] = None,
+    show_canceled: bool = False,
 ) -> list[schemas.Appointment]:
     return services.get_appointments(
         db=db,
@@ -53,6 +54,7 @@ def get_appointments(
         end_time=end_time,
         patient_id=patient_id,
         status=status,
+        show_canceled=show_canceled,
     )
 
 
