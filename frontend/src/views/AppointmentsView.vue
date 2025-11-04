@@ -13,6 +13,13 @@
           {{ t("sundays") }}
         </button>
         <button
+          class="ml-4 px-3 py-2 text-sm font-medium rounded-md shadow-sm border focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+          :class="showCanceled ? 'bg-primary text-white border-transparent' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'"
+          @click="toggleShowCanceled"
+        >
+          {{ showCanceled ? t("hide_canceled") : t("show_canceled") }}
+        </button>
+        <button
           class="ml-4 flex items-center justify-center h-10 w-10 sm:w-auto sm:h-auto sm:px-4 sm:py-2 text-sm font-medium text-white bg-primary border border-transparent rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
           :title="t('new_appointment')"
           @click="openNewAppointmentModal"
@@ -60,6 +67,7 @@ const selectedEndDate = ref("");
 const selectedAppointmentId = ref(null);
 const fullCalendarRef = ref(null);
 const showSundays = ref(false);
+const showCanceled = ref(false);
 
 const isMobile = ref(window.innerWidth < 768);
 
@@ -74,12 +82,18 @@ onUnmounted(() => {
 const toggleShowSundays = () => {
   showSundays.value = !showSundays.value;
 };
+
+const toggleShowCanceled = () => {
+  showCanceled.value = !showCanceled.value;
+  fullCalendarRef.value.getApi().refetchEvents();
+};
 const fetchAppointments = async (info, successCallback, failureCallback) => {
   try {
     const response = await api.get("/appointments/", {
       params: {
         start_time: info.startStr,
         end_time: info.endStr,
+        show_canceled: showCanceled.value,
       },
     });
     const fetchedAppointments = response.data;
