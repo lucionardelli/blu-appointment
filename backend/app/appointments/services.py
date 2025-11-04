@@ -179,6 +179,10 @@ def update_appointment(
         db_appointment.cost = appointment_update.cost
     if appointment_update.status is not None:
         db_appointment.status = appointment_update.status
+    if appointment_update.specialty_id is not None:
+        db_appointment.specialty_id = appointment_update.specialty_id
+    if appointment_update.patient_id is not None:
+        db_appointment.patient_id = appointment_update.patient_id
 
     db.commit()
     db.refresh(db_appointment)

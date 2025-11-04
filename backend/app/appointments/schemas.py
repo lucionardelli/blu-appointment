@@ -57,6 +57,8 @@ class AppointmentUpdate(BaseModel):
     end_time: datetime
     cost: Decimal | None = Field(None, ge=0)
     status: AppointmentStatus | None = None
+    specialty_id: int | None = None
+    patient_id: int | None = None
 
     @field_validator('start_time', 'end_time', mode='before')
     def ensure_utc(cls, v):
