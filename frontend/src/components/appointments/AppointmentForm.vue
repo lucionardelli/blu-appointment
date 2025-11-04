@@ -436,6 +436,7 @@ const props = defineProps({
 const emit = defineEmits(["save", "cancel"]);
 
 const router = useRouter();
+const isInitialLoad = ref(true);
 const appointment = ref({
   patient_id: null,
   specialty_id: null,
@@ -742,7 +743,11 @@ watch(
           console.error("Error fetching selected patient:", error);
         }
       }
-      if (patientSnippet.value && patientSnippet.value.default_specialty_id) {
+      if (
+        isNew.value &&
+        patientSnippet.value &&
+        patientSnippet.value.default_specialty_id
+      ) {
         appointment.value.specialty_id =
           patientSnippet.value.default_specialty_id;
       }
@@ -775,14 +780,15 @@ onMounted(async () => {
       }
     }
   }
+  isInitialLoad.value = false;
 });
 
 watch(
   () => appointment.value.specialty_id,
   async (newVal, oldVal) => {
+    if (isInitialLoad.value) return;
     if (!newVal) return; // We are actually 'clearing' the specialty
 
-    if (!isNew.value && oldVal === null) return; // Initial load for existing appointment
     const selectedSpecialty = specialtyStore.specialties.find(
       (s) => s.id === newVal,
     );
