@@ -145,7 +145,7 @@
               </p>
               <p class="text-sm text-gray-500">
                 {{ t("total_due") }}:
-                {{ formatCurrency(patientSnippet.total_due || 0) }}
+                {{ formatCurrency(-1 * patientSnippet.financial_summary.balance || 0) }}
               </p>
             </div>
           </div>

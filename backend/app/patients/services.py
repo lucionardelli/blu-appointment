@@ -3,7 +3,7 @@ from datetime import UTC, datetime
 from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
 
-from app.appointments.models import Appointment, Payment
+from app.appointments.models import Appointment, Payment, AppointmentStatus
 from app.core.encryption import decrypt, encrypt
 
 from . import models, schemas
@@ -14,7 +14,7 @@ def get_financial_summary(db: Session, patient_id: int) -> schemas.PatientFinanc
         db.query(func.sum(Payment.amount)).join(Appointment).filter(Appointment.patient_id == patient_id).scalar()
     ) or 0
 
-    total_due = (db.query(func.sum(Appointment.cost)).filter(Appointment.patient_id == patient_id).scalar()) or 0
+    total_due = (db.query(func.sum(Appointment.cost)).filter(Appointment.patient_id == patient_id, Appointment.status.in_((AppointmentStatus.SCHEDULED,AppointmentStatus.COMPLETED))).scalar()) or 0
 
     return schemas.PatientFinancialSummary(
         total_paid=total_paid,

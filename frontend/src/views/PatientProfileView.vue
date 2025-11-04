@@ -118,8 +118,9 @@
                       :enable-time-picker="false"
                       text-input
                       auto-apply
-                      utc
-                      class="block w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                      :locale="locale"
+                      :model-type="'yyyy-MM-dd'"
+                      class="..."
                     />
                     <span v-else>{{ formatDate(patient.dob) }}</span>
                     <p v-if="errors.dob" class="mt-1 text-sm text-red-600">
@@ -796,7 +797,7 @@ import "@vuepic/vue-datepicker/dist/main.css";
 import vSelect from "vue-select";
 import "vue-select/dist/vue-select.css";
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const route = useRoute();
 const router = useRouter();
 
