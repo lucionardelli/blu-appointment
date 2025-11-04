@@ -184,21 +184,44 @@
                 </option>
               </select>
             </div>
-            <div>
-              <label
-                for="price"
-                class="block text-sm font-medium text-gray-700"
-                >{{ t("price") }}</label
-              >
-              <input
-                id="price"
-                v-model="appointment.cost"
-                type="number"
-                step="1000"
-                required
-                :readonly="appointment.cancelled"
-                class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-              />
+
+            <div class="flex items-center space-x-2">
+              <div class="relative flex-grow">
+                <label
+                  for="price"
+                  class="block text-sm font-medium text-gray-700"
+                  >{{ t("price") }}</label
+                >
+                <input
+                  id="price"
+                  v-model="appointment.cost"
+                  type="number"
+                  step="1000"
+                  required
+                  :readonly="appointment.cancelled"
+                  class="block w-full px-3 py-2 mt-1 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                />
+              </div>
+              <div class="mt-7" style="min-width: 200px; text-align: right">
+                <div v-if="!isNew">
+                  <button
+                    v-if="amountDue > 0"
+                    type="button"
+                    class="flex items-center justify-center w-full py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                    @click="payFullAmount"
+                  >
+                    {{ payButtonText }}
+                  </button>
+                  <div v-else class="inline-flex items-center px-3 py-2">
+                    <i-heroicons-check-circle-20-solid
+                      class="h-5 w-5 text-green-500"
+                    />
+                    <span class="ml-2 text-sm font-medium text-green-700">{{
+                      t("paid")
+                    }}</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -405,7 +428,7 @@ import api from "@/services/api";
 import { addMinutes } from "date-fns";
 import DatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
-import { formatDate, formatTime, formatCurrency } from "@/utils/formatDate";
+import { formatDate, formatCurrency } from "@/utils/formatDate";
 import { useSpecialtyStore } from "@/stores/specialties";
 import debounce from "lodash/debounce";
 
@@ -586,6 +609,26 @@ const paymentStatus = computed(() => {
   }
   return { color: "text-red-600" };
 });
+
+const payButtonText = computed(() => {
+  if (amountDue.value > 0 && amountDue.value < appointment.value.cost) {
+    return t("pay_remaining_amount", {
+      amount: formatCurrency(amountDue.value),
+    });
+  }
+  return t("pay_full_amount");
+});
+
+const payFullAmount = async () => {
+  if (amountDue.value > 0) {
+    if (isNew.value) {
+      await saveAppointment(true);
+    } else {
+      newPayment.value.amount = amountDue.value;
+      await saveNewPayment();
+    }
+  }
+};
 
 const fetchAppointment = async () => {
   if (isNew.value) return;
@@ -852,6 +895,7 @@ const saveAppointment = async () => {
         cost: appointment.value.cost,
       });
     }
+
     if (props.inModal) {
       emit("save");
     } else {
