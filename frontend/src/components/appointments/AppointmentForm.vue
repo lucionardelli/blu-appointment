@@ -695,12 +695,23 @@ const fetchPaymentMethods = async () => {
   }
 };
 
+const updateAppointment = async () => {
+  if (isNew.value) return;
+  try {
+    await api.put(`/appointments/${props.appointmentId}/`, appointment.value);
+  } catch (error) {
+    console.error("Error updating appointment:", error);
+  }
+};
+
 const saveNewPayment = async () => {
   if (!newPayment.value.amount || !newPayment.value.payment_method_id) {
     console.error("Amount and payment method are required.");
     return;
   }
   try {
+    await updateAppointment();
+
     const payload = {
       ...newPayment.value,
       patient_id: appointment.value.patient_id,
