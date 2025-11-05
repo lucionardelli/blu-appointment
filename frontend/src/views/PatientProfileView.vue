@@ -324,47 +324,6 @@
           </div>
         </div>
       </div>
-      <!-- v-if="patient || isNew"> -->
-
-      <div
-        v-if="patient.financialSummary && !isNew"
-        class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg"
-      >
-        <div class="px-4 py-5 sm:px-6">
-          <h3 class="text-lg leading-6 font-medium text-gray-900">
-            {{ t("financial_summary") }}
-          </h3>
-        </div>
-        <div class="border-t border-gray-200 px-4 py-5 sm:p-0">
-          <dl class="sm:divide-y sm:divide-gray-200">
-            <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 sm:py-5">
-              <dt class="text-sm font-medium text-gray-500">
-                {{ t("total_paid") }}
-              </dt>
-              <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {{ formatCurrency(patient.financialSummary.totalPaid) }}
-              </dd>
-            </div>
-            <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 sm:py-5">
-              <dt class="text-sm font-medium text-gray-500">
-                {{ t("total_due") }}
-              </dt>
-              <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {{ formatCurrency(patient.financialSummary.totalDue) }}
-              </dd>
-            </div>
-            <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 sm:py-5">
-              <dt class="text-sm font-medium text-gray-500">
-                {{ t("balance") }}
-              </dt>
-              <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {{ formatCurrency(patient.financialSummary.balance) }}
-              </dd>
-            </div>
-          </dl>
-        </div>
-      </div>
-
       <div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
         <div class="px-4 py-5 sm:px-6">
           <nav class="-mb-px flex space-x-8" aria-label="Tabs">
@@ -430,6 +389,44 @@
           v-show="activeTab === 'appointments'"
           class="border-t border-gray-200"
         >
+          <div class="px-4 py-5 sm:px-6">
+            <div
+              v-if="appointmentSummary.length > 0"
+              class="flex flex-wrap gap-4 justify-start"
+            >
+              <div
+                v-for="summary in appointmentSummary"
+                :key="summary.specialtyName"
+                class="p-4 rounded-lg shadow-md flex-grow"
+                :style="{ backgroundColor: summary.color }"
+              >
+                <div class="flex items-center">
+                  <div
+                    class="mr-4 text-white p-2 rounded-full"
+                    :style="{ backgroundColor: summary.color }"
+                  >
+                    <i class="text-lg">{{ summary.icon }}</i>
+                  </div>
+                  <h3 class="text-2xl font-medium text-white">
+                    {{ summary.specialtyName }}
+                  </h3>
+                </div>
+                <div class="mt-4 text-center">
+                  <p class="text-sm text-white">
+                    {{ t("number_of_sessions") }}
+                  </p>
+                  <p class="text-4xl font-bold text-white">
+                    {{ summary.count }}
+                  </p>
+                </div>
+                <div class="mt-2 text-center">
+                  <p class="text-sm text-white">
+                    {{ t("last_appointment") }}: {{ summary.lastDate }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
           <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
               <tr>
@@ -491,6 +488,26 @@
           </table>
         </div>
         <div v-show="activeTab === 'payments'" class="border-t border-gray-200">
+          <div
+            v-if="patient.financial_summary && !isNew"
+            class="px-4 py-5 sm:px-6"
+          >
+            <div class="flex flex-wrap gap-4 justify-start">
+              <div
+                v-for="item in financialSummaryItems"
+                :key="item.label"
+                class="p-4 rounded-lg shadow-md flex-grow text-white"
+                :class="item.color"
+              >
+                <div class="text-center">
+                  <p class="text-sm">{{ item.label }}</p>
+                  <p class="text-4xl font-bold">
+                    {{ formatCurrency(item.value) }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
           <div class="flex justify-end items-center px-4 py-3 sm:px-6">
             <button
               type="button"
@@ -898,6 +915,66 @@ const renderedMedicalHistory = computed(() => {
     return DOMPurify.sanitize(md.render(patient.value.medical_history));
   }
   return "";
+});
+
+const financialSummaryItems = computed(() => {
+  if (!patient.value || !patient.value.financial_summary) {
+    return [];
+  }
+  return [
+    {
+      label: t("total_paid"),
+      value: patient.value.financial_summary.total_paid,
+      color: "bg-green-500",
+    },
+    {
+      label: t("total_due"),
+      value: patient.value.financial_summary.total_due,
+      color: "bg-red-500",
+    },
+    {
+      label: t("balance"),
+      value: patient.value.financial_summary.balance,
+      color: "bg-blue-500",
+    },
+  ];
+});
+
+const appointmentSummary = computed(() => {
+  if (!appointments.value || appointments.value.length === 0) {
+    return [];
+  }
+
+  const summary = appointments.value.reduce((acc, appointment) => {
+    if (appointment.cancelled) return acc;
+    const specialtyName = appointment.specialty.name;
+    if (!acc[specialtyName]) {
+      const specialty = specialtyStore.specialties.find(
+        (s) => s.id === appointment.specialty.id,
+      );
+      acc[specialtyName] = {
+        specialtyName: specialtyName,
+        count: 0,
+        lastDate: null,
+        color: specialty ? specialty.color : "#cccccc", // Default color
+        icon: specialty ? specialty.icon : "", // Default icon
+      };
+    }
+    acc[specialtyName].count++;
+    const appointmentDate = new Date(appointment.start_time);
+    if (
+      !acc[specialtyName].lastDate ||
+      appointmentDate > acc[specialtyName].lastDate
+    ) {
+      acc[specialtyName].lastDate = appointmentDate;
+    }
+    return acc;
+  }, {});
+
+  return Object.values(summary).map((item) => ({
+    ...item,
+    lastDate: item.lastDate ? formatDate(item.lastDate.toISOString()) : "-",
+  }));
 });
 
 const getPaymentStatus = (appointment) => {
