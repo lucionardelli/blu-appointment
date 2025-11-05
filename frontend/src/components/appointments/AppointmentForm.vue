@@ -89,7 +89,7 @@
               :searchable="true"
               :loading="patientSearchLoading"
               :filter="(options, search) => options"
-              :disabled="appointment.cancelled"
+              :disabled="appointment.cancelled || hasPayments"
               :class="{ 'cursor-not-allowed': patientSearchLoading }"
               class="block w-full mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
               @search="debouncedOnPatientSearch"
@@ -108,7 +108,7 @@
               class="mt-2 p-4 bg-gray-100 rounded-md sm:flex sm:justify-between"
             >
               <p
-                v-if="patientSnippet.nickname"
+                v-if="patientSnippet?.nickname"
                 class="ml-2 text-xs text-gray-600"
               >
                 {{ t("nickname") }}: ({{ patientSnippet.nickname }})
@@ -117,7 +117,7 @@
                 {{ t("age") }}:
                 <span
                   :class="{
-                    'text-red-500 font-semibold': patientSnippet.is_underage,
+                    'text-red-500 font-semibold': patientSnippet?.is_underage,
                   }"
                   >{{ patientSnippet.age || ">18*" }}</span
                 >
@@ -125,8 +125,8 @@
               <p
                 v-if="
                   selectedSpecialtyName &&
-                  patientSnippet.appointment_summary &&
-                  patientSnippet.appointment_summary.specialty_counts[
+                  patientSnippet?.appointment_summary &&
+                  patientSnippet?.appointment_summary.specialty_counts[
                     selectedSpecialtyId
                   ] !== undefined
                 "
@@ -141,11 +141,11 @@
               </p>
               <p class="text-sm text-gray-500">
                 {{ t("last_appointment") }}:
-                {{ formatDate(patientSnippet.last_appointment) || "-" }}
+                {{ formatDate(patientSnippet?.last_appointment) || "-" }}
               </p>
               <p class="text-sm text-gray-500">
                 {{ t("total_due") }}:
-                {{ formatCurrency(-1 * patientSnippet.financial_summary.balance || 0) }}
+                {{ formatCurrency(-1 * patientSnippet?.financial_summary?.balance || 0) }}
               </p>
             </div>
           </div>
@@ -172,7 +172,7 @@
                 id="specialty"
                 v-model="appointment.specialty_id"
                 required
-                :disabled="appointment.cancelled"
+                :disabled="appointment.cancelled || hasPayments"
                 class="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
               >
                 <option
@@ -316,8 +316,11 @@
               >
                 {{ t("amount") }}
               </th>
-              <th scope="col" class="relative px-6 py-3 w-1 whitespace-nowrap">
-                <span class="sr-only">Pay</span>
+              <th
+                scope="col"
+                class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                {{ t("actions") }}
               </th>
             </tr>
           </thead>
@@ -377,14 +380,23 @@
                 {{ formatDate(payment.payment_date) }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {{ payment.payment_method.name }}
+                {{ payment.payment_method?.name }}
               </td>
               <td
                 class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right"
               >
                 {{ formatCurrency(payment.amount) }}
               </td>
-              <td></td>
+              <td
+                class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
+              >
+                <button
+                  @click="deletePayment(payment.id)"
+                  class="text-red-600 hover:text-red-900"
+                >
+                  {{ t("delete") }}
+                </button>
+              </td>
             </tr>
             <tr
               v-if="!appointment.payments || appointment.payments.length === 0"
@@ -419,7 +431,6 @@
     </div>
   </div>
 </template>
-
 <script setup>
 import { ref, onMounted, computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -571,6 +582,10 @@ const paymentMethods = ref([]);
 
 const isNew = computed(() => !props.appointmentId);
 
+const hasPayments = computed(() => {
+  return appointment.value && appointment.value.total_paid > 0;
+});
+
 const selectedSpecialtyId = computed(() => appointment.value.specialty_id);
 
 const selectedSpecialtyName = computed(() => {
@@ -636,16 +651,12 @@ const fetchAppointment = async () => {
     const response = await api.get(`/appointments/${props.appointmentId}/`);
     const fetchedAppointment = response.data;
 
-    if (fetchedAppointment.patient) {
-      patientSnippet.value = fetchedAppointment.patient;
-    }
-
     // Flatten nested patient and specialty objects
-    appointment.value = {
+    Object.assign(appointment.value, {
       ...fetchedAppointment,
       patient_id: fetchedAppointment.patient?.id,
       specialty_id: fetchedAppointment.specialty?.id,
-    };
+    });
 
     if (
       fetchedAppointment.patient &&
@@ -945,6 +956,17 @@ const deleteAppointment = async () => {
       }
     } catch (error) {
       console.error("Error deleting appointment:", error);
+    }
+  }
+};
+
+const deletePayment = async (paymentId) => {
+  if (window.confirm(t("confirm_delete_payment"))) {
+    try {
+      await api.delete(`/payments/${paymentId}/`);
+      await fetchAppointment();
+    } catch (error) {
+      console.error("Error deleting payment:", error);
     }
   }
 };

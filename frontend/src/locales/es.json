@@ -131,6 +131,7 @@
   "confirm_delete_specialty": "¿Estás seguro de que quieres eliminar esta especialidad?",
   "confirm_delete_patient": "¿Estás seguro de que quieres eliminar este paciente? Esto también eliminará todas sus citas y pagos.",
   "confirm_delete_appointment": "¿Estás seguro de que quieres eliminar esta sesión?",
+  "confirm_delete_payment": "¿Estás seguro de que quieres eliminar este pago?",
   "delete": "Eliminar",
   "cancel": "Cancelar",
   "confirm_cancel_appointment": "¿Estás seguro de que quieres cancelar esta sesión?",
