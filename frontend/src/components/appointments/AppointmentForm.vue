@@ -238,7 +238,6 @@
                   :enable-time-picker="false"
                   text-input
                   auto-apply
-                  utc
                   :locale="locale"
                   :format="formatDate"
                   :disabled="appointment.cancelled"
@@ -268,7 +267,6 @@
                   :enable-time-picker="false"
                   text-input
                   auto-apply
-                  utc
                   :locale="locale"
                   :format="formatDate"
                   :disabled="appointment.cancelled"
@@ -493,8 +491,8 @@ watch(
       const d = new Date(newVal);
       startTimeDate.value = d;
       startTimeTime.value = {
-        hours: d.getUTCHours(),
-        minutes: d.getUTCMinutes(),
+        hours: d.getHours(),
+        minutes: d.getMinutes(),
       };
     } else {
       startTimeDate.value = null;
@@ -511,8 +509,8 @@ watch(
       const d = new Date(newVal);
       endTimeDate.value = d;
       endTimeTime.value = {
-        hours: d.getUTCHours(),
-        minutes: d.getUTCMinutes(),
+        hours: d.getHours(),
+        minutes: d.getMinutes(),
       };
     } else {
       endTimeDate.value = null;
@@ -524,17 +522,14 @@ watch(
 
 watch([startTimeDate, startTimeTime], ([newDate, newTime]) => {
   if (newDate && newTime) {
-    const d = new Date(newDate);
     const newDateTime = new Date(
-      Date.UTC(
-        d.getUTCFullYear(),
-        d.getUTCMonth(),
-        d.getUTCDate(),
-        newTime.hours,
-        newTime.minutes,
-        0,
-        0,
-      ),
+      newDate.getFullYear(),
+      newDate.getMonth(),
+      newDate.getDate(),
+      newTime.hours,
+      newTime.minutes,
+      0,
+      0,
     );
 
     if (appointment.value.start_time?.getTime() !== newDateTime.getTime()) {
@@ -545,17 +540,14 @@ watch([startTimeDate, startTimeTime], ([newDate, newTime]) => {
 
 watch([endTimeDate, endTimeTime], ([newDate, newTime]) => {
   if (newDate && newTime) {
-    const d = new Date(newDate);
     const newDateTime = new Date(
-      Date.UTC(
-        d.getUTCFullYear(),
-        d.getUTCMonth(),
-        d.getUTCDate(),
-        newTime.hours,
-        newTime.minutes,
-        0,
-        0,
-      ),
+      newDate.getFullYear(),
+      newDate.getMonth(),
+      newDate.getDate(),
+      newTime.hours,
+      newTime.minutes,
+      0,
+      0,
     );
     if (appointment.value.end_time?.getTime() !== newDateTime.getTime()) {
       appointment.value.end_time = newDateTime;
