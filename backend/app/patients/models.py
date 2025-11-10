@@ -5,7 +5,7 @@ from sqlalchemy import ForeignKey, func, select
 from sqlalchemy.orm import column_property, relationship
 from sqlalchemy.types import Date, String, Text
 
-from app.appointments.models import Appointment, Payment
+from app.appointments.models import Appointment
 from app.db.base import Base
 from app.payments.models import Payment
 

@@ -11,7 +11,7 @@ from app.payments.models import Payment
 
 if typing.TYPE_CHECKING:
     from app.patients.models import Patient
-    from app.specialties.models import Specialty
+from app.specialties.models import Specialty
 
 class AppointmentStatus(enum.Enum):
     SCHEDULED = "SCHEDULED"
