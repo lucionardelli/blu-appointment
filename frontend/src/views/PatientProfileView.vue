@@ -988,11 +988,11 @@ const filteredAppointments = computed(() => {
   }
 });
 
-const fetchPatient = async () => {
+const fetchPatientDetails = async () => {
   if (route.params.id === "new") {
     isNew.value = true;
     isEditing.value = true;
-    activeTab.value = "medical_history"; // Default to medical history for new patient
+    activeTab.value = "medical_history";
     patient.value = {
       name: "",
       nickname: undefined,
@@ -1006,48 +1006,28 @@ const fetchPatient = async () => {
       how_they_found_us: undefined,
       referred_by_patient_id: null,
     };
-    emergencyContacts.value = []; // Initialize empty for new patient
+    emergencyContacts.value = [];
     return;
   }
   try {
-    const response = await api.get(`/patients/${route.params.id}/`);
-    patient.value = response.data;
-    // Populate emergency contacts
-    emergencyContacts.value = patient.value.emergency_contacts || [];
+    const response = await api.get(`/patients/${route.params.id}/details/`);
+    const data = response.data;
+    patient.value = data;
+    appointments.value = data.appointments || [];
+    payments.value = data.payments || [];
+    specialPrices.value = data.special_prices || [];
+    emergencyContacts.value = data.emergency_contacts || [];
   } catch (err) {
     error.value = true;
-    console.error("Error fetching patient:", err);
+    console.error("Error fetching patient details:", err);
   }
 };
 
-const fetchAppointments = async () => {
-  if (isNew.value) return;
-  try {
-    const response = await api.get(
-      `/patients/${route.params.id}/appointments/`,
-    );
-    appointments.value = response.data;
-  } catch (err) {
-    error.value = true;
-    console.error("Error fetching appointments:", err);
-  }
-};
 
-const fetchPayments = async () => {
-  if (isNew.value) return;
-  try {
-    const response = await api.get(`/patients/${route.params.id}/payments/`);
-    payments.value = response.data;
-  } catch (err) {
-    error.value = true;
-    console.error("Error fetching payments:", err);
-  }
-};
 
 const handlePaymentSave = () => {
   showPaymentForm.value = false;
-  fetchPatient();
-  fetchPayments();
+  fetchPatientDetails();
 };
 
 const addEmergencyContact = () => {
@@ -1073,18 +1053,6 @@ const deleteEmergencyContact = (contact) => {
   emergencyContacts.value = emergencyContacts.value.filter(
     (c) => c.id !== contact.id,
   );
-};
-
-const fetchSpecialPrices = async () => {
-  if (isNew.value) return;
-  try {
-    const response = await api.get(
-      `/patients/${route.params.id}/special-prices/`,
-    );
-    specialPrices.value = response.data;
-  } catch (err) {
-    console.error("Error fetching special prices:", err);
-  }
 };
 
 const addSpecialPrice = () => {
@@ -1255,7 +1223,7 @@ const cancelEdit = () => {
     router.push("/patients");
   } else {
     isEditing.value = false;
-    fetchPatient();
+    fetchPatientDetails();
   }
 };
 
@@ -1273,10 +1241,8 @@ const deletePatient = async () => {
 onMounted(async () => {
   loading.value = true;
   try {
-    await fetchPatient();
-    await fetchAppointments();
-    await fetchPayments();
-    await fetchSpecialPrices(); // Fetch special prices
+    await fetchPatientDetails();
+
     if (!specialtyStore.specialties.length) {
       await specialtyStore.fetchSpecialties();
     }
