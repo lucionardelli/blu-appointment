@@ -279,5 +279,6 @@ def get_patient_details_view(db: Session, patient_id: int) -> models.Patient | N
     db_patient.appointments = get_patient_appointments(db, patient_id)
     db_patient.payments = get_patient_payments(db, patient_id)
     db_patient.special_prices = get_special_prices_for_patient(db, patient_id)
+    db_patient.financial_summary = get_financial_summary(db, patient_id)
 
     return db_patient

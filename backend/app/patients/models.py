@@ -46,17 +46,6 @@ class Patient(Base):
         "EmergencyContact", back_populates="patient", order_by="EmergencyContact.priority"
     )
 
-    credit_balance = column_property(
-        select(func.coalesce(func.sum(Payment.amount), 0))
-        .where(Payment.appointment_id.in_(select(Appointment.id).where(Appointment.patient_id == id)))
-        .correlate_except(Payment)
-        .scalar_subquery()
-        - select(func.coalesce(func.sum(Appointment.cost), 0))
-        .where(Appointment.patient_id == id)
-        .correlate_except(Appointment)
-        .scalar_subquery()
-    )
-
     last_appointment = column_property(
         select(func.min(Appointment.start_time))
         .where(Appointment.patient_id == id, Appointment.start_time < datetime.now(UTC))

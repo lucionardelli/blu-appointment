@@ -56,7 +56,6 @@ class PatientUpdate(PatientBase):
 
 class Patient(PatientBase):
     id: int
-    credit_balance: Decimal
     last_appointment: datetime | None = None
     next_appointment: datetime | None = None
     age: int | None = None
@@ -120,5 +119,6 @@ class PatientDetailView(Patient):
     appointments: list[Appointment] = []
     payments: list[Payment] = []
     special_prices: list[PatientSpecialtyPrice] = []
+    financial_summary: PatientFinancialSummary | None = None
 
     model_config = ConfigDict(from_attributes=True)
