@@ -3,6 +3,8 @@ from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
+from app.appointments.schemas import Appointment
+from app.payments.schemas import Payment
 from app.specialties.schemas import Specialty
 
 
@@ -110,5 +112,13 @@ class PatientSpecialtyPriceCreate(PatientSpecialtyPriceBase): ...
 
 class PatientSpecialtyPrice(PatientSpecialtyPriceBase):
     id: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PatientDetailView(Patient):
+    appointments: list[Appointment] = []
+    payments: list[Payment] = []
+    special_prices: list[PatientSpecialtyPrice] = []
 
     model_config = ConfigDict(from_attributes=True)

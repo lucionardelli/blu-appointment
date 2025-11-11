@@ -272,3 +272,15 @@ def delete_special_price(db: Session, patient_id: int, specialty_id: int) -> Non
 
 def get_special_prices_for_patient(db: Session, patient_id: int) -> list[models.PatientSpecialtyPrice]:
     return db.query(models.PatientSpecialtyPrice).filter(models.PatientSpecialtyPrice.patient_id == patient_id).all()
+
+
+def get_patient_details_view(db: Session, patient_id: int) -> models.Patient | None:
+    db_patient = get_patient(db, patient_id)
+    if not db_patient:
+        return None
+
+    db_patient.appointments = get_patient_appointments(db, patient_id)
+    db_patient.payments = get_patient_payments(db, patient_id)
+    db_patient.special_prices = get_special_prices_for_patient(db, patient_id)
+
+    return db_patient

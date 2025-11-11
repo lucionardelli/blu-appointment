@@ -51,6 +51,16 @@ def read_patient(
     return schemas.PatientDetails.model_validate(db_patient)
 
 
+@router.get("/{patient_id}/details/", response_model=schemas.PatientDetailView)
+def read_patient_details(
+    patient_id: int, db: Annotated[Session, Depends(get_db)], _current_user: Annotated[User, Depends(get_current_user)]
+) -> schemas.PatientDetailView:
+    db_patient = services.get_patient_details_view(db, patient_id=patient_id)
+    if db_patient is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Patient not found")
+    return db_patient
+
+
 @router.get("/{patient_id}/appointments/", response_model=list[appt_schemas.Appointment])
 def read_patient_appointments(
     patient_id: int,
