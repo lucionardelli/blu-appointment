@@ -494,15 +494,14 @@
           >
             <div class="flex flex-wrap gap-4 justify-start">
               <div
-                v-for="item in financialSummaryItems"
-                :key="item.label"
+                :key="financialBalance.label"
                 class="p-4 rounded-lg shadow-md flex-grow text-white"
-                :class="item.color"
+                :class="financialBalance.color"
               >
                 <div class="text-center">
-                  <p class="text-sm">{{ item.label }}</p>
+                  <p class="text-sm">{{ financialBalance.label }}</p>
                   <p class="text-4xl font-bold">
-                    {{ formatCurrency(item.value) }}
+                    {{ formatCurrency(financialBalance.value) }}
                   </p>
                 </div>
               </div>
@@ -917,29 +916,23 @@ const renderedMedicalHistory = computed(() => {
   return "";
 });
 
-const financialSummaryItems = computed(() => {
+  const financialBalance = computed(() => {
   if (!patient.value || !patient.value.financial_summary) {
-    return [];
+    return {};
   }
-  return [
-    {
-      label: t("total_paid"),
-      value: patient.value.financial_summary.total_paid,
-      color: "bg-green-500",
-    },
-    {
-      label: t("total_due"),
-      value: patient.value.financial_summary.total_due,
-      color: "bg-red-500",
-    },
-    {
+  const balance = patient.value.financial_summary.balance;
+  let color = "bg-blue-500"; // Default color
+  if (balance < 0) {
+    color = "bg-red-500";
+  } else if (balance > 0) {
+    color = "bg-green-500";
+  }
+  return {
       label: t("balance"),
-      value: patient.value.financial_summary.balance,
-      color: "bg-blue-500",
-    },
-  ];
+      value: balance,
+      color: color,
+    };
 });
-
 const appointmentSummary = computed(() => {
   if (!appointments.value || appointments.value.length === 0) {
     return [];
