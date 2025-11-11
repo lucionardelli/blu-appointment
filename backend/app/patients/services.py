@@ -79,9 +79,6 @@ def get_patients(db: Session, query: str = "", skip: int = 0, limit: int = 100) 
         patients_query = patients_query.order_by(models.Patient.name).offset(skip).limit(limit)
 
     patients = patients_query.all()
-    for p in patients:
-        if p.encrypted_medical_history:
-            p.medical_history = decrypt(p.encrypted_medical_history)
     return total_count, patients
 
 
