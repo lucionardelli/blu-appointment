@@ -637,19 +637,38 @@ const payFullAmount = async () => {
   }
 };
 
-const fetchAppointment = async () => {
+const fetchAppointmentDetails = async () => {
   if (isNew.value) return;
   try {
-    const response = await api.get(`/appointments/${props.appointmentId}/`);
-    const fetchedAppointment = response.data;
+    const response = await api.get(
+      `/appointments/${props.appointmentId}/details/`,
+    );
+    const {
+      appointment: fetchedAppointment,
+      payment_methods: fetchedPaymentMethods,
+    } = response.data;
 
-    // Flatten nested patient and specialty objects
+    // Populate appointment data
     Object.assign(appointment.value, {
       ...fetchedAppointment,
       patient_id: fetchedAppointment.patient?.id,
       specialty_id: fetchedAppointment.specialty?.id,
     });
 
+    // Populate payment methods
+    paymentMethods.value = fetchedPaymentMethods;
+    if (
+      paymentMethods.value.length > 0 &&
+      !newPayment.value.payment_method_id
+    ) {
+      newPayment.value.payment_method_id = paymentMethods.value[0].id;
+    }
+
+    // Populate suggested duration
+    suggestedTreatmentDuration.value =
+      fetchedAppointment.suggested_treatment_duration_minutes;
+
+    // Ensure patient is in the dropdown options
     if (
       fetchedAppointment.patient &&
       !patientsOptions.value.some((p) => p.id === fetchedAppointment.patient.id)
@@ -657,6 +676,7 @@ const fetchAppointment = async () => {
       patientsOptions.value.push(fetchedAppointment.patient);
     }
 
+    // Set date/time picker models
     if (appointment.value.start_time) {
       const d = new Date(appointment.value.start_time);
       d.setUTCSeconds(0, 0);
@@ -668,22 +688,7 @@ const fetchAppointment = async () => {
       appointment.value.end_time = d;
     }
   } catch (error) {
-    console.error("Error fetching appointment:", error);
-  }
-};
-
-const fetchPaymentMethods = async () => {
-  try {
-    const response = await api.get("/payment_methods/");
-    paymentMethods.value = response.data;
-    if (
-      paymentMethods.value.length > 0 &&
-      !newPayment.value.payment_method_id
-    ) {
-      newPayment.value.payment_method_id = paymentMethods.value[0].id;
-    }
-  } catch (error) {
-    console.error("Error fetching payment methods:", error);
+    console.error("Error fetching appointment details:", error);
   }
 };
 
@@ -710,7 +715,7 @@ const saveNewPayment = async () => {
       appointment_id: props.appointmentId,
     };
     await api.post("/payments/", payload);
-    await fetchAppointment();
+    await fetchAppointmentDetails();
   } catch (error) {
     console.error("Error saving payment:", error);
   }
@@ -756,34 +761,6 @@ const onPatientSearch = async (search, loading) => {
 const debouncedOnPatientSearch = debounce(onPatientSearch, 300);
 
 watch(
-  [
-    () => appointment.value.patient_id,
-    () => appointment.value.specialty_id,
-    () => appointment.value.start_time,
-  ],
-  async ([patientId, specialtyId, startTime]) => {
-    if (patientId && specialtyId && startTime) {
-      try {
-        const response = await api.get("/appointments/suggested-duration/", {
-          params: {
-            patient_id: patientId,
-            specialty_id: specialtyId,
-            before_time: startTime.toISOString(),
-          },
-        });
-        suggestedTreatmentDuration.value = response.data;
-      } catch (error) {
-        console.error("Error fetching suggested duration:", error);
-        suggestedTreatmentDuration.value = null;
-      }
-    } else {
-      suggestedTreatmentDuration.value = null;
-    }
-  },
-  { deep: true },
-);
-
-watch(
   () => appointment.value.patient_id,
   async (newPatientId) => {
     if (newPatientId) {
@@ -816,9 +793,8 @@ onMounted(async () => {
   if (!specialtyStore.specialties.length) {
     await specialtyStore.fetchSpecialties();
   }
-  fetchPaymentMethods();
   if (props.appointmentId) {
-    await fetchAppointment();
+    await fetchAppointmentDetails();
   } else {
     try {
       const response = await api.get("/patients/", { params: { limit: 4 } });
