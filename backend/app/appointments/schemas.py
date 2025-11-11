@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator, computed_field, field_validator, field_serializer
 
-from app.payments.schemas import Payment
+from app.payments.schemas import Payment, PaymentMethod
 from app.specialties.schemas import MinSpecialtyInfo
 
 from .models import (
@@ -163,3 +163,8 @@ class WorkingHours(WorkingHoursBase):
     id: int
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+
+class AppointmentDetailView(BaseModel):
+    appointment: Appointment
+    payment_methods: list[PaymentMethod]

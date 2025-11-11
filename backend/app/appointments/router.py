@@ -109,6 +109,18 @@ def get_appointment(
     return db_appointment
 
 
+@appointments_router.get("/{appointment_id}/details/", response_model=schemas.AppointmentDetailView)
+def get_appointment_details(
+    appointment_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    _current_user: Annotated[User, Depends(get_current_user)],
+) -> schemas.AppointmentDetailView:
+    details = services.get_appointment_details_view(db, appointment_id=appointment_id)
+    if not details:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Appointment not found")
+    return details
+
+
 @appointments_router.put("/{appointment_id}/", response_model=schemas.Appointment)
 def update_appointment(
     appointment_id: int,

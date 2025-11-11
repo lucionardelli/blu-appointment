@@ -1,12 +1,14 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
 from sqlalchemy import case
 from sqlalchemy.orm import Session
 
 from app.appointments.models import DayOfWeek
+from app.patients.services import get_special_price
 from app.payments import models as payment_models
 from app.payments import schemas as payment_schemas
-from app.patients.services import get_special_price
+from app.payments import services as payment_services
+from app.specialties.rules import get_treatment_duration
 from app.specialties.services import get_current_price_for_specialty, get_specialty_by_id
 
 from . import models, schemas
@@ -128,6 +130,7 @@ def get_appointments(  # noqa: PLR0913
     end_time: datetime | None = None,
     patient_id: int | None = None,
     status: list[models.AppointmentStatus] | None = None,
+    *,
     show_canceled: bool = False,
 ) -> list[models.Appointment]:
     """Get appointments with patient and specialty data for calendar display"""
@@ -253,3 +256,29 @@ def set_working_hours(
 
     db.commit()
     return get_working_hours(db)  # Return the newly saved hours
+
+
+def get_appointment_details_view(db: Session, appointment_id: int) -> dict | None:
+    db_appointment = get_appointment(db, appointment_id)
+    if not db_appointment:
+        return None
+
+    # Calculate suggested duration
+    logic_key = db_appointment.specialty.treatment_duration_logic
+    if logic_key:
+        session_count = count_past_appointments_for_specialty(
+            db,
+            patient_id=db_appointment.patient_id,
+            specialty_id=db_appointment.specialty_id,
+            before_time=db_appointment.start_time,
+        )
+        db_appointment.suggested_treatment_duration_minutes = get_treatment_duration(
+            logic_key, db_appointment.patient, session_count
+        )
+    else:
+        db_appointment.suggested_treatment_duration_minutes = None
+
+    # Get all payment methods
+    payment_methods = payment_services.get_payment_methods(db)
+
+    return {"appointment": db_appointment, "payment_methods": payment_methods}
