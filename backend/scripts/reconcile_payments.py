@@ -13,6 +13,7 @@ from sqlalchemy.orm import sessionmaker
 
 from app.appointments.models import Appointment
 from app.core.config import settings
+from app.patients.models import Patient
 from app.payments.models import Payment, PaymentMethod
 
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -89,7 +90,7 @@ def reconcile_payments(date_str: str, *, dry_run: bool) -> None:
         appointments = db.execute(appointments_query).scalars().all()
 
         for appt in appointments:
-            total_paid = sum(p.amount for p in appts.payments)
+            total_paid = sum(p.amount for p in appt.payments)
             balance = total_paid - appt.cost
 
             if balance < 0:
@@ -115,7 +116,7 @@ def reconcile_payments(date_str: str, *, dry_run: bool) -> None:
                 actions = []
                 report["summary"]["overpaid_adjusted"] += 1
 
-                sorted_payments = sorted(payments_for_appt_in_range, key=lambda p: p.payment_date, reverse=True)
+                sorted_payments = sorted(appt.payments, key=lambda p: p.payment_date, reverse=True)
 
                 for payment in sorted_payments:
                     if amount_to_adjust <= 0:
