@@ -32,6 +32,7 @@ ignore = [
   "D401",  # First line should be in imperative mood
   "D415",  # First line should end with a period, question mark, or exclamation point WAT?
 
+  "G004",  # Logging statement uses f-string
 
   "UP038",  # non-pep604-isinstance = This rule is deprecated!
   "COM812", # absence of trailing commas. Conflicts with formatter, so we need to ignore it.

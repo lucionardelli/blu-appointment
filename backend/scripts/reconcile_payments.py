@@ -1,36 +1,27 @@
 import argparse
 import logging
-import os
-import shutil
 import sys
 from datetime import UTC, datetime
+from pathlib import Path
 
 # Add the project root to the Python path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from sqlalchemy import create_engine, func, select
-from sqlalchemy.orm import sessionmaker
 
 from app.appointments.models import Appointment
 from app.core.config import settings
-from app.patients.models import Patient
+from app.patients.models import Patient  # noqa: F401
 from app.payments.models import Payment, PaymentMethod
+from sqlalchemy import create_engine, func, select
+from sqlalchemy.orm import sessionmaker
+
+from scripts.utils import backup_database
 
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
-def backup_database(db_path: str) -> None:
-    """Creates a backup of the database file."""
-    if not os.path.exists(db_path):
-        logger.warning(f"Database file not found at {db_path}. Skipping backup.")
-        return
-    backup_path = f"{db_path}.{datetime.now().strftime('%Y%m%d%H%M%S')}.bak"
-    logger.info(f"Backing up database to {backup_path}...")
-    shutil.copy(db_path, backup_path)
-
-
-def reconcile_payments(date_str: str, *, dry_run: bool) -> None:
+def reconcile_payments(date_str: str, *, dry_run: bool) -> None:  # noqa: C901, PLR0912, PLR0915
     """Reconciles payments on a per-appointment basis.
 
     - Removes payments that are not associated with any appointment.
@@ -43,12 +34,14 @@ def reconcile_payments(date_str: str, *, dry_run: bool) -> None:
 
     db_path = engine.url.database
     if not dry_run:
-        backup_database(db_path)
+        if not backup_database(db_path, logger=logger):
+            logger.warning("Failed to create a backup. Aborting script.")
+            return
 
     db = session_local()
 
     try:
-        reconciliation_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        reconciliation_date = datetime.strptime(date_str, "%Y-%m-%d").date()  # noqa: DTZ007
 
         report = {
             "orphan_payments_removed": [],
@@ -70,7 +63,10 @@ def reconcile_payments(date_str: str, *, dry_run: bool) -> None:
 
         if orphan_payments:
             for payment in orphan_payments:
-                action = f"Deleted orphan payment {payment.id} of amount {payment.amount} from date {payment.payment_date.date()}."
+                action = (
+                    f"Deleted orphan payment {payment.id} of amount {payment.amount} "
+                    f"from date {payment.payment_date.date()}."
+                )
                 report["orphan_payments_removed"].append(action)
                 if not dry_run:
                     db.delete(payment)
@@ -84,7 +80,7 @@ def reconcile_payments(date_str: str, *, dry_run: bool) -> None:
             db.execute(select(PaymentMethod).where(PaymentMethod.is_active.is_(True))).scalars().first()
         )
         if not default_payment_method:
-            raise ValueError("No active payment method found. Cannot create new payments for underpaid appointments.")
+            raise ValueError("No active payment method found. Cannot create new payments for underpaid appointments.")  # noqa: TRY301
 
         appointments_query = select(Appointment).where(func.date(Appointment.start_time) <= reconciliation_date)
         appointments = db.execute(appointments_query).scalars().all()
@@ -96,7 +92,10 @@ def reconcile_payments(date_str: str, *, dry_run: bool) -> None:
             if balance < 0:
                 # Underpaid
                 amount_due = -balance
-                action = f"Appointment {appt.id} (cost: {appt.cost}, paid: {total_paid}): created payment for remaining {amount_due}."
+                action = (
+                    f"Appointment {appt.id} (cost: {appt.cost}, paid: {total_paid}):"
+                    f"created payment for remaining {amount_due}."
+                )
                 report["underpaid"].append(action)
                 report["summary"]["underpaid_created"] += 1
 
@@ -123,7 +122,10 @@ def reconcile_payments(date_str: str, *, dry_run: bool) -> None:
                         break
 
                     if payment.amount > amount_to_adjust:
-                        action = f"Reduced payment {payment.id} (amount {payment.amount}) by {amount_to_adjust} to {payment.amount - amount_to_adjust}."
+                        action = (
+                            f"Reduced payment {payment.id} (amount {payment.amount}) by "
+                            f"{amount_to_adjust} to {payment.amount - amount_to_adjust}."
+                        )
                         actions.append(action)
                         if not dry_run:
                             payment.amount -= amount_to_adjust
@@ -177,8 +179,8 @@ def reconcile_payments(date_str: str, *, dry_run: bool) -> None:
                 for action in item["actions"]:
                     logger.info(f"    - {action}")
 
-    except Exception as e:
-        logger.error(f"An error occurred: {e}", exc_info=True)
+    except Exception:
+        logger.exception("An error occurred during reconciliation")
         db.rollback()
     finally:
         db.close()
