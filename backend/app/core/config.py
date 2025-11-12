@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     # Defaults to a local SQLite database in the .app//db/ directory.
     DATABASE_URL: str = f"sqlite:///{os.path.join(APP_DIR, 'db', 'blu.sqlite3')}"
 
+    ENV: str = "production"
+
     # Pydantic settings configuration
     # It will load variables from a .env file and the system environment.
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
