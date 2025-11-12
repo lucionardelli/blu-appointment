@@ -39,6 +39,23 @@ app.add_middleware(
 )
 
 
+@app.middleware("http")
+async def profile_requests(request, call_next):
+    """Profile requests if 'profile' query param is present."""
+    if "profile" in request.query_params:
+        from pyinstrument import Profiler
+
+        profiler = Profiler(async_mode="enabled")
+        with profiler:
+            response = await call_next(request)
+
+        with open("profile.html", "w", encoding="utf-8") as f:
+            f.write(profiler.output_html())
+        return response
+    return await call_next(request)
+
+
+
 @app.get("/")
 def read_root() -> dict[str, str]:
     return {"message": "Welcome to the Blu API"}
