@@ -24,7 +24,7 @@
                     {{ t("appointments_today") }}
                   </dt>
                   <dd class="text-2xl font-bold text-blue-900">
-                    {{ metrics.appointments_today }}
+                    {{ appointments_today }}
                   </dd>
                 </dl>
               </div>
@@ -45,7 +45,7 @@
                     {{ t("appointments_this_week") }}
                   </dt>
                   <dd class="text-2xl font-bold text-green-900">
-                    {{ metrics.appointments_this_week }}
+                    {{ appointments_this_week }}
                   </dd>
                 </dl>
               </div>
@@ -61,12 +61,20 @@
             {{ t("financial_overview") }}
           </h3>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Last Month -->
+            <!-- Month 1 -->
             <div>
-              <h4 class="text-md font-semibold text-gray-700 mb-2">
-                {{ t("last_month") }}
-              </h4>
-              <dl class="space-y-2">
+              <DatePicker
+                :key="locale"
+                v-model="month1"
+                month-picker
+                :clearable="false"
+                teleport="body"
+                auto-apply
+                :locale="locale"
+                format="MMMM yyyy"
+                class="mb-2"
+              />
+              <dl v-if="metrics1" class="space-y-2">
                 <div
                   class="flex justify-between items-baseline p-2 bg-gray-100 rounded"
                 >
@@ -74,7 +82,7 @@
                     {{ t("expected_revenue") }}
                   </dt>
                   <dd class="text-md font-semibold text-gray-900">
-                    {{ formatCurrency(metrics.expected_revenue_last_month) }}
+                    {{ formatCurrency(metrics1.total_revenue) }}
                   </dd>
                 </div>
                 <div
@@ -84,7 +92,7 @@
                     {{ t("total_charged") }}
                   </dt>
                   <dd class="text-md font-semibold text-green-600">
-                    {{ formatCurrency(metrics.total_charged_last_month) }}
+                    {{ formatCurrency(metrics1.total_charged) }}
                   </dd>
                 </div>
                 <div
@@ -94,17 +102,25 @@
                     {{ t("total_due") }}
                   </dt>
                   <dd class="text-md font-semibold text-red-600">
-                    {{ formatCurrency(metrics.total_due_last_month) }}
+                    {{ formatCurrency(metrics1.total_due) }}
                   </dd>
                 </div>
               </dl>
             </div>
-            <!-- This Month -->
+            <!-- Month 2 -->
             <div>
-              <h4 class="text-md font-semibold text-gray-700 mb-2">
-                {{ t("this_month") }}
-              </h4>
-              <dl class="space-y-2">
+              <DatePicker
+                :key="locale"
+                v-model="month2"
+                month-picker
+                :clearable="false"
+                teleport="body"
+                auto-apply
+                :locale="locale"
+                format="MMMM yyyy"
+                class="mb-2"
+              />
+              <dl v-if="metrics2" class="space-y-2">
                 <div
                   class="flex justify-between items-baseline p-2 bg-gray-50 rounded"
                 >
@@ -112,7 +128,7 @@
                     {{ t("expected_revenue") }}
                   </dt>
                   <dd class="text-md font-semibold text-gray-900">
-                    {{ formatCurrency(metrics.expected_revenue_this_month) }}
+                    {{ formatCurrency(metrics2.total_revenue) }}
                   </dd>
                 </div>
                 <div
@@ -122,7 +138,7 @@
                     {{ t("total_charged") }}
                   </dt>
                   <dd class="text-md font-semibold text-green-600">
-                    {{ formatCurrency(metrics.total_charged_this_month) }}
+                    {{ formatCurrency(metrics2.total_charged) }}
                   </dd>
                 </div>
                 <div
@@ -132,7 +148,7 @@
                     {{ t("total_due") }}
                   </dt>
                   <dd class="text-md font-semibold text-red-600">
-                    {{ formatCurrency(metrics.total_due_this_month) }}
+                    {{ formatCurrency(metrics2.total_due) }}
                   </dd>
                 </div>
               </dl>
@@ -145,27 +161,66 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import metricsService from "../services/metricsService";
+import DatePicker from "@vuepic/vue-datepicker";
+import "@vuepic/vue-datepicker/dist/main.css";
+import { startOfMonth, endOfMonth, subMonths, format } from "date-fns";
 
-const { t } = useI18n();
-const metrics = ref({});
+const { t, locale } = useI18n();
 const loading = ref(true);
 const error = ref(false);
 
-const fetchMetrics = async () => {
+const today = new Date();
+const lastMonth = subMonths(today, 1);
+const month1 = ref({
+  month: lastMonth.getMonth(),
+  year: lastMonth.getFullYear(),
+});
+const month2 = ref({
+  month: today.getMonth(),
+  year: today.getFullYear(),
+});
+
+const metrics1 = ref(null);
+const metrics2 = ref(null);
+const appointments_today = ref(0);
+const appointments_this_week = ref(0);
+
+const fetchFinancialMetrics = async (month, metricsRef) => {
   try {
-    loading.value = true;
-    const response = await metricsService.getDashboardMetrics();
-    metrics.value = response;
+    const startDate = startOfMonth(new Date(month.year, month.month));
+    const endDate = endOfMonth(startDate);
+    const response = await metricsService.getAppointmentMetrics(
+      format(startDate, "yyyy-MM-dd"),
+      format(endDate, "yyyy-MM-dd"),
+    );
+    metricsRef.value = response;
   } catch (err) {
     error.value = true;
     console.error(err);
-  } finally {
-    loading.value = false;
   }
 };
+
+const fetchDashboardMetrics = async () => {
+  try {
+    const response = await metricsService.getDashboardMetrics();
+    appointments_today.value = response.appointments_today;
+    appointments_this_week.value = response.appointments_this_week;
+  } catch (err) {
+    error.value = true;
+    console.error(err);
+  }
+};
+
+watch(month1, (newMonth) => {
+  fetchFinancialMetrics(newMonth, metrics1);
+});
+
+watch(month2, (newMonth) => {
+  fetchFinancialMetrics(newMonth, metrics2);
+});
 
 const formatCurrency = (value) => {
   if (value === undefined || value === null) {
@@ -177,7 +232,13 @@ const formatCurrency = (value) => {
   }).format(value);
 };
 
-onMounted(() => {
-  fetchMetrics();
+onMounted(async () => {
+  loading.value = true;
+  await Promise.all([
+    fetchDashboardMetrics(),
+    fetchFinancialMetrics(month1.value, metrics1),
+    fetchFinancialMetrics(month2.value, metrics2),
+  ]);
+  loading.value = false;
 });
 </script>

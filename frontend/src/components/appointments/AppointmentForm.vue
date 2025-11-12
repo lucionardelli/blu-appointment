@@ -389,8 +389,8 @@
                 class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
               >
                 <button
-                  @click="deletePayment(payment.id)"
                   class="text-red-600 hover:text-red-900"
+                  @click="deletePayment(payment.id)"
                 >
                   {{ t("delete") }}
                 </button>
@@ -943,7 +943,7 @@ const deletePayment = async (paymentId) => {
   if (window.confirm(t("confirm_delete_payment"))) {
     try {
       await api.delete(`/payments/${paymentId}/`);
-      await fetchAppointment();
+      await fetchAppointmentDetails();
     } catch (error) {
       console.error("Error deleting payment:", error);
     }
