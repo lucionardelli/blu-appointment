@@ -432,21 +432,36 @@
               <tr>
                 <th
                   scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                  @click="sortByAppointment('start_time')"
                 >
                   {{ t("date") }}
+                  <span v-if="sortKeyAppointments === 'start_time'">
+                    <span v-if="sortOrderAppointments === 'asc'">▲</span>
+                    <span v-else>▼</span>
+                  </span>
                 </th>
                 <th
                   scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                  @click="sortByAppointment('specialty.name')"
                 >
                   {{ t("specialty") }}
+                  <span v-if="sortKeyAppointments === 'specialty.name'">
+                    <span v-if="sortOrderAppointments === 'asc'">▲</span>
+                    <span v-else>▼</span>
+                  </span>
                 </th>
                 <th
                   scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                  @click="sortByAppointment('statusText')"
                 >
                   {{ t("status") }}
+                  <span v-if="sortKeyAppointments === 'statusText'">
+                    <span v-if="sortOrderAppointments === 'asc'">▲</span>
+                    <span v-else>▼</span>
+                  </span>
                 </th>
                 <th scope="col" class="relative px-6 py-3">
                   <span class="sr-only">{{ t("view") }}</span>
@@ -455,7 +470,7 @@
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
               <tr
-                v-for="appointment in filteredAppointments"
+                v-for="appointment in sortedAppointments"
                 :key="appointment.id"
                 :class="{ 'line-through text-gray-500': appointment.cancelled }"
               >
@@ -521,26 +536,41 @@
               <tr>
                 <th
                   scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                  @click="sortByPayment('payment_date')"
                 >
                   {{ t("date") }}
+                  <span v-if="sortKeyPayments === 'payment_date'">
+                    <span v-if="sortOrderPayments === 'asc'">▲</span>
+                    <span v-else>▼</span>
+                  </span>
                 </th>
                 <th
                   scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                  @click="sortByPayment('payment_method.name')"
                 >
                   {{ t("payment_method") }}
+                  <span v-if="sortKeyPayments === 'payment_method.name'">
+                    <span v-if="sortOrderPayments === 'asc'">▲</span>
+                    <span v-else>▼</span>
+                  </span>
                 </th>
                 <th
                   scope="col"
-                  class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                  @click="sortByPayment('amount')"
                 >
                   {{ t("amount") }}
+                  <span v-if="sortKeyPayments === 'amount'">
+                    <span v-if="sortOrderPayments === 'asc'">▲</span>
+                    <span v-else>▼</span>
+                  </span>
                 </th>
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-              <tr v-for="payment in payments" :key="payment.id">
+              <tr v-for="payment in sortedPayments" :key="payment.id">
                 <td
                   class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
                 >
@@ -809,6 +839,7 @@ import AppointmentFormModal from "@/components/appointments/AppointmentFormModal
 import { useSpecialtyStore } from "@/stores/specialties";
 import DatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
+import { useSort } from "@/utils/useSort.js";
 
 import vSelect from "vue-select";
 import "vue-select/dist/vue-select.css";
@@ -916,7 +947,7 @@ const renderedMedicalHistory = computed(() => {
   return "";
 });
 
-  const financialBalance = computed(() => {
+const financialBalance = computed(() => {
   if (!patient.value || !patient.value.financial_summary) {
     return {};
   }
@@ -928,10 +959,10 @@ const renderedMedicalHistory = computed(() => {
     color = "bg-green-500";
   }
   return {
-      label: t("balance"),
-      value: balance,
-      color: color,
-    };
+    label: t("balance"),
+    value: balance,
+    color: color,
+  };
 });
 const appointmentSummary = computed(() => {
   if (!appointments.value || appointments.value.length === 0) {
@@ -980,13 +1011,30 @@ const getPaymentStatus = (appointment) => {
   return { text: t("overdue"), color: "text-red-500" };
 };
 
-const filteredAppointments = computed(() => {
-  if (showCancelledAppointments.value) {
-    return appointments.value;
-  } else {
-    return appointments.value.filter((app) => !app.cancelled);
-  }
+const appointmentsToShow = computed(() => {
+  const baseAppointments = showCancelledAppointments.value
+    ? appointments.value
+    : appointments.value.filter((app) => !app.cancelled);
+
+  return baseAppointments.map((app) => ({
+    ...app,
+    statusText: getPaymentStatus(app).text,
+  }));
 });
+
+const {
+  sortKey: sortKeyAppointments,
+  sortOrder: sortOrderAppointments,
+  sortedData: sortedAppointments,
+  sortBy: sortByAppointment,
+} = useSort(appointmentsToShow, "start_time", "desc");
+
+const {
+  sortKey: sortKeyPayments,
+  sortOrder: sortOrderPayments,
+  sortedData: sortedPayments,
+  sortBy: sortByPayment,
+} = useSort(payments, "payment_date", "desc");
 
 const fetchPatientDetails = async () => {
   if (route.params.id === "new") {
@@ -1022,8 +1070,6 @@ const fetchPatientDetails = async () => {
     console.error("Error fetching patient details:", err);
   }
 };
-
-
 
 const handlePaymentSave = () => {
   showPaymentForm.value = false;
