@@ -11,11 +11,6 @@ let refreshPromise = null;
 
 instance.interceptors.request.use(
   (config) => {
-    const authStore = useAuthStore();
-    if (authStore.token) {
-      config.headers.Authorization = `Bearer ${authStore.token}`;
-    }
-
     const authEndpoints = ["/auth/token", "/auth/refresh", "/auth/logout"];
     if (config.url && !authEndpoints.some((endpoint) => config.url === endpoint)) {
       const q_index = config.url.indexOf("?");
@@ -54,9 +49,9 @@ instance.interceptors.response.use(
       if (!refreshPromise) {
         refreshPromise = instance.post("/auth/refresh")
           .then((response) => {
-            const { access_token, user } = response.data;
-            authStore.updateAuth(access_token, user);
-            return access_token;
+            const { user } = response.data;
+            authStore.updateUser(user);
+            return true;
           })
           .catch((refreshError) => {
             authStore.logout();
@@ -69,8 +64,7 @@ instance.interceptors.response.use(
       }
 
       try {
-        const access_token = await refreshPromise;
-        originalRequest.headers.Authorization = `Bearer ${access_token}`;
+        await refreshPromise;
         return instance(originalRequest);
       } catch (refreshError) {
         return Promise.reject(refreshError);

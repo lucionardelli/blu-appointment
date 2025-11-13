@@ -9,20 +9,18 @@ export const useAuthStore = defineStore("auth", {
       user = JSON.parse(localStorage.getItem("user"));
     } catch (e) {
       console.error("Error parsing user from local storage:", e);
-      // If parsing fails, user will remain null, triggering logout if needed
     }
     return {
       user: user,
-      token: localStorage.getItem("token") || null,
     };
   },
   getters: {
-    isAuthenticated: (state) => !!state.token && !!state.user,
+    isAuthenticated: (state) => !!state.user,
   },
   actions: {
     initialize() {
       // Check if user data is valid after initial load
-      if (this.token && (!this.user || !this.user.id)) {
+      if (!this.user || !this.user.id) {
         console.warn(
           "Incomplete or invalid user data found in local storage. Logging out.",
         );
@@ -43,10 +41,8 @@ export const useAuthStore = defineStore("auth", {
             },
           },
         );
-        const { access_token, user } = response.data;
-        this.token = access_token;
+        const { user } = response.data;
         this.user = user;
-        localStorage.setItem("token", access_token);
         localStorage.setItem("user", JSON.stringify(this.user));
 
         // Fetch initial data for specialties
@@ -60,10 +56,8 @@ export const useAuthStore = defineStore("auth", {
         throw error;
       }
     },
-    async updateAuth(token, user) {
-      this.token = token;
+    async updateUser(user) {
       this.user = user;
-      localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
     },
     async logout() {
@@ -73,8 +67,6 @@ export const useAuthStore = defineStore("auth", {
         console.error("Logout failed:", error);
       } finally {
         this.user = null;
-        this.token = null;
-        localStorage.removeItem("token");
         localStorage.removeItem("user");
 
         // Reset Pinia stores

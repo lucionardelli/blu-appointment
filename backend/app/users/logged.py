@@ -3,10 +3,10 @@ from __future__ import annotations
 import os
 from typing import TYPE_CHECKING, Annotated
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Cookie, Depends, HTTPException, status
 from jose import JWTError, jwt
 
-from app.core.security import ALGORITHM, oauth2_scheme, verify_password
+from app.core.security import ALGORITHM, verify_password
 from app.db.base import get_db
 from app.users.services import get_user_by_username
 
@@ -32,13 +32,18 @@ def validate_token(db: Session, token: str) -> User | None:
     return get_user_by_username(db, username)
 
 
-def get_current_user(db: Annotated[Session, Depends(get_db)], token: str = Depends(oauth2_scheme)) -> User:
+def get_current_user(
+    db: Annotated[Session, Depends(get_db)],
+    access_token: Annotated[str | None, Cookie()] = None,
+) -> User:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    user = validate_token(db, token)
+    if not access_token:
+        raise credentials_exception
+    user = validate_token(db, access_token)
     if user is None:
         raise credentials_exception
     return user
