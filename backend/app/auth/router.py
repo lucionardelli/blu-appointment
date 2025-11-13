@@ -43,13 +43,14 @@ async def login_for_access_token(
     access_token = create_access_token(data={"sub": user.username})
     refresh_token = create_refresh_token(data={"sub": user.username})
 
-    is_production = settings.ENV == "production"  # In production, only support HTTPS
+    is_production = settings.ENV == "production"
     response.set_cookie(
         key="access_token",
         value=access_token,
         httponly=True,
         samesite="strict",
         secure=is_production,
+        domain=settings.COOKIE_DOMAIN,
         path="/",
         max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )
@@ -59,6 +60,7 @@ async def login_for_access_token(
         httponly=True,
         samesite="strict",
         secure=is_production,
+        domain=settings.COOKIE_DOMAIN,
         path="/",
         max_age=REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
     )
@@ -92,13 +94,14 @@ async def refresh_access_token(
     # Rotate refresh token for better security
     new_refresh_token = create_refresh_token(data={"sub": user.username})
 
-    is_production = settings.ENV == "production"  # In production, only support HTTPS
+    is_production = settings.ENV == "production"
     response.set_cookie(
         key="access_token",
         value=access_token,
         httponly=True,
         samesite="strict",
         secure=is_production,
+        domain=settings.COOKIE_DOMAIN,
         path="/",
         max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )
@@ -108,6 +111,7 @@ async def refresh_access_token(
         httponly=True,
         samesite="strict",
         secure=is_production,
+        domain=settings.COOKIE_DOMAIN,
         path="/",
         max_age=REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
     )
@@ -119,6 +123,6 @@ async def logout(
     response: Response,
     _user: Annotated[User, Depends(get_current_user)],
 ) -> dict[str, str]:
-    response.delete_cookie("access_token", path="/")
-    response.delete_cookie("refresh_token", path="/")
+    response.delete_cookie("access_token", path="/", domain=settings.COOKIE_DOMAIN)
+    response.delete_cookie("refresh_token", path="/", domain=settings.COOKIE_DOMAIN)
     return {"message": "Logout successful"}

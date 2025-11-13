@@ -19,6 +19,10 @@ class Settings(BaseSettings):
 
     ENV: str = "production"
 
+    # Cookie domain for security (e.g., ".bluroom.com.ar" to include subdomains or "bluroom.com.ar" for exact domain)
+    # Set to None for development (allows localhost)
+    COOKIE_DOMAIN: str | None = None
+
     # Pydantic settings configuration
     # It will load variables from a .env file and the system environment.
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
