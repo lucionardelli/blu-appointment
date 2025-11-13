@@ -60,15 +60,27 @@ export const useAuthStore = defineStore("auth", {
         throw error;
       }
     },
-    logout() {
-      this.user = null;
-      this.token = null;
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
+    async updateAuth(token, user) {
+      this.token = token;
+      this.user = user;
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+    },
+    async logout() {
+      try {
+        await api.post("/auth/logout");
+      } catch (error) {
+        console.error("Logout failed:", error);
+      } finally {
+        this.user = null;
+        this.token = null;
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
 
-      // Reset Pinia stores
-      const specialtyStore = useSpecialtyStore();
-      specialtyStore.reset();
+        // Reset Pinia stores
+        const specialtyStore = useSpecialtyStore();
+        specialtyStore.reset();
+      }
     },
   },
 });
