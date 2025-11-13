@@ -33,8 +33,8 @@ def validate_token(db: Session, token: str) -> User | None:
 
 
 def get_current_user(
-    db: Annotated[Session, Depends(get_db)],
     access_token: Annotated[str | None, Cookie()] = None,
+    db: Session = Depends(get_db),
 ) -> User:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
