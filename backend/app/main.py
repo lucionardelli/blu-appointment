@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.appointments.router import appointments_router, working_hours_router, metrics_router
+from app.core.config import settings
 from app.db.base import Base, engine
 from app.patients.router import router as patients_router
 from app.specialties.router import router as specialties_router
@@ -27,8 +28,7 @@ app = FastAPI(
 )
 
 # CORS configuration
-origins_str = os.getenv("CORS_ORIGINS", "")
-allowed_origins = [origin.strip() for origin in origins_str.split(",") if origin.strip()]
+allowed_origins = [origin.strip() for origin in settings.CORS_ORIGINS.split(",") if origin.strip()]
 
 app.add_middleware(
     CORSMiddleware,

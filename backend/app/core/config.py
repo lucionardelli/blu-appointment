@@ -23,6 +23,9 @@ class Settings(BaseSettings):
     # Set to None for development (allows localhost)
     COOKIE_DOMAIN: str | None = None
 
+    # CORS origins (comma-separated list for production)
+    CORS_ORIGINS: str = "http://localhost:5173"
+
     # Pydantic settings configuration
     # It will load variables from a .env file and the system environment.
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
