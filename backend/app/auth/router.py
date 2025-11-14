@@ -25,6 +25,31 @@ login_limiter = RateLimiter(requests=5, window=60)
 refresh_limiter = RateLimiter(requests=10, window=60)
 
 
+def _set_auth_cookies(response: Response, access_token: str, refresh_token: str) -> None:
+    is_production = settings.ENV == "production"  # In production, use stricter cookie settings, i.e. https only
+    samesite_policy = "strict" if is_production else "lax"
+    cookie_kwargs = {
+        "httponly": True,
+        "samesite": samesite_policy,
+        "secure": is_production,
+        "path": "/",
+        "domain": settings.COOKIE_DOMAIN,
+    }
+
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        **cookie_kwargs,
+    )
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        max_age=REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
+        **cookie_kwargs,
+    )
+
+
 @router.post("/token")
 async def login_for_access_token(
     request: Request,
@@ -42,28 +67,7 @@ async def login_for_access_token(
         )
     access_token = create_access_token(data={"sub": user.username})
     refresh_token = create_refresh_token(data={"sub": user.username})
-
-    is_production = settings.ENV == "production"
-    response.set_cookie(
-        key="access_token",
-        value=access_token,
-        httponly=True,
-        samesite="strict",
-        secure=is_production,
-        domain=settings.COOKIE_DOMAIN,
-        path="/",
-        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-    )
-    response.set_cookie(
-        key="refresh_token",
-        value=refresh_token,
-        httponly=True,
-        samesite="strict",
-        secure=is_production,
-        domain=settings.COOKIE_DOMAIN,
-        path="/",
-        max_age=REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
-    )
+    _set_auth_cookies(response, access_token, refresh_token)
     return Token(access_token=access_token, token_type="bearer", user=user)  # noqa: S106
 
 
@@ -90,31 +94,8 @@ async def refresh_access_token(
         )
 
     access_token = create_access_token(data={"sub": user.username})
-
-    # Rotate refresh token for better security
     new_refresh_token = create_refresh_token(data={"sub": user.username})
-
-    is_production = settings.ENV == "production"
-    response.set_cookie(
-        key="access_token",
-        value=access_token,
-        httponly=True,
-        samesite="strict",
-        secure=is_production,
-        domain=settings.COOKIE_DOMAIN,
-        path="/",
-        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-    )
-    response.set_cookie(
-        key="refresh_token",
-        value=new_refresh_token,
-        httponly=True,
-        samesite="strict",
-        secure=is_production,
-        domain=settings.COOKIE_DOMAIN,
-        path="/",
-        max_age=REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
-    )
+    _set_auth_cookies(response, access_token, new_refresh_token)
     return Token(access_token=access_token, token_type="bearer", user=user)  # noqa: S106
 
 
@@ -123,6 +104,10 @@ async def logout(
     response: Response,
     _user: Annotated[User, Depends(get_current_user)],
 ) -> dict[str, str]:
-    response.delete_cookie("access_token", path="/", domain=settings.COOKIE_DOMAIN)
-    response.delete_cookie("refresh_token", path="/", domain=settings.COOKIE_DOMAIN)
+    cookie_kwargs = {
+        "path": "/",
+        "domain": settings.COOKIE_DOMAIN,
+    }
+    response.delete_cookie("access_token", **cookie_kwargs)
+    response.delete_cookie("refresh_token", **cookie_kwargs)
     return {"message": "Logout successful"}
