@@ -46,6 +46,7 @@ const toggleDropdown = () => {
 const switchLanguage = (lang) => {
   locale.value = lang;
   localStorage.setItem("language", lang);
+  document.documentElement.lang = lang;
   isDropdownOpen.value = false;
 };
 </script>
